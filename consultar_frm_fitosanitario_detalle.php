@@ -24,8 +24,8 @@ $dir_anx=CrearObtenerDirAnx("formularios/estados_fitosanitarios/anexos");
 							<th>#</th>
 							<th>Motonave</th>
 							<th>Producto</th>
-							<th>Infectación producto</th>
-							<th>Grado infectación</th>
+							<th>Infestación producto</th>
+							<th>Grado infestación</th>
 							<th>Anexo</th>
 						</tr>
 					</thead>

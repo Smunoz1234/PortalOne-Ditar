@@ -1,14 +1,9 @@
 <?php 
-if(isset($_GET['id'])&&$_GET['id']!=""){
 	require_once("includes/conexion.php");
-	PermitirAcceso(106);
+	PermitirAcceso(1704);
 //require_once("includes/conexion_hn.php");
 
-//Nombre del formulario
-$SQL_Cat=Seleccionar("uvw_tbl_Categorias","ID_Categoria, NombreCategoria, NombreCategoriaPadre","ID_Categoria = '".base64_decode($_GET['id'])."'");
-$row_Cat=sqlsrv_fetch_array($SQL_Cat);
-$sw=0;
-	
+$sw=0;	
 //Fechas
 if(isset($_GET['FechaInicial'])&&$_GET['FechaInicial']!=""){
 	$FechaInicial=$_GET['FechaInicial'];
@@ -64,7 +59,7 @@ $SQL_Supervisor=Seleccionar('uvw_tbl_EvaluacionTecnicos','DISTINCT id_empleado_s
 <head>
 <?php include_once("includes/cabecera.php"); ?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title><?php echo $row_Cat['NombreCategoria'];?> | <?php echo NOMBRE_PORTAL;?></title>
+<title>Evaluación de técnicos | <?php echo NOMBRE_PORTAL;?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <script type="text/javascript">
@@ -169,16 +164,16 @@ function SeleccionarTodos(){
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2><?php echo $row_Cat['NombreCategoria'];?></h2>
+                    <h2>Evaluación de técnicos</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
                         </li>
                         <li>
-                            <a href="#"><?php echo $row_Cat['NombreCategoriaPadre'];?></a>
+                            <a href="#">Formularios</a>
                         </li>
                         <li class="active">
-                            <strong><?php echo $row_Cat['NombreCategoria'];?></strong>
+                            <strong>Evaluación de técnicos</strong>
                         </li>
                     </ol>
                 </div>			
@@ -276,7 +271,6 @@ function SeleccionarTodos(){
 							</div>
 						</div>
 					   <?php }?>
-					  <input type="hidden" name="id" id="id" value="<?php echo $_GET['id'];?>" />
 				 </form>
 			</div>
 			</div>
@@ -324,7 +318,7 @@ function SeleccionarTodos(){
 									<td id="comentCierre<?php echo $row['id_evaluacion_tecnico'];?>"><?php echo SubComent($row['comentarios_cierre'],140);?></td>
 									<td><?php echo $row['fecha_hora']->format('Y-m-d H:i');?></td>
 									<td><?php echo $row['nombre_usuario_creacion'];?></td>	
-									<td><?php echo $row['fecha_cierre']->format('Y-m-d H:i');?></td>
+									<td><?php echo ($row['fecha_cierre']!="") ? $row['fecha_cierre']->format('Y-m-d H:i') : "";?></td>
 									<td><?php echo $row['nombre_usuario_cierre'];?></td>	
 									<td><span id="lblEstado<?php echo $row['id_evaluacion_tecnico'];?>" <?php if($row['estado']=='O'){echo "class='label label-info'";}elseif($row['estado']=='A'){echo "class='label label-danger'";}else{echo "class='label label-primary'";}?>><?php echo $row['nombre_estado'];?></span></td>
 									<td class="text-center form-inline w-80">
@@ -479,4 +473,4 @@ function PonerQuitarClase(ID){
 </body>
 
 <!-- InstanceEnd --></html>
-<?php sqlsrv_close($conexion);}?>
+<?php sqlsrv_close($conexion);?>

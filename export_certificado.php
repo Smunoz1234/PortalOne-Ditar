@@ -33,7 +33,7 @@ function Header()
 	global $FFinal;
 	
     // Logo
-    $this->Image('img/header.jpg',10,8,80,30);
+    $this->Image('img/header.jpg',10,8,80);
     // Salto de línea
 	$this->SetLineWidth(.3);
 	$this->Line(11,40,200,40);

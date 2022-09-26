@@ -390,16 +390,12 @@ if((isset($_POST['id'])&&$_POST['id']!="")||(isset($_GET['id'])&&$_GET['id']!=""
 							'pIdObjeto' => $archivos[$i]['Obj'],//Código del objeto
 							'pIdFormato' => $archivos[$i]['Serie'],//Id del formato o la serie, en la misma poscicion que la de la factura
 							'pDockey' => $archivos[$i]['Num'],
-							'pID' => '-1',
+							'pID' => (isset($_REQUEST['idreg'])) ? base64_decode($_REQUEST['idreg']) : '',
 							'pUsuario' => $_SESSION['User']
 						);
 						
-//						$Parametros=array(
-//							'pIdObjeto' => base64_decode($_GET['ObType']),//Código del objeto
-//							'pIdFormato' => base64_decode($IdSeries[$i]),//Id del formato o la serie, en la misma poscicion que la de la factura
-//							'pDockey' => base64_decode($Facts[$i]),
-//							'pUsuario' => $_SESSION['User']
-//						);
+//						print_r($Parametros);
+//						exit();
 
 						$result = $Client->CrearFormatoSAP($Parametros);
 						if(is_soap_fault($result)){
@@ -464,7 +460,7 @@ if((isset($_POST['id'])&&$_POST['id']!="")||(isset($_GET['id'])&&$_GET['id']!=""
 						'pIdObjeto' => base64_decode($_REQUEST['ObType']),//Codigo del objeto
 						'pIdFormato' => base64_decode($_REQUEST['IdFrm']),//Id del formato (Serie)
 						'pDockey' => base64_decode($_REQUEST['DocKey']),//DocEntry del documento
-						'pID' => (isset($_REQUEST['IdReg'])) ? base64_decode($_REQUEST['IdReg']) : '-1',//Id de la tabla de formatos (para cuando hay varios formatos de la misma serie)
+						'pID' => (isset($_REQUEST['IdReg'])) ? base64_decode($_REQUEST['IdReg']) : '',//Id de la tabla de formatos (para cuando hay varios formatos de la misma serie)
 						'pUsuario' => $_SESSION['User']
 					);
 

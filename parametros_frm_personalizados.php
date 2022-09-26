@@ -22,7 +22,23 @@ if(isset($_POST['frmType'])&&($_POST['frmType']!="")){
 					$msg_error="No se pudo cargar el anexo";
 				}
 			}else{
-				$NuevoNombre[0]="";
+				if($_POST['Metodo']==1){
+					$Ruta=ObtenerVariable("PlanoGenericoMonitoreos");
+					if($Ruta!=""){
+						$ar=explode("\\",$Ruta);
+						$Plano=end($ar);
+						$NuevoNombre=FormatoNombreAnexo($Plano);
+						if(!copy($Ruta,$dir_new.$NuevoNombre[0])){
+							$sw_error=1;
+							$msg_error="No se pudo mover el anexo por defecto a la carpeta de anexos local";
+						}
+					}else{
+						$NuevoNombre[0]="";
+					}
+				}else{
+					$NuevoNombre[0]="";
+				}
+				
 			}
 
 			$Param=array(
@@ -117,6 +133,8 @@ $SQL_Transporte=Seleccionar("tbl_TransportesPuerto","*");
 $SQL_TipoInfectacion=Seleccionar("tbl_TipoInfectacionProductos","*");
 
 $SQL_GradoInfectacion=Seleccionar("tbl_GradoInfectacion","*");
+
+$SQL_Muelles=Seleccionar("tbl_MuellesPuerto","*");
 
 $SQL_Cliente=Seleccionar('uvw_Sap_tbl_Clientes','CodigoCliente, NombreCliente','','NombreCliente');
 
@@ -336,11 +354,11 @@ if(isset($sw_error)&&($sw_error==1)){
 													</div>
 												</div>
 												<div class="table-responsive">
-													<table width="100%" class="table table-bordered">
+													<table width="100%" class="table table-striped table-bordered table-hover dataTables-example">
 														<thead>
 															<tr>
-																<th>Código transporte</th>
-																<th>Nombre transporte</th>
+																<th>Código motonave</th>
+																<th>Nombre motonave</th>
 																<th>REG (Registro capitanía)</th>
 																<th>Comentarios</th>
 																<th>Estado</th>
@@ -368,7 +386,7 @@ if(isset($sw_error)&&($sw_error==1)){
 										</div>
 										<div class="ibox" id="TipoInfectacion">
 											<div class="ibox-title bg-success">
-												<h5 class="collapse-link"><i class="fa fa-list"></i> Tipo infectación productos</h5>
+												<h5 class="collapse-link"><i class="fa fa-list"></i> Tipo infestación productos</h5>
 												 <a class="collapse-link pull-right">
 													<i class="fa fa-chevron-up"></i>
 												</a>	
@@ -383,8 +401,8 @@ if(isset($sw_error)&&($sw_error==1)){
 													<table class="table table-striped table-bordered table-hover dataTables-example">
 														<thead>
 															<tr>
-																<th>Código infectación</th>
-																<th>Nombre infectación</th>
+																<th>Código infestación</th>
+																<th>Nombre infestación</th>
 																<th>Comentarios</th>
 																<th>Estado</th>
 																<th>Acciones</th>
@@ -411,7 +429,7 @@ if(isset($sw_error)&&($sw_error==1)){
 										</div>
 										<div class="ibox" id="GradoInfectacion">
 											<div class="ibox-title bg-success">
-												<h5 class="collapse-link"><i class="fa fa-list"></i> Grado infectación productos</h5>
+												<h5 class="collapse-link"><i class="fa fa-list"></i> Grado infestación productos</h5>
 												 <a class="collapse-link pull-right">
 													<i class="fa fa-chevron-up"></i>
 												</a>	
@@ -426,8 +444,8 @@ if(isset($sw_error)&&($sw_error==1)){
 													<table class="table table-striped table-bordered table-hover dataTables-example">
 														<thead>
 															<tr>
-																<th>Código grado infectación</th>
-																<th>Nombre grado infectación</th>
+																<th>Código grado infestación</th>
+																<th>Nombre grado infestación</th>
 																<th>Comentarios</th>
 																<th>Estado</th>
 																<th>Acciones</th>
@@ -444,6 +462,49 @@ if(isset($sw_error)&&($sw_error==1)){
 																 <td><?php if($row_GradoInfectacion['estado']=='Y'){echo "ACTIVO";}else{echo "INACTIVO";}?></td>
 																 <td>
 																	<button type="button" class="btn btn-success btn-xs" onClick="EditarCampo('<?php echo $row_GradoInfectacion['id_grado_infectacion'];?>','GradoInfectacion');"><i class="fa fa-pencil"></i> Editar</button>
+																 </td>
+															</tr>
+														 <?php }?>					
+														</tbody>
+													</table>
+												</div>	
+											</div>
+										</div>
+										<div class="ibox" id="Muelles">
+											<div class="ibox-title bg-success">
+												<h5 class="collapse-link"><i class="fa fa-list"></i> Muelles</h5>
+												 <a class="collapse-link pull-right">
+													<i class="fa fa-chevron-up"></i>
+												</a>	
+											</div>
+											<div class="ibox-content">
+												<div class="row m-b-md">
+													<div class="col-lg-12">
+														<button class="btn btn-primary pull-right" type="button" onClick="CrearCampo('Muelles');"><i class="fa fa-plus-circle"></i> Agregar nuevo</button> 
+													</div>
+												</div>
+												<div class="table-responsive">
+													<table class="table table-striped table-bordered table-hover dataTables-example">
+														<thead>
+															<tr>
+																<th>Código muelle</th>
+																<th>Nombre muelle</th>
+																<th>Comentarios</th>
+																<th>Estado</th>
+																<th>Acciones</th>
+															</tr>
+														</thead>
+														<tbody>
+														  <?php  
+															while($row_Muelles=sqlsrv_fetch_array($SQL_Muelles)){
+															?>
+															<tr>
+																 <td><?php echo $row_Muelles['id_muelle_puerto'];?></td>
+																 <td><?php echo $row_Muelles['muelle_puerto'];?></td>
+																 <td><?php echo $row_Muelles['comentarios'];?></td>
+																 <td><?php if($row_Muelles['estado']=='Y'){echo "ACTIVO";}else{echo "INACTIVO";}?></td>
+																 <td>
+																	<button type="button" class="btn btn-success btn-xs" onClick="EditarCampo('<?php echo $row_Muelles['id_muelle_puerto'];?>','Muelles');"><i class="fa fa-pencil"></i> Editar</button>
 																 </td>
 															</tr>
 														 <?php }?>					

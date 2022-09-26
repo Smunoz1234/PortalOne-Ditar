@@ -4,7 +4,7 @@ if (isset($_SESSION)) {
 }
 $parametros_cookies = session_get_cookie_params(); 
 setcookie(session_name(),0,1,$parametros_cookies["path"]);
-//setcookie ("obraAC", "", time() - 3600);
+setcookie ("JWT", "", time() - 3600);
 if(isset($_GET['data'])&&$_GET['data']!=""){
 ?>
 <!DOCTYPE html>

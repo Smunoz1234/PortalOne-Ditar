@@ -1,12 +1,8 @@
 <?php 
-if(isset($_GET['id'])&&$_GET['id']!=""){
 	require_once("includes/conexion.php");
-	PermitirAcceso(106);
+	PermitirAcceso(1702);
 //require_once("includes/conexion_hn.php");
 
-//Nombre del formulario
-$SQL_Cat=Seleccionar("uvw_tbl_Categorias","ID_Categoria, NombreCategoria, NombreCategoriaPadre","ID_Categoria = '".base64_decode($_GET['id'])."'");
-$row_Cat=sqlsrv_fetch_array($SQL_Cat);
 $sw=0;
 	
 //Fechas
@@ -47,7 +43,8 @@ if($sw==1){
 		"'".$Bodega."'",
 		"'".$Motonave."'",
 		"'".$Producto."'",
-		"'".$Usuario."'"
+		"'".$Usuario."'",
+		"'".$_SESSION['CodUser']."'"
 	);
 	$SQL=EjecutarSP('sp_ConsultarFormTemp',$Param);
 }
@@ -74,7 +71,7 @@ $SQL_Usuarios=Seleccionar('uvw_tbl_MonitoreoTemperaturas','DISTINCT id_usuario_c
 <head>
 <?php include_once("includes/cabecera.php"); ?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title><?php echo $row_Cat['NombreCategoria'];?> | <?php echo NOMBRE_PORTAL;?></title>
+<title>Monitoreo de temperatura | <?php echo NOMBRE_PORTAL;?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <script type="text/javascript">
@@ -179,16 +176,16 @@ function SeleccionarTodos(){
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2><?php echo $row_Cat['NombreCategoria'];?></h2>
+                    <h2>Monitoreo de temperatura</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
                         </li>
                         <li>
-                            <a href="#"><?php echo $row_Cat['NombreCategoriaPadre'];?></a>
+                            <a href="#">Formularios</a>
                         </li>
                         <li class="active">
-                            <strong><?php echo $row_Cat['NombreCategoria'];?></strong>
+                            <strong>Monitoreo de temperatura</strong>
                         </li>
                     </ol>
                 </div>			
@@ -307,7 +304,6 @@ function SeleccionarTodos(){
 							</div>
 						</div>
 					   <?php }?>
-					  <input type="hidden" name="id" id="id" value="<?php echo $_GET['id'];?>" />
 				 </form>
 			</div>
 			</div>
@@ -530,4 +526,4 @@ function PonerQuitarClase(ID){
 </body>
 
 <!-- InstanceEnd --></html>
-<?php sqlsrv_close($conexion);}?>
+<?php sqlsrv_close($conexion);?>

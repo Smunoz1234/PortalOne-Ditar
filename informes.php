@@ -29,15 +29,15 @@ if(isset($_GET['FechaInicial'])&&$_GET['FechaInicial']!=""){
 	$FechaInicial=$_GET['FechaInicial'];
 }else{
 	//Restar 7 dias a la fecha actual
-	$fecha = date('d/m/Y');
+	$fecha = date('Y-m-d');
 	$nuevafecha = strtotime ('-'.ObtenerVariable("DiasRangoFechasInformes").' day');
-	$nuevafecha = date ( 'd/m/Y' , $nuevafecha);
+	$nuevafecha = date ( 'Y-m-d' , $nuevafecha);
 	$FechaInicial=$nuevafecha;
 }
 if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 	$FechaFinal=$_GET['FechaFinal'];
 }else{
-	$FechaFinal=date('d/m/Y');
+	$FechaFinal=date('Y-m-d');
 }
 
 if(isset($_GET['Cliente'])){
@@ -107,7 +107,7 @@ if(isset($_GET['Cliente'])){
 if(isset($_GET['_nw'])&&$_GET['_nw']==base64_encode("NeW")){//Mostrar solo los archivos que no se han descargado
 	$Cons="Select * From uvw_tbl_archivos Where ID_Categoria='".base64_decode($_GET['id'])."' $Filtro and ID_Archivo NOT IN (Select ID_Archivo From uvw_tbl_DescargaArchivos T2 Where T2.ID_Usuario=".$_SESSION['CodUser'].") Order by Fecha DESC";
 }else{
-	$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '$FechaInicial' and '$FechaFinal') $Filtro  and ID_Categoria='".base64_decode($_GET['id'])."' Order by Fecha DESC";
+	$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '".FormatoFecha($FechaInicial)."' and '".FormatoFecha($FechaFinal)."') $Filtro  and ID_Categoria='".base64_decode($_GET['id'])."' Order by Fecha DESC";
 }
 //echo $Cons;
 $SQL=sqlsrv_query($conexion,$Cons);
@@ -118,7 +118,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 <head>
 <?php include_once("includes/cabecera.php"); ?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title><?php echo NOMBRE_PORTAL;?> | <?php echo $row_Cat['NombreCategoria'];?></title>
+<title><?php echo $row_Cat['NombreCategoria'];?> | <?php echo NOMBRE_PORTAL;?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <script type="text/javascript">
@@ -128,7 +128,8 @@ $SQL=sqlsrv_query($conexion,$Cons);
 				type: "POST",
 				url: "ajx_cbo_sucursales_clientes_simple.php?CardCode="+document.getElementById('Cliente').value,
 				success: function(response){
-					$('#Sucursal').html(response).fadeIn();
+					$('#Sucursal').html(response);
+					$('#Sucursal').trigger('change');
 				}
 			});
 		});
@@ -167,6 +168,9 @@ $SQL=sqlsrv_query($conexion,$Cons);
 					<?php include("includes/spinner.php"); ?>
 				  <form action="informes.php" method="get" id="formBuscar" class="form-horizontal">
 					  <div class="form-group">
+						<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+					  </div>
+					  <div class="form-group">
 						<label class="col-lg-1 control-label">Fechas</label>
 						<div class="col-lg-3">
 							<div class="input-daterange input-group" id="datepicker">
@@ -177,7 +181,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 						</div>
 						<label class="col-lg-1 control-label">Cliente</label>
 						<div class="col-lg-3">
-							<select name="Cliente" class="form-control m-b chosen-select" id="Cliente">
+							<select name="Cliente" class="form-control select2" id="Cliente">
 								<?php if($sw_todos==1){?><option value="" selected="selected">(Todos)</option><?php }?>
 							<?php while($row_Cliente=sqlsrv_fetch_array($SQL_Cliente)){?>
 								<option value="<?php echo $row_Cliente['CodigoCliente'];?>" <?php if((isset($_GET['Cliente']))&&(strcmp($row_Cliente['CodigoCliente'],$_GET['Cliente'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Cliente['NombreCliente'];?></option>
@@ -186,7 +190,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 						</div>
 						<label class="col-lg-1 control-label">Sucursal</label>
 								<div class="col-lg-2">
-								 <select id="Sucursal" name="Sucursal" class="form-control">
+								 <select id="Sucursal" name="Sucursal" class="form-control select2">
 									<option value="">(Todos)</option>
 									<?php 
 									 if($sw_suc==1){//Cuando se ha seleccionado una opción
@@ -244,7 +248,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 							<td><?php echo $row['NombreUsuario'];?></td>
 							<td><?php echo $row['NombreCliente'];?></td>
 							<td><?php echo $row['ID_Sucursal'];?></td>
-							<td><?php if($row['Archivo']!=""){?><a href="filedownload.php?file=<?php echo base64_encode($row['ID_Archivo']);?>&dtype=<?php echo base64_encode("2");?>" target="_blank" class="btn btn-link btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }else{?><p class="text-muted">Ninguno</p><?php }?></td>
+							<td><?php if($row['Archivo']!=""){?><a href="filedownload.php?file=<?php echo base64_encode($row['ID_Archivo']);?>&dtype=<?php echo base64_encode("2");?>" target="_blank" class="btn btn-success btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }else{?><p class="text-muted">Ninguno</p><?php }?></td>
 							<td align="center"><?php if(ConsultarDescargaArchivo($row['ID_Archivo'])==0){echo "<i title='No se ha descargado' class='fa fa-eye-slash'></i>";}else{echo "<i title='Ult. Fecha descarga: ".ConsultarFechaDescarga($row['ID_Archivo'])."' class='fa fa-eye'></i>";}?></td>
 						</tr>
 					<?php }?>
@@ -279,7 +283,8 @@ $SQL=sqlsrv_query($conexion,$Cons);
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-				format: 'dd/mm/yyyy'
+				todayHighlight: true,
+				format: 'yyyy-mm-dd'
             });
 			 $('#FechaFinal').datepicker({
                 todayBtn: "linked",
@@ -287,10 +292,11 @@ $SQL=sqlsrv_query($conexion,$Cons);
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-				format: 'dd/mm/yyyy'
+				todayHighlight: true,
+				format: 'yyyy-mm-dd'
             }); 
 			
-			$('.chosen-select').chosen({width: "100%"});
+			$(".select2").select2();
 			
             $('.dataTables-example').DataTable({
                 pageLength: 25,

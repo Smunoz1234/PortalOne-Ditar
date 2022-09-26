@@ -51,6 +51,10 @@ if(isset($_GET['Cliente'])&&$_GET['Cliente']!=""){
 	$Filtro.=" and CardCode='".$_GET['Cliente']."'";
 }
 
+if(isset($_GET['EmpleadoVentas'])&&$_GET['EmpleadoVentas']!=""){
+	$Filtro.=" and IdEmpleadoVentas='".$_GET['EmpleadoVentas']."'";
+}
+
 if(isset($_GET['Series'])&&$_GET['Series']!=""){
 	$Filtro.=" and [IdSeries]='".$_GET['Series']."'";
 	$sw=1;
@@ -180,7 +184,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="consultar_factura_compra.php" method="get" id="formBuscar" class="form-horizontal">
 					   <div class="form-group">
-							<label class="col-xs-12"><h3 class="bg-muted p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
 						<div class="form-group">
 							<label class="col-lg-1 control-label">Fechas</label>
@@ -211,7 +215,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 							</div>
 						</div>
 					  	<div class="form-group">
-							<label class="col-lg-1 control-label">Cliente</label>
+							<label class="col-lg-1 control-label">Socio de negocio</label>
 							<div class="col-lg-3">
 								<input name="Cliente" type="hidden" id="Cliente" value="<?php if(isset($_GET['Cliente'])&&($_GET['Cliente']!="")){ echo $_GET['Cliente'];}?>">
 								<input name="NombreCliente" type="text" class="form-control" id="NombreCliente" placeholder="Para TODOS, dejar vacio..." value="<?php if(isset($_GET['NombreCliente'])&&($_GET['NombreCliente']!="")){ echo $_GET['NombreCliente'];}?>">
@@ -231,6 +235,15 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 							</div>
 						</div>
 					    <div class="form-group">
+							<label class="col-lg-1 control-label">Encargado de compras</label>
+							<div class="col-lg-3">
+								<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas">
+									<option value="">(Todos)</option>
+								  <?php while($row_EmpleadosVentas=sqlsrv_fetch_array($SQL_EmpleadosVentas)){?>
+										<option value="<?php echo $row_EmpleadosVentas['ID_EmpVentas'];?>" <?php if((isset($_GET['EmpleadoVentas']))&&(strcmp($row_EmpleadosVentas['ID_EmpVentas'],$_GET['EmpleadoVentas'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_EmpleadosVentas['DE_EmpVentas'];?></option>
+								  <?php }?>
+								</select>
+							</div>
 							<label class="col-lg-1 control-label">Orden servicio</label>
 							<div class="col-lg-3">
 								<input name="IDTicket" type="text" class="form-control" id="IDTicket" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if(isset($_GET['IDTicket'])&&($_GET['IDTicket']!="")){ echo $_GET['IDTicket'];}?>">
@@ -239,7 +252,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 								<div class="col-lg-2 input-group date">
 									 <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input name="FechaVenc" type="text" class="form-control" id="FechaVenc" value="<?php if(isset($_GET['FechaVenc'])&&($_GET['FechaVenc']!="")){ echo $_GET['FechaVenc'];}?>" readonly="readonly" placeholder="YYYY-MM-DD">
 								</div>
-							<div class="col-lg-5">
+							<div class="col-lg-1">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
@@ -261,7 +274,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 						<th>Serie</th>
 						<th>Fecha factura</th>
 						<th>Socio de negocio</th>
-						<th>Empleado de venta</th>
+						<th>Encargado de compras</th>
 						<th>Autorización</th>
 						<th>Usuario Autoriza</th>
 						<th>Orden servicio</th>
@@ -352,7 +365,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_FactCompUpd"))){
 			
 			var options = {
 				url: function(phrase) {
-					return "ajx_buscar_datos_json.php?type=7&id="+phrase;
+					return "ajx_buscar_datos_json.php?type=7&id="+phrase+"&pv=1";
 				},
 
 				getValue: "NombreBuscarCliente",

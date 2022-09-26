@@ -90,8 +90,8 @@ if(isset($_POST['P'])&&($_POST['P']!="")){//Grabar Orden de compra
 			"'".$_POST['DireccionDestino']."'",
 			"'".$_POST['CondicionPago']."'",
 			"'".$_POST['Dim1']."'",
-			"NULL",
-			"NULL",
+			"'".$_POST['Dim2']."'",
+			"'".$_POST['Sucursal']."'",
 			"NULL",
 			"'".$_POST['Autorizacion']."'",
 			"'".$_POST['Almacen']."'",
@@ -403,12 +403,6 @@ $ParamSerie=array(
 );
 $SQL_Series=EjecutarSP('sp_ConsultarSeriesDocumentos',$ParamSerie);
 
-$ParamSerie=array(
-	"'".$_SESSION['CodUser']."'",
-	"'22'"
-);
-$SQL_Almacen=EjecutarSP('sp_ConsultarAlmacenesUsuario',$ParamSerie);
-
 ?>
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
@@ -481,8 +475,8 @@ function BuscarArticulo(dato){
 	var almacen= document.getElementById("Almacen").value;
 	var cardcode= document.getElementById("CardCode").value;
 	var dim1= document.getElementById("Dim1").value;
-	var dim2= ''; //document.getElementById("Dim2").value;
-	var dim3= ''; //document.getElementById("Sucursal").value;
+	var dim2= document.getElementById("Dim2").value;
+	var dim3= document.getElementById("Sucursal").value;
 	var posicion_x; 
 	var posicion_y;  
 	posicion_x=(screen.width/2)-(1200/2);  
@@ -750,6 +744,41 @@ function ConsultarDatosCliente(){
 			}
 		});
 		
+		$("#Dim2").change(function(){
+			var frame=document.getElementById('DataGrid');
+			if(document.getElementById('Dim2').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if($edit==0){?>
+						$.ajax({
+							type: "GET",					
+							url: "registro.php?P=36&doctype=16&type=1&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_orden_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser'];?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }else{?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=16&type=2&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&id=<?php echo $row['ID_OrdenCompra'];?>&evento=<?php echo $IdEvento;?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_orden_compra.php?id=<?php echo base64_encode($row['ID_OrdenCompra']);?>&evento=<?php echo base64_encode($IdEvento);?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -782,6 +811,50 @@ function ConsultarDatosCliente(){
             </div>
            
          <div class="wrapper wrapper-content">
+		  <?php if($edit==1){?>
+			<div class="row">
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Creada por</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php if($row['CDU_UsuarioCreacion']!=""){echo $row['CDU_UsuarioCreacion'];}else{echo "&nbsp;";}?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Fecha creación</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php echo ($row['CDU_FechaHoraCreacion']!="") ? $row['CDU_FechaHoraCreacion']->format('Y-m-d H:i') : "&nbsp;";?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Actualizado por</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php if($row['CDU_UsuarioActualizacion']!=""){echo $row['CDU_UsuarioActualizacion'];}else{echo "&nbsp;";}?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Fecha actualización</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php echo ($row['CDU_FechaHoraActualizacion']!="") ? $row['CDU_FechaHoraActualizacion']->format('Y-m-d H:i') : "&nbsp;";?></h3>
+						</div>
+					</div>
+				</div>
+			</div>
+			<?php }?>
 		 <?php if($edit==1){?>
 		 <div class="row">
 			<div class="col-lg-12">   		
@@ -830,9 +903,9 @@ function ConsultarDatosCliente(){
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-lg-1 control-label">Contacto</label>
+						<label class="col-lg-1 control-label">Contacto <span class="text-danger">*</span></label>
 						<div class="col-lg-5">
-							<select name="ContactoCliente" class="form-control" id="ContactoCliente" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<select name="ContactoCliente" class="form-control" id="ContactoCliente" required <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
 									<option value="">Seleccione...</option>
 							<?php
 								if($edit==1||$sw_error==1){
@@ -961,15 +1034,39 @@ function ConsultarDatosCliente(){
 						  <?php }?>
 						</select>
 					</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Dim2" class="form-control" id="Dim2" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php while($row_Dim2=sqlsrv_fetch_array($SQL_Dim2)){?>
+									<option value="<?php echo $row_Dim2['OcrCode'];?>" <?php if((isset($row['OcrCode2'])&&($row['OcrCode2']!=""))&&(strcmp($row_Dim2['OcrCode'],$row['OcrCode2'])==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(!isset($_GET['CCosto']))&&($row_DatosEmpleados['CentroCosto2']!="")&&(strcmp($row_DatosEmpleados['CentroCosto2'],$row_Dim2['OcrCode'])==0)){echo "selected=\"selected\"";}elseif(isset($_GET['CCosto'])&&(strcmp($row_Dim2['OcrCode'],base64_decode($_GET['CCosto']))==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim2['OcrName'];?></option>
+							<?php 	}?>
+						</select>
+               	  	</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Sucursal" class="form-control" id="Sucursal" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php if($edit==1){
+									while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+									<option value="<?php echo $row_Sucursal['IdSucursal'];?>" <?php if(($edit==1)&&(isset($row['OcrCode3']))&&(strcmp($row_Sucursal['IdSucursal'],$row['OcrCode3'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['DeSucursal'];?></option>
+							<?php 	}
+								}?>
+						</select>
+               	  	</div>
+				</div>
+				<div class="form-group">					
 					<label class="col-lg-1 control-label">Almacén <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
-						  <?php //if($edit==1){
+						  <?php if($edit==1){
 									while($row_Almacen=sqlsrv_fetch_array($SQL_Almacen)){?>
-									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($_GET['Almacen']))&&(strcmp($row_Almacen['WhsCode'],base64_decode($_GET['Almacen']))==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
+									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if($dt_LS==1){if(strcmp($row_Almacen['WhsCode'],$row_LMT['WhsCode'])==0){ echo "selected=\"selected\"";}}elseif(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
 						  <?php 	}
-								//}?>
+								}?>
 						</select>
 					</div>
 					<label class="col-lg-1 control-label">Autorización</label>

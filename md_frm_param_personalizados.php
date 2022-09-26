@@ -31,6 +31,9 @@ if($edit==1&&$id!=""){
 	}elseif($doc=="GradoInfectacion"){
 		$SQL=Seleccionar('tbl_GradoInfectacion','*',"id_grado_infectacion='".$id."'");
 		$row=sqlsrv_fetch_array($SQL);
+	}elseif($doc=="Muelles"){
+		$SQL=Seleccionar('tbl_MuellesPuerto','*',"id_muelle_puerto='".$id."'");
+		$row=sqlsrv_fetch_array($SQL);
 	}	
 }
 
@@ -89,6 +92,15 @@ if($edit==1&&$id!=""){
 				<?php if(($edit==1)&&($row['anexo']!="")){?>
 					<br><a href="filedownload.php?file=<?php echo base64_encode($row['anexo']);?>&dir=<?php echo base64_encode($dir_new);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo'];?></a>														
 				<?php }?>
+				<?php if($edit==0){
+						$Ruta=ObtenerVariable("PlanoGenericoMonitoreos");
+						if($Ruta!=""){
+							$ar=explode("\\",$Ruta);
+							$Plano=end($ar);
+							echo "<br><strong>Por defecto: </strong>".$Plano;
+						}
+					}
+				?>
 				<input name="AnexoBodega" type="file" id="AnexoBodega" class="m-t-md" />
 			</div>
 			<?php }elseif($doc=="Productos"){?>
@@ -113,11 +125,11 @@ if($edit==1&&$id!=""){
 			</div>
 			<?php }elseif($doc=="Transportes"){?>
 			<div class="form-group">
-				<label class="control-label">Código de transporte <span class="text-danger">*</span></label>
+				<label class="control-label">Código de motonave <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="CodigoTransporte" id="CodigoTransporte" required autocomplete="off" value="<?php if($edit==1){echo $row['id_transporte_puerto'];}?>">
 			</div>
 			<div class="form-group">
-				<label class="control-label">Nombre de transporte <span class="text-danger">*</span></label>
+				<label class="control-label">Nombre de motonave <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="NombreTransporte" id="NombreTransporte" required autocomplete="off" value="<?php if($edit==1){echo $row['transporte_puerto'];}?>">
 			</div>
 			<div class="form-group">
@@ -126,22 +138,22 @@ if($edit==1&&$id!=""){
 			</div>
 			<div class="form-group">
 				<label class="control-label">Comentarios</label>
-				<textarea name="ComentariosProducto" rows="3" maxlength="3000" class="form-control" id="ComentariosProducto" type="text"><?php if($edit==1){echo $row['comentarios'];}?></textarea>
+				<textarea name="ComentariosTransporte" rows="3" maxlength="3000" class="form-control" id="ComentariosTransporte" type="text"><?php if($edit==1){echo $row['comentarios'];}?></textarea>
 			</div>
 			<div class="form-group">
 				<label class="control-label">Estado <span class="text-danger">*</span></label>
-				<select class="form-control" id="EstadoProducto" name="EstadoProducto">
+				<select class="form-control" id="EstadoTransporte" name="EstadoTransporte">
 					 <option value="Y" <?php if(($edit==1)&&($row['estado']=="Y")){echo "selected=\"selected\"";}?>>ACTIVO</option>
 					 <option value="N" <?php if(($edit==1)&&($row['estado']=="N")){echo "selected=\"selected\"";}?>>INACTIVO</option>
 				 </select>
 			</div>
 			<?php }elseif($doc=="TipoInfectacion"){?>
 			<div class="form-group">
-				<label class="control-label">Código de infectación <span class="text-danger">*</span></label>
+				<label class="control-label">Código de infestación <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="Codigo" id="Codigo" required autocomplete="off" value="<?php if($edit==1){echo $row['id_tipo_infectacion_producto'];}?>">
 			</div>
 			<div class="form-group">
-				<label class="control-label">Nombre de infectación <span class="text-danger">*</span></label>
+				<label class="control-label">Nombre de infestación <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="Nombre" id="Nombre" required autocomplete="off" value="<?php if($edit==1){echo $row['tipo_infectacion_producto'];}?>">
 			</div>
 			<div class="form-group">
@@ -157,12 +169,32 @@ if($edit==1&&$id!=""){
 			</div>
 			<?php }elseif($doc=="GradoInfectacion"){?>
 			<div class="form-group">
-				<label class="control-label">Código de grado infectación <span class="text-danger">*</span></label>
+				<label class="control-label">Código de grado infestación <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="Codigo" id="Codigo" required autocomplete="off" value="<?php if($edit==1){echo $row['id_grado_infectacion'];}?>">
 			</div>
 			<div class="form-group">
-				<label class="control-label">Nombre de grado infectación <span class="text-danger">*</span></label>
+				<label class="control-label">Nombre de grado infestación <span class="text-danger">*</span></label>
 				<input type="text" class="form-control" name="Nombre" id="Nombre" required autocomplete="off" value="<?php if($edit==1){echo $row['grado_infectacion'];}?>">
+			</div>
+			<div class="form-group">
+				<label class="control-label">Comentarios</label>
+				<textarea name="Comentarios" rows="3" maxlength="3000" class="form-control" id="Comentarios" type="text"><?php if($edit==1){echo $row['comentarios'];}?></textarea>
+			</div>
+			<div class="form-group">
+				<label class="control-label">Estado <span class="text-danger">*</span></label>
+				<select class="form-control" id="Estado" name="Estado">
+					 <option value="Y" <?php if(($edit==1)&&($row['estado']=="Y")){echo "selected=\"selected\"";}?>>ACTIVO</option>
+					 <option value="N" <?php if(($edit==1)&&($row['estado']=="N")){echo "selected=\"selected\"";}?>>INACTIVO</option>
+				 </select>
+			</div>
+			<?php }elseif($doc=="Muelles"){?>
+			<div class="form-group">
+				<label class="control-label">Código de muelle <span class="text-danger">*</span></label>
+				<input type="text" class="form-control" name="Codigo" id="Codigo" required autocomplete="off" value="<?php if($edit==1){echo $row['id_muelle_puerto'];}?>">
+			</div>
+			<div class="form-group">
+				<label class="control-label">Nombre de muelle <span class="text-danger">*</span></label>
+				<input type="text" class="form-control" name="Nombre" id="Nombre" required autocomplete="off" value="<?php if($edit==1){echo $row['muelle_puerto'];}?>">
 			</div>
 			<div class="form-group">
 				<label class="control-label">Comentarios</label>

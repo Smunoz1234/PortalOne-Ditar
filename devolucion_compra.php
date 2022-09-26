@@ -639,12 +639,6 @@ $ParamSerie=array(
 );
 $SQL_Series=EjecutarSP('sp_ConsultarSeriesDocumentos',$ParamSerie);
 
-$ParamSerie=array(
-	"'".$_SESSION['CodUser']."'",
-	"'21'"
-);
-$SQL_Almacen=EjecutarSP('sp_ConsultarAlmacenesUsuario',$ParamSerie);
-
 ?>
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
@@ -711,8 +705,8 @@ function BuscarArticulo(dato){
 	var almacen= document.getElementById("Almacen").value;
 	var cardcode= document.getElementById("CardCode").value;
 	var dim1= document.getElementById("Dim1").value;
-	var dim2= ''; //document.getElementById("Dim2").value;
-	var dim3= ''; //document.getElementById("Sucursal").value;
+	var dim2= document.getElementById("Dim2").value;
+	var dim3= document.getElementById("Sucursal").value;
 	var posicion_x; 
 	var posicion_y;  
 	posicion_x=(screen.width/2)-(1200/2);  
@@ -983,6 +977,42 @@ function ConsultarDatosCliente(){
 				});
 			}
 		});
+		
+		$("#Dim2").change(function(){
+			var frame=document.getElementById('DataGrid');
+			if(document.getElementById('Dim2').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if($edit==0){?>
+						$.ajax({
+							type: "GET",					
+							url: "registro.php?P=36&doctype=21&type=1&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_devolucion_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser'];?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }else{?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=21&type=2&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&id=<?php echo $row['ID_DevolucionCompra'];?>&evento=<?php echo $IdEvento;?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_devolucion_compra.php?id=<?php echo base64_encode($row['ID_DevolucionCompra']);?>&evento=<?php echo base64_encode($IdEvento);?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -1191,15 +1221,39 @@ function ConsultarDatosCliente(){
 						  <?php }?>
 						</select>
 					</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Dim2" class="form-control" id="Dim2" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php while($row_Dim2=sqlsrv_fetch_array($SQL_Dim2)){?>
+									<option value="<?php echo $row_Dim2['OcrCode'];?>" <?php if((isset($row['OcrCode2'])&&($row['OcrCode2']!=""))&&(strcmp($row_Dim2['OcrCode'],$row['OcrCode2'])==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(!isset($_GET['Dim2']))&&($row_DatosEmpleados['CentroCosto2']!="")&&(strcmp($row_DatosEmpleados['CentroCosto2'],$row_Dim2['OcrCode'])==0)){echo "selected=\"selected\"";}elseif(isset($_GET['Dim2'])&&(strcmp($row_Dim2['OcrCode'],base64_decode($_GET['Dim2']))==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim2['OcrName'];?></option>
+							<?php 	}?>
+						</select>
+               	  	</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Sucursal" class="form-control" id="Sucursal" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php if($edit==1){
+									while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+									<option value="<?php echo $row_Sucursal['IdSucursal'];?>" <?php if(($edit==1)&&(isset($row['OcrCode3']))&&(strcmp($row_Sucursal['IdSucursal'],$row['OcrCode3'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['DeSucursal'];?></option>
+							<?php 	}
+								}?>
+						</select>
+               	  	</div>
+				</div>
+				<div class="form-group">
 					<label class="col-lg-1 control-label">Almacén <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
-						  <?php //if($edit==1){
+						  <?php if($edit==1){
 									while($row_Almacen=sqlsrv_fetch_array($SQL_Almacen)){?>
-									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($_GET['Almacen']))&&(strcmp($row_Almacen['WhsCode'],base64_decode($_GET['Almacen']))==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
+									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if($dt_LS==1){if(strcmp($row_Almacen['WhsCode'],$row_LMT['WhsCode'])==0){ echo "selected=\"selected\"";}}elseif(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($_GET['Almacen']))&&(strcmp($row_Almacen['WhsCode'],base64_decode($_GET['Almacen']))==0)){echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
 						  <?php 	}
-								//}?>
+								}?>
 						</select>
 					</div>
 					<label class="col-lg-1 control-label">Autorización</label>

@@ -23,7 +23,6 @@ if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 }else{
 	$FechaFinal=date('Y-m-d');
-	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 //	$FechaFinal="";
 }
 
@@ -36,8 +35,11 @@ if(isset($_GET['BuscarDato'])&&$_GET['BuscarDato']!=""){
 	$Filtro.=" and (DocNum LIKE '%".$_GET['BuscarDato']."%' OR NombreContacto LIKE '%".$_GET['BuscarDato']."%' OR DocNumLlamadaServicio LIKE '%".$_GET['BuscarDato']."%' OR ID_LlamadaServicio LIKE '%".$_GET['BuscarDato']."%' OR IdDocPortal LIKE '%".$_GET['BuscarDato']."%' OR NombreEmpleadoVentas LIKE '%".$_GET['BuscarDato']."%' OR Comentarios LIKE '%".$_GET['BuscarDato']."%')";
 }
 
-$SQL=Seleccionar('uvw_Sap_tbl_OrdenesCompras','*',"CardCode='".$_SESSION['CodigoSAPProv']."' $WhereFecha $Filtro");
+$vista = 'uvw_Sap_tbl_OrdenesCompras';
+$where = "CardCode='".$_SESSION['CodigoSAPProv']."' $WhereFecha $Filtro";
+$SQL=Seleccionar($vista, '*', $where);
 
+// echo "SELECT * FROM $vista WHERE $where";
 ?>
 
 <!DOCTYPE html>
@@ -143,7 +145,7 @@ $SQL=Seleccionar('uvw_Sap_tbl_OrdenesCompras','*',"CardCode='".$_SESSION['Codigo
 							<td><?php //echo $row['PrjName'];?></td>
 							<td align="right"><?php echo "$ ".number_format($row['DocTotal'],2);?></td>
 							<td><span <?php if($row['Cod_Estado']=='O'){echo "class='label label-info'";}else{echo "class='label label-danger'";}?>><?php echo $row['NombreEstado'];?></span></td>
-							<td><a href="prov_detalle_orden_compra.php?id=<?php echo base64_encode($row['ID_OrdenCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_ordenes_compra.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(602)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_OrdenCompra']);?>&ObType=<?php echo base64_encode('22');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+							<td><a href="prov_detalle_orden_compra.php?id=<?php echo base64_encode($row['ID_OrdenCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_ordenes_compra.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a></td>
 						</tr>
 						<?php }?>
 					</tbody>

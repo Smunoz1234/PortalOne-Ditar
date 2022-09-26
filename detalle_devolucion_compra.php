@@ -258,6 +258,10 @@ function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almac
 				<th>Stock almacén</th>
 				<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
 				<th><?php echo $row_DimReparto['NombreDim']; //Dimension 1 ?></th>
+				<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+				<th><?php echo $row_DimReparto['NombreDim']; //Dimension 2 ?></th>
+				<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+				<th><?php echo $row_DimReparto['NombreDim']; //Dimension 3 ?></th>
 				<th>Proyecto</th>
 				<th>Texto libre</th>
 				<th>Precio</th>
@@ -309,6 +313,24 @@ function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almac
 			</td>
 			
 			<td>
+				<select id="OcrCode2<?php echo $i;?>" name="OcrCode2[]" class="form-control select2" onChange="ActualizarDatos('OcrCode2',<?php echo $i;?>,<?php echo $row['LineNum'];?>);" <?php if($row['LineStatus']=='C'||($type==2)){echo "disabled='disabled'";}?>>
+				  <option value="">(NINGUNO)</option>
+				  <?php while($row_Dim2=sqlsrv_fetch_array($SQL_Dim2)){?>
+						<option value="<?php echo $row_Dim2['OcrCode'];?>" <?php if((isset($row['OcrCode2']))&&(strcmp($row_Dim2['OcrCode'],$row['OcrCode2'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim2['OcrName'];?></option>
+				  <?php }?>
+				</select>
+			</td>
+			
+			<td>
+				<select id="OcrCode3<?php echo $i;?>" name="OcrCode3[]" class="form-control select2" onChange="ActualizarDatos('OcrCode3',<?php echo $i;?>,<?php echo $row['LineNum'];?>);" <?php if($row['LineStatus']=='C'||($type==2)){echo "disabled='disabled'";}?>>
+				  <option value="">(NINGUNO)</option>
+				  <?php while($row_Dim3=sqlsrv_fetch_array($SQL_Dim3)){?>
+						<option value="<?php echo $row_Dim3['OcrCode'];?>" <?php if((isset($row['OcrCode3']))&&(strcmp($row_Dim3['OcrCode'],$row['OcrCode3'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim3['OcrName'];?></option>
+				  <?php }?>
+				</select>
+			</td>
+			
+			<td>
 				<select id="PrjCode<?php echo $i;?>" name="PrjCode[]" class="form-control select2" onChange="ActualizarDatos('PrjCode',<?php echo $i;?>,<?php echo $row['LineNum'];?>);" <?php if($row['LineStatus']=='C'||($type==2)){echo "disabled='disabled'";}?>>
 					<option value="">(NINGUNO)</option>
 				  <?php while($row_Proyecto=sqlsrv_fetch_array($SQL_Proyecto)){?>
@@ -343,6 +365,8 @@ function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almac
 			<td><input size="15" type="text" id="OnHandNew" name="OnHandNew" class="form-control"></td>
 			
 			<td><input size="20" type="text" id="OcrCodeNew" name="OcrCodeNew" class="form-control"></td>
+			<td><input size="20" type="text" id="OcrCode2New" name="OcrCode2New" class="form-control"></td>
+			<td><input size="20" type="text" id="OcrCode3New" name="OcrCode3New" class="form-control"></td>
 			<td><input size="70" type="text" id="ProyectoNew" name="ProyectoNew" class="form-control"></td>
 			
 			<td><input size="50" type="text" id="FreeTxtNew" name="FreeTxtNew" class="form-control"></td>
@@ -375,15 +399,15 @@ function CalcularTotal(line){
 			var TarifaIVA=TarifaIVALinea.value.replace(/,/g, '');
 			var ValorIVA=ValorIVALinea.value.replace(/,/g, '');
 			var Cant=CantLinea.value.replace(/,/g, '');
-			//var TotIVA=((parseFloat(Precio)*parseFloat(TarifaIVA)/100)+parseFloat(Precio));
-			//ValorIVALinea.value=number_format((parseFloat(Precio)*parseFloat(TarifaIVA)/100),2);
-			//PrecioIVALinea.value=number_format(parseFloat(TotIVA),2);
+			var TotIVA=((parseFloat(Precio)*parseFloat(TarifaIVA)/100)+parseFloat(Precio));
+			ValorIVALinea.value=number_format((parseFloat(Precio)*parseFloat(TarifaIVA)/100),2);
+			PrecioIVALinea.value=number_format(parseFloat(TotIVA),2);
 			var PrecioIVA=PrecioIVALinea.value.replace(/,/g, '');
 			var SubTotalLinea=PrecioIVA*Cant;
 			var PrcDesc=parseFloat(PrcDescuentoLinea.value.replace(/,/g, ''));
 			var TotalDesc=(PrcDesc*SubTotalLinea)/100;
 			
-			//TotalLinea.value=number_format(SubTotalLinea-TotalDesc,2);
+			TotalLinea.value=number_format(SubTotalLinea-TotalDesc,2);
 		//}else{
 			//alert('Ult');
 			//var Ult=UltPrecioLinea.value.replace(/,/g, '');

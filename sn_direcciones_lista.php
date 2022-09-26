@@ -14,7 +14,7 @@ if(isset($_GET['id'])&&$_GET['id']!=""){
 if($edit==0){//Creando
 	
 }else{//Actualizando
-	$SQL=Seleccionar('uvw_Sap_tbl_Clientes_Sucursales','*',"[CodigoCliente]='".$id."'");
+	$SQL=Seleccionar('uvw_Sap_tbl_SociosNegociosSucursales','*',"[CodigoCliente]='".$id."'");
 }
 
 ?>
@@ -163,7 +163,7 @@ function CargarDireccion(numero_linea,tipo_direccion,nombre_direccion,direccion,
 		<tbody id="listaDatosDirB">
 			<tr><td colspan="4" class="bg-success"><i class="fa fa-list"></i> Direcciones de facturación</td></tr>
 		<?php
-			$SQL=Seleccionar('uvw_Sap_tbl_Clientes_Sucursales','*',"[CodigoCliente]='".$id."' and TipoDireccion='B'");
+			$SQL=Seleccionar('uvw_Sap_tbl_SociosNegociosSucursales','*',"[CodigoCliente]='".$id."' and TipoDireccion='B'");
 		while($row=sqlsrv_fetch_array($SQL)){?>
 			<tr>
 				<td><a href="#" onClick="ConsultarDireccion('<?php echo $row['NumeroLinea'];?>','B');" id="DirB_<?php echo $row['NumeroLinea'];?>"><i class="fa fa-home"></i> <?php echo $row['NombreSucursal'];?></a></td>
@@ -192,7 +192,7 @@ function CargarDireccion(numero_linea,tipo_direccion,nombre_direccion,direccion,
 		<tbody id="listaDatosDirS">
 			<tr><td colspan="4" class="bg-success"><i class="fa fa-list"></i> Direcciones de envío</td></tr>
 		<?php
-			$SQL=Seleccionar('uvw_Sap_tbl_Clientes_Sucursales','*',"[CodigoCliente]='".$id."' and TipoDireccion='S'");
+			$SQL=Seleccionar('uvw_Sap_tbl_SociosNegociosSucursales','*',"[CodigoCliente]='".$id."' and TipoDireccion='S'");
 		while($row=sqlsrv_fetch_array($SQL)){?>
 			<tr>
 				<td><a href="#" onClick="ConsultarDireccion('<?php echo $row['NumeroLinea'];?>','S');" id="DirS_<?php echo $row['NumeroLinea'];?>"><i class="fa fa-home"></i> <?php echo $row['NombreSucursal'];?></a></td>

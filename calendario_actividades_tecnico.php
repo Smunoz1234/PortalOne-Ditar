@@ -2,23 +2,17 @@
 PermitirAcceso(306);
 
 $sw=0;
-//$ParamTec=array(
-//	"'".$_SESSION['CodUser']."'"
-//);
-//
-//$SQL_Tec=EjecutarSP("sp_ConsultarTecnicos",$ParamTec);
+$SQL_TiposEstadoServ=Seleccionar("uvw_tbl_TipoEstadoServicio","*");
+$Num_TiposEstadoServ=sqlsrv_num_rows($SQL_TiposEstadoServ);
 
 $SQL_Tec=Seleccionar("uvw_Sap_tbl_Recursos","*",'','NombreEmpleado');
 
+$Tecnico=(isset($_GET['Tecnico'])) ? base64_decode($_GET['Tecnico']) : "";
 
-if(isset($_GET['Tecnico'])&&$_GET['Tecnico']!=""){
+
+if(isset($_GET['Tecnico'])){
 	$Param=array(
-		"'".base64_decode($_GET['Tecnico'])."'"
-	);
-	$sw=1;
-}elseif(isset($_GET['Tecnico'])&&$_GET['Tecnico']==""){
-	$Param=array(
-		"''"
+		"'".$Tecnico."'"
 	);
 	$sw=1;
 }
@@ -85,15 +79,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_OpenAct"))){
 ?>
 <script type="text/javascript">
 	$(document).ready(function() {//Cargar los almacenes dependiendo del proyecto
-		$("#ClienteActividad").change(function(){
-			$.ajax({
-				type: "POST",
-				url: "ajx_cbo_sucursales_clientes_simple.php?CardCode="+document.getElementById('ClienteActividad').value,
-				success: function(response){
-					$('#Sucursal').html(response).fadeIn();
-				}
-			});
-		});
+		
 	});
 </script>
 	<!-- InstanceEndEditable -->
@@ -126,7 +112,6 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_OpenAct"))){
                         </li>
                     </ol>
                 </div>
-               <?php  //echo $Cons;?>
             </div>
          <div class="wrapper wrapper-content">
 			<div class="row">
@@ -135,9 +120,12 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_OpenAct"))){
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="calendario_actividades_tecnico.php" method="get" id="formFiltro" class="form-horizontal">
 					  	<div class="form-group">
-							<label class="col-lg-1 control-label">Técnico</label>
+							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+						</div>
+					  	<div class="form-group">
+							<label class="col-lg-1 control-label">Técnico <span class="text-danger">*</span></label>
 							<div class="col-lg-3">
-								<select name="Tecnico" class="form-control m-b select2" id="Tecnico">
+								<select name="Tecnico" class="form-control select2" id="Tecnico" required>
 										<option value="">(TODOS)</option>
 								  <?php while($row_Tec=sqlsrv_fetch_array($SQL_Tec)){?>
 										<option value="<?php echo base64_encode($row_Tec['ID_Empleado']);?>" <?php if((isset($_GET['Tecnico']))&&(strcmp(base64_encode($row_Tec['ID_Empleado']),$_GET['Tecnico'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Tec['NombreEmpleado'];?></option>
@@ -146,6 +134,16 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_OpenAct"))){
 							</div>
 							<div class="col-lg-1">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-filter"></i> Filtrar</button>
+							</div>
+						</div>
+					  	<div class="form-group">
+							<div class="col-lg-12">
+								<label class="form-label">Referencia de colores</label>
+								<br>
+								<?php
+								  while($row_TiposEstadoServ=sqlsrv_fetch_array($SQL_TiposEstadoServ)){?>
+										<i class="fa fa-square" style="color: <?php echo $row_TiposEstadoServ['ColorEstadoServicio'];?>;font-size: medium;"></i> <span class="m-r-sm"><?php echo $row_TiposEstadoServ['DE_TipoEstadoServicio'];?></span>					
+								  <?php }?>
 							</div>
 						</div>
 				 </form>
@@ -209,26 +207,22 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_OpenAct"))){
 			<?php 
 				if($sw==1){	
 					while($row=sqlsrv_fetch_array($SQL)){
-						if($row['TodoDia']==1){$AllDay="true";}else{$AllDay="false";}
-						//if($row['TipoRecurso']==-2){//Para diferenciar de técnicos y empleados (actividades y agenda)
-							//$URL="#";
-						//}else{
-							$URL="actividad.php?id=".base64_encode($row['ID_Actividad'])."&return=".base64_encode($_SERVER['QUERY_STRING'])."&pag=".base64_encode('calendario_actividades_tecnico.php')."&tl=1";
-						//}
-						echo "{
-							id: ".$row['ID_Actividad'].",
-							title:'".LSiqmlObs($row['EtiquetaActividad'])."',
-							subtitle:'".$row['AsuntoActividad']."',
-							description:'".LSiqmlSaltos(LSiqmlObs($row['InformacionAdicional']))."',
-							start: '".$row['FechaHoraInicioActividad']."',
-							end: '".$row['FechaHoraFinActividad']."',
-							allDay: ".$AllDay.",
+						$URL="actividad.php?id=".base64_encode($row['ID_Actividad'])."&return=".base64_encode($_SERVER['QUERY_STRING'])."&pag=".base64_encode('calendario_actividades_tecnico.php')."&tl=1";
+				?>
+						{
+							id: '<?php echo $row['ID_Actividad'];?>',
+							title:'<?php echo LSiqmlObs($row['EtiquetaActividad']);?>',
+							subtitle:'<?php echo $row['AsuntoActividad']?>',
+							description:'<?php echo LSiqmlSaltos(LSiqmlObs($row['InformacionAdicional']))?>',
+							start: '<?php echo $row['FechaHoraInicioActividad']?>',
+							end: '<?php echo $row['FechaHoraFinActividad']?>',
+							allDay: '<?php echo ($row['TodoDia']==1) ? true : false;?>',
 							textColor: '#ffffff',
-							backgroundColor: '".$row['ColorPrioridadActividad']."',
-							borderColor: '".$row['ColorPrioridadActividad']."',
-							url: '".$URL."'
-						},";
-					}
+							backgroundColor: '<?php echo $row['ColorEstadoServicio']?>',
+							borderColor: '<?php echo $row['ColorEstadoServicio']?>',
+							url: '<?php echo $URL;?>'
+						},
+					<?php }
 				}
 			?>
             ],

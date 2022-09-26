@@ -94,7 +94,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 				$SQL_Series=Seleccionar("uvw_Sap_tbl_SeriesDocumentos","IdSeries, DeSeries","IdTipoDocumento='".$row['IdTipoDocumento']."'");
 				
 				//Sucursal
-				$SQL_Sucursal=Seleccionar("uvw_Sap_tbl_DimensionesReparto","OcrCode, OcrName","DimCode='3'");
+				$SQL_Sucursal=Seleccionar("uvw_Sap_tbl_DimensionesReparto","OcrCode, OcrName","DimCode='2'");
 				
 				//Almacen origen
 				$SQL_AlmOrigen=Seleccionar("uvw_Sap_tbl_Almacenes","WhsCode, WhsName");

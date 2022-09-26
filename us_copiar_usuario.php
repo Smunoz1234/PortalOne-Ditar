@@ -68,10 +68,21 @@ if(isset($_GET['id'])&&$_GET['id']!=""){
 	 $(document).ready(function(){
 		  $("#CopiarUsuario").validate({
 			 submitHandler: function(form){
-				 $('.ibox-content').toggleClass('sk-loading');
-				 form.submit();
-				}
-			});
+				Swal.fire({
+					title: "¿Está seguro que desea realizar este proceso?",
+					text: "Este proceso no se puede revertir",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+						form.submit();
+					}
+				});
+			}
+		});
 		 $('.chosen-select').chosen({width: "100%"});
 	
 	});

@@ -46,7 +46,7 @@ if($Step==3){
 <head>
 <?php include_once("includes/cabecera.php"); ?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title><?php echo NOMBRE_PORTAL;?> | Cargar informes</title>
+<title>Cargar informes | <?php echo NOMBRE_PORTAL;?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <script type="text/javascript">
@@ -101,12 +101,12 @@ if($Step==3){
               <?php if($Step==1){?>
                <form action="informes_add.php" method="post" class="form-horizontal" id="SeleccionarCliente">
 				<div class="form-group">
-					<label class="col-lg-12"><h3 class="bg-muted p-xs b-r-sm"><i class="fa fa-cloud-upload"></i> Seleccione el cliente para cargar la información</h3></label>
+					<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-cloud-upload"></i> Seleccione el cliente para cargar la información</h3></label>
 				</div>
                	<div class="form-group">
 				  <label class="col-sm-1 control-label">Cliente</label>
 					<div class="col-sm-6">
-						<select name="Cliente" required class="form-control m-b chosen-select" id="Cliente">
+						<select name="Cliente" required class="form-control select2" id="Cliente">
 						  <option value="">Seleccione...</option>
 						  <?php while($row_Cliente=sqlsrv_fetch_array($SQL_Cliente)){?>
 						   <option value="<?php echo $row_Cliente['CodigoCliente'];?>"><?php echo $row_Cliente['NombreCliente'];?></option>
@@ -148,7 +148,7 @@ if($Step==3){
 			   <?php }elseif($Step==3){?>
 			   <form action="registro.php" method="post" class="form-horizontal" id="AgregarDatos">
               	<div class="form-group">
-					<label class="col-lg-12"><h3 class="bg-muted p-xs b-r-sm"><i class="fa fa-info-circle"></i> Ingresar información de los archivos</h3></label>
+					<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-info-circle"></i> Ingresar información de los archivos</h3></label>
 				</div>
                	<div class="form-group">
 				  <p class="col-lg-12 text-primary">Cliente:<br><strong><?php echo $NombreCliente;?></strong></p>
@@ -176,11 +176,14 @@ if($Step==3){
 									<div class="file-box">
 										<div class="file">
 											<a href="#">
-												<span class="corner"></span>
 												<div class="icon">
 													<i class="<?php echo $Icon;?>"></i>
 												</div>
-												<div class="file-name truncate"><?php echo $archivo;?><br/><small><?php echo $peso;?></small></div>
+												<div class="file-name">
+													<?php echo $archivo;?>
+													<br/>
+													<small><?php echo $peso;?></small>
+												</div>
 											</a>
 										</div>
 									</div>
@@ -190,7 +193,7 @@ if($Step==3){
 							   <div class="form-group">
 									<label class="col-sm-4 control-label">Sucursal</label>
 									<div class="col-sm-8">
-										<select id="Sucursal<?php echo $i;?>" name="Sucursal<?php echo $i;?>[]" data-placeholder="(Todos)" class="chosen-select" multiple>
+										<select id="Sucursal<?php echo $i;?>" name="Sucursal<?php echo $i;?>[]" data-placeholder="(Todos)" class="form-control select2" multiple>
 										<?php 
 											foreach ($ListSucursales as $NombreSuc) {?>		
 												<option value="<?php echo $NombreSuc;?>"><?php echo $NombreSuc;?></option>
@@ -206,7 +209,7 @@ if($Step==3){
 									$SQL_Menu=sqlsrv_query($conexion,$Cons_Menu,array(),array( "Scrollable" => 'static' ));
 									$Num_Menu=sqlsrv_num_rows($SQL_Menu);
 									?>
-									<select required name="Categoria<?php echo $i;?>" class="form-control m-b" id="Categoria<?php echo $i;?>">
+									<select required name="Categoria<?php echo $i;?>" class="form-control" id="Categoria<?php echo $i;?>">
 									   <option value="" selected="selected">Seleccione...</option>
 									   <?php 
 										while($row_Menu=sqlsrv_fetch_array($SQL_Menu)){
@@ -242,7 +245,7 @@ if($Step==3){
 							   		<label class="col-sm-4 control-label">Fecha</label>
 								 	<div class="col-sm-8">
 									 	<div class="input-group date">
-										<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input name="Fecha<?php echo $i;?>" type="text" required="required" class="form-control" id="Fecha<?php echo $i;?>" value="<?php echo date('d/m/Y');?>" readonly>
+										<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input name="Fecha<?php echo $i;?>" type="text" required="required" class="form-control" id="Fecha<?php echo $i;?>" value="<?php echo date('Y-m-d');?>" readonly>
 									 </div>
 								 	</div>
 							   </div>
@@ -306,13 +309,18 @@ if($Step==3){
 </script>
 <script>	
 	 $(document).ready(function(){		
-		  $("#AgregarDatos").validate();
+		  $("#AgregarDatos").validate({
+			 submitHandler: function(form){
+				 $('.ibox-content').toggleClass('sk-loading');
+				 form.submit();
+				}
+			});
 		 
 		  $(".truncate").dotdotdot({
             watch: 'window'
 		  });
 		  		 
-		 $('.chosen-select').chosen({width: "100%"});
+		 $(".select2").select2();
 		<?php 
 		 /*if($Step==3){
 			$k=0;
@@ -323,7 +331,8 @@ if($Step==3){
 					forceParse: false,
 					calendarWeeks: true,
 					autoclose: true,
-					format: 'dd/mm/yyyy'
+					format: 'yyyy-mm-dd',
+					todayHighlight: true
 				});
 	 <?php $k++;}
 		}*/?>
@@ -331,12 +340,6 @@ if($Step==3){
 		  $('.file-box').each(function() {
                 animationHover(this, 'pulse');
             });
-	});
-	
-	$(function(){
-		$('#toggleSpinners').on('click', function(){
-			$('.ibox-content').toggleClass('sk-loading');
-		})
 	});
 </script>
 <!-- InstanceEndEditable -->

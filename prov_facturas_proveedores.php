@@ -23,7 +23,6 @@ if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 }else{
 	$FechaFinal=date('Y-m-d');
-	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 //	$FechaFinal="";
 }
 
@@ -145,7 +144,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 									$dPago=ConsultarPago($row['ID_FacturaCompra'], $row['CardCode']);
 									if($dPago['DocNum']!=""){
 							?>
-									<tr>
+									<tr class="odd gradeX">
 										<td><?php echo $row['DocNum'];?></td>
 										<td><?php //echo $row['PrjName'];?></td>
 										<td><?php echo $row['DocDate'];?></td>
@@ -156,7 +155,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 										<td><?php if($dPago['DocNum']!=""){ echo $dPago['FechaPago']->format('Y-m-d'); }else{ echo "--";}?></td>				
 										<td align="right"><?php if($dPago['DocNum']!=""){ echo number_format($row['ValorPago'],2);}else{ echo "--";}?></td>	
 										<td align="right"><?php echo number_format($row['SaldoPendiente'],2);?></td>
-										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(604)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a></td>
 									</tr>
 						   <?php 	}
 								}
@@ -165,7 +164,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 									$dPago=ConsultarPago($row['ID_FacturaCompra'], $row['CardCode']);
 									if(($dPago['DocNum']!="")&&($row['SaldoPendiente']>0)){
 							?>
-									<tr>
+									<tr class="odd gradeX">
 										<td><?php echo $row['DocNum'];?></td>
 										<td><?php //echo $row['PrjName'];?></td>
 										<td><?php echo $row['DocDate'];?></td>
@@ -176,7 +175,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 										<td><?php if($dPago['DocNum']!=""){ echo $dPago['FechaPago']->format('Y-m-d'); }else{ echo "--";}?></td>				
 										<td align="right"><?php if($dPago['DocNum']!=""){ echo number_format($row['ValorPago'],2);}else{ echo "--";}?></td>	
 										<td align="right"><?php echo number_format($row['SaldoPendiente'],2);?></td>
-										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(604)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a></td>
 									</tr>
 						   <?php 	}
 								}
@@ -185,7 +184,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 									$dPago=ConsultarPago($row['ID_FacturaCompra'], $row['CardCode']);
 									if($dPago['DocNum']==""){
 							?>
-									<tr>
+									<tr class="odd gradeX">
 										<td><?php echo $row['DocNum'];?></td>
 										<td><?php //echo $row['PrjName'];?></td>
 										<td><?php echo $row['DocDate'];?></td>
@@ -196,7 +195,7 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 										<td><?php if($dPago['DocNum']!=""){ echo $dPago['FechaPago']->format('Y-m-d'); }else{ echo "--";}?></td>				
 										<td align="right"><?php if($dPago['DocNum']!=""){ echo number_format($row['ValorPago'],2);}else{ echo "--";}?></td>	
 										<td align="right"><?php echo number_format($row['SaldoPendiente'],2);?></td>
-										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(604)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a></td>
 									</tr>
 						   <?php 	}
 								}
@@ -204,18 +203,34 @@ $SQLCons=ReturnCons('uvw_Sap_tbl_FacturasCompras','*',"CardCode='".$_SESSION['Co
 								while($row=sqlsrv_fetch_array($SQL)){
 									$dPago=ConsultarPago($row['ID_FacturaCompra'], $row['CardCode']);
 							?>
-									<tr>
+									<tr class="odd gradeX">
 										<td><?php echo $row['DocNum'];?></td>
 										<td><?php //echo $row['PrjName'];?></td>
 										<td><?php echo $row['DocDate'];?></td>
 										<td><?php echo $row['TaxDate'];?></td>
 										<td><?php echo $row['NumAtCard'];?></td>
 										<td align="right"><?php echo number_format($row['DocTotal'],2);?></td>
-										<td><span <?php if(($dPago['DocNum']!="")&&($row['SaldoPendiente']>0)){echo "class='label label-warning'";}elseif(($dPago['DocNum']!="")&&($row['SaldoPendiente']<=0)){echo "class='label label-primary'";}else{echo "class='label label-danger'";}?>><?php if(($dPago['DocNum']!="")&&($row['SaldoPendiente']>0)){ echo "Abonada"; }elseif(($dPago['DocNum']!="")&&($row['SaldoPendiente']<=0)){echo "Pagada";}else{ echo "Pendiente de pago";}?></span></td>
-										<td><?php if($dPago['DocNum']!=""){ echo $dPago['FechaPago']->format('Y-m-d'); }else{ echo "--";}?></td>				
-										<td align="right"><?php if($dPago['DocNum']!=""){ echo number_format($row['ValorPago'],2);}else{ echo "--";}?></td>	
+										
+										<td>
+											<span <?php if((isset($dPago['DocNum']) && isset($row['SaldoPendiente'])) && ($dPago['DocNum']!="")&&($row['SaldoPendiente']>0)){echo "class='label label-warning'";}
+											elseif((isset($dPago['DocNum']) && isset($row['SaldoPendiente'])) && ($dPago['DocNum']!="")&&($row['SaldoPendiente']<=0)){echo "class='label label-primary'";}
+											else{echo "class='label label-danger'";}?>>
+												<?php if((isset($dPago['DocNum']) && isset($row['SaldoPendiente'])) && ($dPago['DocNum']!="")&&($row['SaldoPendiente']>0)){ echo "Abonada"; }
+												elseif((isset($dPago['DocNum']) && isset($row['SaldoPendiente'])) && ($dPago['DocNum']!="")&&($row['SaldoPendiente']<=0)){echo "Pagada";}
+												else{ echo "Pendiente de pago";}?>
+											</span>
+										</td>
+										
+										<td>
+											<?php if(isset($dPago['DocNum']) && $dPago['DocNum']!=""){ echo $dPago['FechaPago']->format('Y-m-d'); }else{ echo "--";}?>
+										</td>				
+										
+										<td align="right">
+											<?php if(isset($dPago['DocNum']) && $dPago['DocNum']!=""){ echo number_format($row['ValorPago'],2);}else{ echo "--";}?>
+										</td>	
+
 										<td align="right"><?php echo number_format($row['SaldoPendiente'],2);?></td>
-										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(604)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+										<td><a href="prov_detalle_facturas_proveedores.php?id=<?php echo base64_encode($row['ID_FacturaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_facturas_proveedores.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']);?>&ObType=<?php echo base64_encode('18');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a></td>
 									</tr>
 						   <?php										
 								}

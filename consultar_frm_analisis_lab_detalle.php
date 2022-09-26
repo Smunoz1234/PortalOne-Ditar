@@ -26,16 +26,12 @@ $dir_anx=CrearObtenerDirAnx("formularios/analisis_laboratorio/anexos");
 							<th>Producto</th>
 							<th>Humedad (%)</th>
 							<th>Densidad (Kg)</th>
-							<th>Anexo humedad</th>
 							<th>Granos partidos (%)</th>
-							<th>Anexo granos partidos</th>
-							<th>Limpieza (%)</th>
-							<th>Anexo limpieza</th>
+							<th>Impurezas (%)</th>
 							<th>Granos quemados (%)</th>
-							<th>Anexo granos quemados</th>
 							<th>Otros productos</th>
 							<th>Otros productos (%)</th>
-							<th>Anexo otros productos</th>
+							<th>Granos perforados (%)</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -45,18 +41,14 @@ $dir_anx=CrearObtenerDirAnx("formularios/analisis_laboratorio/anexos");
 							<td><?php echo $i;?></td>
 							<td><?php echo $row['transporte_puerto'];?></td>
 							<td><?php echo $row['producto_puerto'];?></td>
-							<td><?php echo number_format($row['porcen_humedad'],1);?></td>
+							<td><?php echo number_format($row['porcen_humedad'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_humedad_densidad']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
 							<td><?php echo number_format($row['kg_hl_densidad'],1);?></td>
-							<td><a href="filedownload.php?file=<?php echo base64_encode($row['anexo_humedad_densidad']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo_humedad_densidad'];?></a></td>
-							<td><?php echo number_format($row['porcen_granos_partidos'],1);?></td>
-							<td><a href="filedownload.php?file=<?php echo base64_encode($row['anexo_granos_partidos']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo_granos_partidos'];?></a></td>
-							<td><?php echo number_format($row['porcen_limpieza'],1);?></td>
-							<td><a href="filedownload.php?file=<?php echo base64_encode($row['anexo_porcen_limpieza']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo_porcen_limpieza'];?></a></td>
-							<td><?php echo number_format($row['porcen_granos_quemados'],1);?></td>
-							<td><a href="filedownload.php?file=<?php echo base64_encode($row['anexo_granos_quemados']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo_granos_quemados'];?></a></td>
+							<td><?php echo number_format($row['porcen_granos_partidos'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_granos_partidos']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
+							<td><?php echo number_format($row['porcen_impurezas'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_porcen_impurezas']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
+							<td><?php echo number_format($row['porcen_granos_quemados'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_granos_quemados']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
 							<td><?php echo $row['producto_otros'];?></td>
-							<td><?php echo number_format($row['porcen_otros_granos'],1);?></td>
-							<td><a href="filedownload.php?file=<?php echo base64_encode($row['anexo_otros_granos']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="fa fa-download"></i> <?php echo $row['anexo_otros_granos'];?></a></td>
+							<td><?php echo number_format($row['porcen_otros_granos'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_otros_granos']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
+							<td><?php echo number_format($row['porcen_granos_perforados'],1);?> <a href="filedownload.php?file=<?php echo base64_encode($row['anexo_granos_perforados']);?>&dir=<?php echo base64_encode($dir_anx);?>" target="_blank" title="Descargar anexo" class="btn-link btn-xs text-danger"><i class="fa fa-download"></i></a></td>
 						</tr>	
 						<?php $i++;}?>
 					</tbody>

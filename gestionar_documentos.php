@@ -29,7 +29,7 @@ if(isset($_GET['Categoria'])){
 	$Filtro.=" and ID_TipoCategoria=1";
 }
 
-$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '$FechaInicial' and '$FechaFinal') $Filtro Order by Fecha DESC";
+$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '".FormatoFecha($FechaInicial)."' and '".FormatoFecha($FechaFinal)."') $Filtro Order by Fecha DESC";
 //echo $Cons;
 $SQL=sqlsrv_query($conexion,$Cons);
 
@@ -87,12 +87,13 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
 				Swal.fire({
 					title: "¿Estás seguro?",
 					text: "Se eliminará la información de este registro. Este proceso no tiene reversión.",
-					type: "warning",
+					icon: "question",
 					showCancelButton: true,
 					confirmButtonText: "Si, estoy seguro",
 					cancelButtonText: "Cancelar"
 				}).then((result) => {
 					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
 						location.href='registro.php?P=13&type=1&id='+id;
 					}
 				});
@@ -137,25 +138,29 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
              <div class="row">
 				<div class="col-lg-12">
 			    	<div class="ibox-content">
+						 <?php include("includes/spinner.php"); ?>
 			 			<form action="gestionar_documentos.php" method="get" id="formBuscar" class="form-horizontal">
-			  		<div class="form-group">
-						<label class="col-lg-1 control-label">Fechas</label>
-						<div class="col-lg-3">
-							<div class="input-daterange input-group" id="datepicker">
-								<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
-								<span class="input-group-addon">hasta</span>
-								<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+							<div class="form-group">
+								<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 							</div>
-						</div>
-						<label class="col-lg-1 control-label">Categoría</label>
-						<div class="col-lg-3">
-						 <?php include_once("includes/select_categorias_documentos.php"); ?>
-						</div>
-						<div class="col-lg-1">
-							<button type="submit" class="btn btn-outline btn-success"><i class="fa fa-search"></i> Buscar</button>
-						</div>
-					</div>
-			 </form>
+							<div class="form-group">
+								<label class="col-lg-1 control-label">Fechas</label>
+								<div class="col-lg-3">
+									<div class="input-daterange input-group" id="datepicker">
+										<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
+										<span class="input-group-addon">hasta</span>
+										<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+									</div>
+								</div>
+								<label class="col-lg-1 control-label">Categoría</label>
+								<div class="col-lg-3">
+								 <?php include_once("includes/select_categorias_documentos.php"); ?>
+								</div>
+								<div class="col-lg-1">
+									<button type="submit" class="btn btn-outline btn-success"><i class="fa fa-search"></i> Buscar</button>
+								</div>
+							</div>
+			 			</form>
 					</div>
 				</div>
 			</div>
@@ -163,6 +168,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
           <div class="row">
            <div class="col-lg-12">
 			    <div class="ibox-content">
+					 <?php include("includes/spinner.php"); ?>
 			<div class="table-responsive">
                     <table class="table table-striped table-bordered table-hover dataTables-example" >
                     <thead>
@@ -210,6 +216,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             });
 			 $('#FechaFinal').datepicker({
@@ -218,6 +225,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             }); 
 			

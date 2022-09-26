@@ -1,6 +1,6 @@
 <?php require_once("includes/conexion.php");
 //require_once("includes/conexion_hn.php");
-PermitirAcceso(408);
+PermitirAcceso(414);
 
 $sw=0;
 $Serie="";
@@ -8,7 +8,7 @@ $Cliente="";
 $Sucursal="";
 $EstadoLlamada="";
 $Facturado="";
-$Zona="";
+//$Zona="";
 $ServicioLlamada="";
 $TipoLlamada="";
 $EstadoServicio="";
@@ -29,7 +29,7 @@ $SQL_TipoProblema=Seleccionar('uvw_Sap_tbl_TipoProblemasLlamadas','*','','DeTipo
 $SQL_TipoLlamadas=Seleccionar('uvw_Sap_tbl_TipoLlamadas','*','','DeTipoLlamada');
 
 //Zona
-$SQL_Zonas=Seleccionar('uvw_Sap_tbl_Clientes_Zonas','*');
+//$SQL_Zonas=Seleccionar('uvw_Sap_tbl_Clientes_Zonas','*');
 
 //Serie de llamada
 $ParamSerie=array(
@@ -58,12 +58,13 @@ if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 }
 
 //Filtros
+$TipoFecha= isset($_GET['TipoFecha']) ? $_GET['TipoFecha'] : "";
 $Cliente= isset($_GET['Cliente']) ? $_GET['Cliente'] : "";
 $Sucursal= isset($_GET['Sucursal']) ? $_GET['Sucursal'] : "";
 $Serie= isset($_GET['Series']) ? $_GET['Series'] : "";
 $EstadoLlamada= isset($_GET['EstadoLlamada']) ? $_GET['EstadoLlamada'] : "";
 $Facturado= isset($_GET['Facturado']) ? $_GET['Facturado'] : "";
-$Zona= isset($_GET['Zona']) ? $_GET['Zona'] : "";
+//$Zona= isset($_GET['Zona']) ? $_GET['Zona'] : "";
 $ServicioLlamada= isset($_GET['Servicio']) ? $_GET['Servicio'] : "";
 $TipoLlamada= isset($_GET['TipoLlamada']) ? implode(",",$_GET['TipoLlamada']) : "";
 $EstadoServicio= isset($_GET['EstadoServicio']) ? implode(",",$_GET['EstadoServicio']) : "";
@@ -72,6 +73,7 @@ if($sw==1){
 	$Param=array(
 		"'".FormatoFecha($FechaInicial)."'",
 		"'".FormatoFecha($FechaFinal)."'",
+		"'".$TipoFecha."'",
 		"'".$Cliente."'",
 		"'".$Sucursal."'",
 		"'".$EstadoLlamada."'",
@@ -136,7 +138,7 @@ if($sw==1){
 <script>
 	var json=[];
 	var cant=0;
-function SeleccionarOT(DocNum, AbsEntry, LineNum){
+function SeleccionarOT(DocNum, AbsEntry, LineNum, DocEntry, Serie){
 	//var add=new Array(DocNum,AbsEntry,LineNum);
 	var btnZIP=document.getElementById('btnZIP');
 	var Check = document.getElementById('chkSelOT'+DocNum).checked;
@@ -155,7 +157,7 @@ function SeleccionarOT(DocNum, AbsEntry, LineNum){
 		json.splice(sw, 1);
 		cant--;
 	}else{
-		json.push({DocNum,AbsEntry,LineNum});
+		json.push({Obj:'191',DocNum,AbsEntry,LineNum,Num:DocEntry,Serie});
 		cant++;
 	}
 	
@@ -192,6 +194,14 @@ function SeleccionarTodos(){
 	$(".chkSelOT").prop("checked", $("#chkAll").prop('checked'));
 	$(".chkSelOT").trigger('change');	
 }
+	
+function DescargarZIP(idFormato){
+	DescargarSAPDownload("sapdownload.php", "id="+btoa('15')+"&type="+btoa('2')+"&zip="+btoa('1')+"&idreg="+btoa(idFormato)+"&file="+JSON.stringify(json), true)
+}
+	
+function DescargarANX(){
+	DescargarSAPDownload("attachdownload.php","zip="+btoa('1')+"&file="+btoa(JSON.stringify(json)), true)
+}
 </script>
 <!-- InstanceEndEditable -->
 </head>
@@ -227,7 +237,7 @@ function SeleccionarTodos(){
 			    <div class="ibox-content">
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="impresion_orden_servicio.php" method="get" id="formBuscar" class="form-horizontal">
-						<div class="form-group">
+					  <div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 					    </div>
 						<div class="form-group">
@@ -255,7 +265,7 @@ function SeleccionarTodos(){
 								 }?>
 							</select>
 							</div>
-							<label class="col-lg-1 control-label">Fechas</label>
+							<label class="col-lg-1 control-label"><select id="TipoFecha" name="TipoFecha"><option value="FechaCreacionLLamada" <?php if(isset($_GET['TipoFecha'])&&($_GET['TipoFecha']=="FechaCreacionLLamada")){ echo "selected=\"selected\"";}?>>Fecha creación</option><option value="FechaCierreLLamada" <?php if(isset($_GET['TipoFecha'])&&($_GET['TipoFecha']=="FechaCierreLLamada")){ echo "selected=\"selected\"";}?>>Fecha cierre</option></select></label>
 							<div class="col-lg-3">
 								<div class="input-daterange input-group" id="datepicker">
 									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
@@ -282,13 +292,13 @@ function SeleccionarTodos(){
 										<option value="<?php echo $row_Series['IdSeries'];?>" <?php if((isset($_GET['Series']))&&(strcmp($row_Series['IdSeries'],$_GET['Series'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Series['DeSeries'];?></option>
 								  <?php }?>
 								</select>
-							</div>			
+							</div>	
 							<label class="col-lg-1 control-label">Servicio</label>
 							<div class="col-lg-3">
 								<input name="Servicio" type="text" class="form-control" id="Servicio" maxlength="50" value="<?php if(isset($_GET['Servicio'])&&($_GET['Servicio']!="")){ echo $_GET['Servicio'];}?>">
 							</div>	
 						</div>
-						<div class="form-group">	
+						<div class="form-group">							
 							<label class="col-lg-1 control-label">Tipo llamada</label>
 							<div class="col-lg-3">
 								<select data-placeholder="(Todos)" name="TipoLlamada[]" class="form-control chosen-select" id="TipoLlamada" multiple>
@@ -297,7 +307,7 @@ function SeleccionarTodos(){
 										<option value="<?php echo $row_TipoLlamadas['IdTipoLlamada'];?>" <?php if((isset($_GET['TipoLlamada'][$j])&&($_GET['TipoLlamada'][$j]!=""))&&(strcmp($row_TipoLlamadas['IdTipoLlamada'],$_GET['TipoLlamada'][$j])==0)){ echo "selected=\"selected\"";$j++;}?>><?php echo $row_TipoLlamadas['DeTipoLlamada'];?></option>
 								  <?php }?>
 								</select>
-							</div>						
+							</div>
 							<label class="col-lg-1 control-label">Estado servicio</label>
 							<div class="col-lg-3">
 								<select data-placeholder="(Todos)" name="EstadoServicio[]" class="form-control chosen-select" id="EstadoServicio" multiple>
@@ -314,13 +324,20 @@ function SeleccionarTodos(){
 									<option value="SI" <?php if(isset($_GET['Facturado'])&&($_GET['Facturado']=="SI")){ echo "selected=\"selected\"";}?>>SI</option>
 									<option value="NO" <?php if(isset($_GET['Facturado'])&&($_GET['Facturado']=="NO")){ echo "selected=\"selected\"";}?>>NO</option>
 								</select>
-							</div>							
+							</div>
 						</div>
-						<div class="form-group">	
-							<div class="col-lg-12 pull-right">
+						<div class="form-group">
+							<div class="col-lg-8">
+								 <?php if($sw==1){?>
+								<a href="exportar_excel.php?exp=10&Cons=<?php echo base64_encode(implode(",",$Param));?>&sp=<?php echo base64_encode('sp_ConsultarImpresionOT');?>">
+									<img src="css/exp_excel.png" width="50" height="30" alt="Exportar a Excel" title="Exportar a Excel"/>
+								</a>
+								<?php }?>
+							</div>	
+							<div class="col-lg-4 pull-right">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
-							</div>							
-						</div>
+							</div>	
+					  	</div>	
 				 </form>
 			</div>
 			</div>
@@ -331,16 +348,34 @@ function SeleccionarTodos(){
            <div class="col-lg-12">
 			    <div class="ibox-content">
 					 <?php include("includes/spinner.php"); ?>
+				<div class="form-group">
+					<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-check-square"></i> Datos para seleccionar</h3></label>
+				 </div>
 				<div class="row m-b-md">
 					<div class="col-lg-6">
 						<form id="frmDownload" name="frmDownload" action="attachdownload.php" method="post" target="_blank">
 							<input type="hidden" id="file" name="file" value="" />
 							<input type="hidden" id="zip" name="zip" value="<?php echo base64_encode('1'); ?>" />
-						</form>		
+						</form>
 					</div>
 					<div class="col-lg-6">
-						<button type="submit" class="pull-right btn btn-primary disabled" id="btnZIP" name="btnZIP" form="frmDownload"><i class="fa fa-file-zip-o"></i> Exportar en ZIP</button>		
-					</div>
+						<div class="btn-group pull-right">
+							<button data-toggle="dropdown" class="btn btn-primary disabled dropdown-toggle" id="btnZIP" name="btnZIP"><i class="fa fa-download"></i> Descargar <i class="fa fa-caret-down"></i></button>
+							<ul class="dropdown-menu">
+								<li>
+									<a class="dropdown-item" href="javascript:void(0);" onClick="DescargarANX();">Anexos</a>
+									<?php 
+									$SQL_Formato=Seleccionar('uvw_tbl_FormatosSAP','*',"ID_Objeto=191 and VerEnDocumento='Y'");
+									while($row_Formato=sqlsrv_fetch_array($SQL_Formato)){ 
+										$Nombre=($row_Formato['DeSeries']=="") ? $row_Formato['NombreVisualizar'] : $row_Formato['NombreVisualizar']." (".$row_Formato['DeSeries'].")";
+									?>
+									
+										<a class="dropdown-item" href="javascript:void(0);" onClick="DescargarZIP('<?php echo $row_Formato['ID']; ?>');"><?php echo $Nombre; ?></a>
+								<?php }?>
+								</li>
+							</ul>
+						</div>
+					</div>					
 				</div>
 				<div class="row p-sm">
 					<div class="table-responsive">
@@ -351,8 +386,9 @@ function SeleccionarTodos(){
 							<th>Serie</th>
 							<th>Tipo llamada</th>
 							<th>Cliente</th>
-							<th>Sucursal</th> 
-							<th>Servicio</th>  
+							<th>Sucursal</th>
+							<th>VTA</th>
+							<th>Valor VTA</th>
 							<th>Fecha creación</th>
 							<th>Fecha cierre</th>
 							<th>Estado</th>
@@ -371,20 +407,27 @@ function SeleccionarTodos(){
 								<td><?php echo $row['SeriesName'];?></td>
 								<td><?php echo $row['DeTipoLlamada'];?></td>
 								<td><?php echo $row['NombreClienteLlamada'];?></td>
-								<td><?php echo $row['NombreSucursal'];?></td>
-								<td><?php echo $row['CDU_Servicios'];?></td>
+								<td><?php echo $row['NombreSucursal'];?></td>								 
+								<td><?php echo $row['IdVTAFactura'];?></td>
+								<td><?php echo number_format($row['ValorVTAFactura'],0);?></td>								 
 								<td><?php echo $row['FechaCreacionLLamada'];?></td>
 								<td><?php echo $row['FechaCierreLLamada'];?></td>
 								<td><span <?php if($row['IdEstadoLlamada']=='-3'){echo "class='label label-info'";}elseif($row['IdEstadoLlamada']=='-2'){echo "class='label label-warning'";}else{echo "class='label label-danger'";}?>><?php echo $row['DeEstadoLlamada'];?></span></td>
 								<td><span <?php if($row['CDU_EstadoServicio']=='0'){echo "class='label label-warning'";}elseif($row['CDU_EstadoServicio']=='1'){echo "class='label label-primary'";}else{echo "class='label label-danger'";}?>><?php echo $row['DeEstadoServicio'];?></span></td>
 								<td><?php if($row['DocNumFactura']!=""){?><a href="factura_venta.php?id=<?php echo base64_encode($row['DocEntryFactura']);?>&id_portal=<?php echo base64_encode($row['DocPortalFactura']);?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('impresion_orden_servicio.php');?>" target="_blank"><?php echo $row['DocNumFactura'];?></a><?php }else{echo "NO";}?></td>
 								<td><?php if($row['DeAnexoLlamada']!=""){?><a href="attachdownload.php?file=<?php echo base64_encode($row['IdAnexoLlamada']);?>&line=<?php echo base64_encode($row['LineNumAnexoLlamada']);?>" target="_blank" title="Descargar archivo" class="btn-link btn-xs"><i class="<?php echo $Icon;?>"></i> <?php echo $row['DeAnexoLlamada'];?></a><?php }?></td>
-								<td><?php if($row['DeAnexoLlamada']!=""){?><div class="checkbox checkbox-success"><input type="checkbox" class="chkSelOT" id="chkSelOT<?php echo $row['DocNum'];?>" value="" onChange="SeleccionarOT('<?php echo $row['DocNum'];?>','<?php echo $row['IdAnexoLlamada'];?>','<?php echo $row['LineNumAnexoLlamada'];?>');" aria-label="Single checkbox One"><label></label></div><?php }?></td>
+								<td>
+									<?php //if($row['DeAnexoLlamada']!=""){?>
+									<div class="checkbox checkbox-success">
+										<input type="checkbox" class="chkSelOT" id="chkSelOT<?php echo $row['DocNum'];?>" value="" onChange="SeleccionarOT('<?php echo $row['DocNum'];?>','<?php echo $row['IdAnexoLlamada'];?>','<?php echo $row['LineNumAnexoLlamada'];?>','<?php echo $row['ID_LlamadaServicio'];?>','<?php echo $row['Series'];?>');" aria-label="Single checkbox One"><label></label>
+									</div>
+									<?php //}?>
+								</td>
 							</tr>
 						<?php $i++;}?>
 						</tbody>
-						</table>
-					</div>
+						</table>				
+              		</div>
 				</div>
 			</div>
 			 </div> 
@@ -453,10 +496,11 @@ function SeleccionarTodos(){
 			$("#NombreCliente").easyAutocomplete(options);
 			
             $('.dataTables-example').DataTable({
-                pageLength: 200,
+                pageLength: 25,
 				lengthMenu: [ [10, 25, 50, 100, 150, 200, -1], [10, 25, 50, 100, 150, 200, "Todos"] ],
-				order: [[ 0, "desc" ]],
-				ordering:  false,
+				rowGroup: {
+					dataSrc: [3]
+				},
                 dom: '<"html5buttons"B>lTfgitp',
 				language: {
 					"decimal":        "",

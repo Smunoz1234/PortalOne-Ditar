@@ -546,7 +546,7 @@ if($sw_error==1){
 											
 										</div>
 										<div class="mail-text h-200">
-											<textarea name="TextAcuerdo" id="TextAcuerdo" class="summernote"><?php echo utf8_encode($Contenido);?></textarea>
+											<textarea name="TextAcuerdo" id="TextAcuerdo" class="summernote"><?php echo $Contenido;?></textarea>
 											<div class="clearfix"></div>
 										</div>
 									<?php if(isset($_GET['result'])&&($_GET['result']==base64_encode("MsgOkAcuerdoOK"))){?>

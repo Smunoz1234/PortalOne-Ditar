@@ -173,7 +173,7 @@ function Eliminar(){
 	Swal.fire({
 		title: "Eliminar",
 		text: "¿Está seguro que desea eliminar esta categoría?",
-		type: "warning",
+		icon: "warning",
 		showCancelButton: true,
 		confirmButtonText: "Si, estoy seguro",
 		cancelButtonText: "Cancelar",

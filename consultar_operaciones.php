@@ -69,11 +69,6 @@ if(isset($_GET['Series'])&&$_GET['Series']!=""){
 	$sw=1;
 }
 
-if(isset($_GET['TipoLlamada'])&&$_GET['TipoLlamada']!=""){
-	$TipoLlamada=$_GET['TipoLlamada'];
-	$sw=1;
-}
-
 if(isset($_GET['EstadoLlamada'])&&$_GET['EstadoLlamada']!=""){
 	$EstadoLlamada=$_GET['EstadoLlamada'];
 	$sw=1;
@@ -84,16 +79,14 @@ if(isset($_GET['EstadoActividad'])&&$_GET['EstadoActividad']!=""){
 	$sw=1;
 }
 
-if(isset($_GET['EstadoServicio'])&&$_GET['EstadoServicio']!=""){
-	$EstadoServicioLlamada=$_GET['EstadoServicio'];
-	$sw=1;
-}
-
 if(isset($_GET['NombreEmpleado'])&&$_GET['NombreEmpleado']!=""){
 	$NombreEmpleado=$_GET['NombreEmpleado'];
 	$sw=1;
 }
 
+$Facturado= isset($_GET['Facturado']) ? $_GET['Facturado'] : "";
+$TipoLlamada= isset($_GET['TipoLlamada']) ? implode(",",$_GET['TipoLlamada']) : "";
+$EstadoServicioLlamada= isset($_GET['EstadoServicio']) ? implode(",",$_GET['EstadoServicio']) : "";
 
 if($sw==1){
 	$Param=array(
@@ -107,6 +100,7 @@ if($sw==1){
 		"'".$EstadoActividad."'",
 		"'".$EstadoServicioLlamada."'",
 		"'".$NombreEmpleado."'",
+		"'".$Facturado."'",
 		"'".strtolower($_SESSION['User'])."'"
 	);
 	$SQL=EjecutarSP('usp_TraerConsultaOperaciones',$Param);
@@ -228,9 +222,9 @@ if($sw==1){
 							<label class="col-lg-1 control-label">Fechas</label>
 							<div class="col-lg-3">
 								<div class="input-daterange input-group" id="datepicker">
-									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
+									<input name="FechaInicial" type="text" autocomplete="off" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
 									<span class="input-group-addon">hasta</span>
-									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+									<input name="FechaFinal" type="text" autocomplete="off" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
 								</div>
 							</div>
 							<label class="col-lg-1 control-label">Cliente</label>
@@ -270,11 +264,10 @@ if($sw==1){
 							</div>		
 							<label class="col-lg-1 control-label">Tipo llamada</label>
 							<div class="col-lg-3">
-								<select name="TipoLlamada" class="form-control" id="TipoLlamada">
-									<option value="">(Todos)</option>
+								<select data-placeholder="(Todos)" name="TipoLlamada[]" class="form-control chosen-select" id="TipoLlamada" multiple>
 								  <?php $j=0;
-									while($row_TipoLlamadas=sqlsrv_fetch_array($SQL_TipoLlamadas)){?>										
-										<option value="<?php echo $row_TipoLlamadas['IdTipoLlamada'];?>" <?php if((isset($_GET['TipoLlamada']))&&(strcmp($row_TipoLlamadas['IdTipoLlamada'],$_GET['TipoLlamada'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_TipoLlamadas['DeTipoLlamada'];?></option>
+									while($row_TipoLlamadas=sqlsrv_fetch_array($SQL_TipoLlamadas)){?>
+										<option value="<?php echo $row_TipoLlamadas['IdTipoLlamada'];?>" <?php if((isset($_GET['TipoLlamada'][$j])&&($_GET['TipoLlamada'][$j]!=""))&&(strcmp($row_TipoLlamadas['IdTipoLlamada'],$_GET['TipoLlamada'][$j])==0)){ echo "selected=\"selected\"";$j++;}?>><?php echo $row_TipoLlamadas['DeTipoLlamada'];?></option>
 								  <?php }?>
 								</select>
 							</div>
@@ -300,10 +293,10 @@ if($sw==1){
 							</div>
 							<label class="col-lg-1 control-label">Estado servicio llamada</label>
 							<div class="col-lg-3">
-								<select name="EstadoServicio" class="form-control" id="EstadoServicio">
-									<option value="">(Todos)</option>
-										<?php while($row_EstServLlamada=sqlsrv_fetch_array($SQL_EstServLlamada)){?>
-										<option value="<?php echo $row_EstServLlamada['IdEstadoServicio'];?>" <?php if((isset($_GET['EstadoServicio']))&&(strcmp($row_EstServLlamada['IdEstadoServicio'],$_GET['EstadoServicio'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_EstServLlamada['DeEstadoServicio'];?></option>
+								<select data-placeholder="(Todos)" name="EstadoServicio[]" class="form-control chosen-select" id="EstadoServicio" multiple>
+										<?php $j=0; 
+									while($row_EstServLlamada=sqlsrv_fetch_array($SQL_EstServLlamada)){?>
+										<option value="<?php echo $row_EstServLlamada['IdEstadoServicio'];?>" <?php if((isset($_GET['EstadoServicio'][$j])&&($_GET['EstadoServicio'][$j]!=""))&&(strcmp($row_EstServLlamada['IdEstadoServicio'],$_GET['EstadoServicio'][$j])==0)){ echo "selected=\"selected\"";$j++;}?>><?php echo $row_EstServLlamada['DeEstadoServicio'];?></option>
 								  <?php }?>
 								</select>
 							</div>
@@ -318,17 +311,27 @@ if($sw==1){
 							</div>
 						</div>
 					    <div class="form-group">
-							<div class="col-lg-8">
-								 <?php if($sw==1){?>
-								<a href="exportar_excel.php?exp=10&Cons=<?php echo base64_encode(implode(",",$Param));?>&sp=<?php echo base64_encode('usp_TraerConsultaOperaciones');?>">
-									<img src="css/exp_excel.png" width="50" height="30" alt="Exportar a Excel" title="Exportar a Excel"/>
-								</a>
-								<?php }?>
-							</div>	
+							<label class="col-lg-1 control-label">Facturado</label>
+							<div class="col-lg-3">
+								<select name="Facturado" class="form-control" id="Facturado">
+									<option value="">(Todos)</option>
+									<option value="SI" <?php if(isset($_GET['Facturado'])&&($_GET['Facturado']=="SI")){ echo "selected=\"selected\"";}?>>SI</option>
+									<option value="NO" <?php if(isset($_GET['Facturado'])&&($_GET['Facturado']=="NO")){ echo "selected=\"selected\"";}?>>NO</option>
+								</select>
+							</div>							
 							<div class="col-lg-4 pull-right">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>	
-					  	</div>					 
+					  	</div>
+					   <?php if($sw==1){?>
+					  	<div class="form-group">
+							<div class="col-lg-8">
+								<a href="exportar_excel.php?exp=18&Cons=<?php echo base64_encode(implode(",",$Param));?>&sp=<?php echo base64_encode('usp_TraerConsultaOperaciones');?>">
+									<img src="css/exp_excel.png" width="50" height="30" alt="Exportar a Excel" title="Exportar a Excel"/>
+								</a>								
+							</div>	
+					  	</div>	
+					  <?php }?>
 				 </form>
 			</div>
 			</div>
@@ -349,15 +352,24 @@ if($sw==1){
 							<th>Serie</th>
 							<th>Tipo llamada</th>
 							<th>Cliente</th>
-							<th>Sucursal</th> 
+							<th>Sucursal</th>
+							
+							<th>Articulo</th>
+							<th>Serial Interno</th>
+							<th>Nombre Contacto</th>
+							<th>Telefono Contacto</th>
+							<th>Correo Contacto</th>
+							
+							<th>Facturado</th>
 							<th>Servicio</th>  
-							<th>Metodo aplicación</th>  
+							<th>Metodo aplicación</th>
 							<th>Áreas</th>  
 							<th>Fecha creación</th>
 							<th>Fecha cierre</th>
 							<th>Estado llamada</th>
 							<th>Estado servicio llamada</th>
 							<th>Fecha actividad</th>
+							<th>Fecha de cronograma</th>
 							<th>Técnico</th>
 							<th>Estado actividad</th>
 							<th>Comentarios llamada</th>
@@ -378,18 +390,27 @@ if($sw==1){
 								<td><?php echo $row['DeTipoLlamada'];?></td>
 								<td><?php echo $row['NombreCliente'];?></td>
 								<td><?php echo $row['NombreSucursalCliente'];?></td>
+								
+								<td><?php echo $row['DeArticuloLlamada'];?></td>
+								<td><?php echo $row['SerialArticuloLlamada'];?></td>
+								<td><?php echo $row['NombreContactoLlamada'];?></td>
+								<td><?php echo $row['TelefonoContactoLlamada'];?></td>
+								<td><?php echo $row['CorreoContactoLlamada'];?></td>
+								
+								<td><?php echo $row['Facturado'];?></td>
 								<td><?php echo $row['ServiciosLlamadas'];?></td>
 								<td><?php echo $row['MetodoAplicaLlamadas'];?></td>
-								<td><?php echo $row['AreasCtrlLlamadas'];?></td>
+								<td><?php echo SubComent($row['AreasCtrlLlamadas'],50);?></td>
 								<td><?php echo $row['FechaCreacionLLamada'];?></td>
 								<td><?php echo $row['FechaCierreLLamada'];?></td>
 								<td><span <?php if($row['IdEstadoLlamada']=='-3'){echo "class='label label-info'";}elseif($row['IdEstadoLlamada']=='-2'){echo "class='label label-warning'";}else{echo "class='label label-danger'";}?>><?php echo $row['DeEstadoLlamada'];?></span></td>	
 								<td><span <?php if($row['IdEstadoServicioLlamada']=='0'){echo "class='label label-warning'";}elseif($row['IdEstadoServicioLlamada']=='1'){echo "class='label label-primary'";}else{echo "class='label label-danger'";}?>><?php echo $row['EstadoServicioLlamada'];?></span></td>								
 								<td><?php echo ($row['FechaActividad']!="") ? $row['FechaActividad']->format('Y-m-d H:i') : "";?></td>
+								<td><?php echo ($row['FechaCronograma']!="") ? $row['FechaCronograma']->format('Y-m-d') : "";?></td>
 								<td><?php echo $row['NombreEmpleadoActividad'];?></td>
 								<td><?php echo $row['NombreEstadoActividad'];?></td>
-								<td><?php echo $row['ComentarioLlamada'];?></td>
-								<td><?php echo $row['ResolucionLlamada'];?></td>
+								<td><?php echo SubComent($row['ComentarioLlamada']);?></td>
+								<td><?php echo SubComent($row['ResolucionLlamada']);?></td>
 								<td><?php echo $row['OrdenVenta'];?></td>
 								<td><?php echo $row['Entregas'];?></td>
 								<td><?php echo $row['Devolucion'];?></td>

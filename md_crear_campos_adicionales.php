@@ -31,7 +31,7 @@ if($edit==1){
 				<?php include("includes/spinner.php"); ?>
 				<div class="form-group">
 					<label class="control-label">Tipo de documento <span class="text-danger">*</span></label>
-					<select name="TipoDoc" class="form-control" id="TipoDoc" required>
+					<select name="TipoDoc" class="form-control" id="TipoDoc" required <?php if($edit==1){echo "disabled";}?>>
 							<option value="">Seleccione...</option>
 					  <?php $CatActual="";
 						while($row_TipoDoc=sqlsrv_fetch_array($SQL_TipoDoc)){

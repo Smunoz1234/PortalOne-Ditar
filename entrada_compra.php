@@ -104,8 +104,8 @@ if(isset($_POST['P'])&&($_POST['P']!="")){//Grabar Entrada de compras
 			"'".$_POST['DireccionDestino']."'",
 			"'".$_POST['CondicionPago']."'",
 			"'".$_POST['Dim1']."'",
-			"NULL",
-			"NULL",
+			"'".$_POST['Dim2']."'",
+			"'".$_POST['Sucursal']."'",
 			"NULL",
 			"'".$_POST['Autorizacion']."'",
 			"'".$_POST['Almacen']."'",
@@ -160,127 +160,270 @@ if(isset($_POST['P'])&&($_POST['P']!="")){//Grabar Entrada de compras
 				echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
 			}
 			
+			if($_POST['tl']==0){//Creando			
 			
-			//Consultar cabecera
-			$SQL_Cab=Seleccionar("uvw_tbl_EntradaCompra",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
-			$row_Cab=sqlsrv_fetch_array($SQL_Cab);
-			
-			//Consultar detalle
-			$SQL_Det=Seleccionar("uvw_tbl_EntradaCompraDetalle",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
-			
-			//Consultar anexos
-			$SQL_Anx=Seleccionar("uvw_tbl_DocumentosSAP_Anexos",'*',"ID_Documento='".$IdEntradaCompra."' and TipoDocumento='20' and Metodo=1");
-			
-			//Consultar Lotes
-			$SQL_Lotes=Seleccionar("uvw_tbl_LotesDocSAP",'*',"DocEntry='".$IdEntradaCompra."' and IdEvento='".$IdEvento."' and ObjType='20'");
-			
-			$Detalle=array();
-			$Anexos=array();
-			$Lotes=array();
-			$Seriales=array();
-			
-			//Detalle
-			while($row_Det=sqlsrv_fetch_array($SQL_Det)){
+				//Consultar cabecera
+				$SQL_Cab=Seleccionar("uvw_tbl_EntradaCompra",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
+				$row_Cab=sqlsrv_fetch_array($SQL_Cab);
+
+				//Consultar detalle
+				$SQL_Det=Seleccionar("uvw_tbl_EntradaCompraDetalle",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
+
+				//Consultar anexos
+				$SQL_Anx=Seleccionar("uvw_tbl_DocumentosSAP_Anexos",'*',"ID_Documento='".$IdEntradaCompra."' and TipoDocumento='20' and Metodo=1");
+
+				//Consultar Lotes
+				$SQL_Lotes=Seleccionar("uvw_tbl_LotesDocSAP",'*',"DocEntry='".$IdEntradaCompra."' and IdEvento='".$IdEvento."' and ObjType='20'");
+
+				$Detalle=array();
+				$Anexos=array();
+				$Lotes=array();
+				$Seriales=array();
+
+				//Detalle
+				while($row_Det=sqlsrv_fetch_array($SQL_Det)){
+
+					array_push($Detalle,array(
+						"base_type" => ($row_Det['BaseType']==="") ? null : intval($row_Det['BaseType']),
+						"base_entry" => ($row_Det['BaseEntry']==="") ? null : intval($row_Det['BaseEntry']),
+						"base_line" => ($row_Det['BaseLine']==="") ? null : intval($row_Det['BaseLine']),
+						"line_num" => intval($row_Det['LineNum']),
+						"id_tipo_articulo" => "",
+						"tipo_articulo" => 0,
+						"id_articulo" => $row_Det['ItemCode'],
+						"articulo" => $row_Det['ItemName'],
+						"unidad_medida" => $row_Det['UnitMsr'],
+						"texto_libre" => $row_Det['FreeTxt'],
+						"id_bodega" => $row_Det['WhsCode'],
+						"cant_articulo" => intval($row_Det['Quantity']),
+						"precio_articulo" => intval($row_Det['Price']),
+						"dim1" => $row_Det['OcrCode'],
+						"dim2" => $row_Det['OcrCode2'],
+						"dim3" => $row_Det['OcrCode3'],
+						"dim4" => $row_Det['OcrCode4'],
+						"dim5" => $row_Det['OcrCode5'],
+						"id_proyecto" => $row_Det['PrjCode'],
+						"metodo_linea" => intval($row_Det['Metodo']),
+						"maneja_serial" => $row_Det['ManSerNum'],
+						"maneja_lote" => $row_Det['ManBtchNum'],
+						"CDU_id_servicio" => $row_Det['CDU_IdServicio'],
+						"CDU_id_metodo_aplicacion" => $row_Det['CDU_IdMetodoAplicacion'],
+						"CDU_id_tipo_plagas" => $row_Det['CDU_IdTipoPlagas'],
+						"CDU_areas_controladas" => $row_Det['CDU_AreasControladas'],
+						"CDU_cant_litros" => intval($row_Det['CDU_CantLitros']),
+						"CDU_dosificacion" => intval($row_Det['CDU_Dosificacion']),
+						"CDU_cant_visita" => 0,
+						"CDU_codigo_empleado" => "",
+						"CDU_nombre_empleado" => "",
+						"CDU_texto_libre" => "",
+						"CDU_numero_ots" => "",
+						"CDU_id_direccion_destino" => "",
+						"estado_linea" => $row_Det['LineStatus'],
+						"docentry_documento" => intval($row_Det['DocEntry'])
+					));
+				}
+
+				//Anexos
+				$i=0;
+				while($row_Anx=sqlsrv_fetch_array($SQL_Anx)){
+
+					array_push($Anexos,array(
+						"id_anexo" => $i,
+						"tipo_documento" => intval($row_Anx['TipoDocumento']),
+						"id_documento" => intval($row_Anx['ID_Documento']),
+						"archivo" => $row_Anx['FileName'],
+						"ext_archivo" => $row_Anx['FileExt'],
+						"metodo" => intval($row_Anx['Metodo']),
+						"fecha" => FormatoFechaToSAP($row_Anx['Fecha']->format('Y-m-d')),
+						"id_usuario" => intval($row_Anx['ID_Usuario']),
+						"comentarios" => ""
+					));
+					$i++;
+				}
+
+				//Lotes
+				while($row_Lotes=sqlsrv_fetch_array($SQL_Lotes)){
+
+					array_push($Lotes,array(
+						"id_documento" => intval($row_Lotes['DocEntry']),
+						"id_linea" => intval($row_Lotes['DocLinea']),
+						"id_articulo" => $row_Lotes['ItemCode'],
+						"articulo" => $row_Lotes['ItemName'],
+						"cantidad" => intval($row_Lotes['Cantidad']),
+						"serial_lote" => $row_Lotes['DistNumber'],
+						"id_systema_articulo" => 0
+					));
+				}
+
+				$Cabecera=array(
+					"id_documento" => 0,
+					"id_tipo_documento" => "20",
+					"tipo_documento" => "Entrada de compras",
+					"moneda_documento" => "$",
+					"estado" => $row_Cab['Cod_Estado'],
+					"id_doc_portal" => "".$row_Cab['ID_EntradaCompra']."",
+					"id_series" => intval($row_Cab['IdSeries']),
+					"id_cliente" => $row_Cab['CardCode'],
+					"cliente" => $row_Cab['NombreCliente'],
+					"id_contacto_cliente" => intval($row_Cab['CodigoContacto']),
+					"contacto_cliente" => $row_Cab['NombreContacto'],
+					"referencia" => $row_Cab['NumAtCard'],
+					"id_condicion_pago" => intval($row_Cab['IdCondicionPago']),
+					"id_direccion_facturacion" => $row_Cab['SucursalFacturacion'],
+					"id_direccion_destino" => $row_Cab['SucursalDestino'],
+					"fecha_contabilizacion" => FormatoFechaToSAP($row_Cab['DocDate']),
+					"fecha_vencimiento" => FormatoFechaToSAP($row_Cab['DocDueDate']),
+					"fecha_documento" => FormatoFechaToSAP($row_Cab['TaxDate']),
+					"comentarios" => $row_Cab['Comentarios'],
+					"usuario" => $row_Cab['Usuario'],
+					"fecha_creacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
+					"hora_creacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
+					"id_anexo" => 0,
+					"docentry_llamada_servicio" => 0,
+					"docentry_documento" => 0,
+					"id_llamada_servicio" => 0,
+					"id_vendedor" => intval($row_Cab['SlpCode']),
+					"metodo" => intval($row_Cab['Metodo']),
+					"documento_destino" => "18",
+					"documento_destino_borrador" => true,
+					"documentos_Lineas" => $Detalle,
+					"documentos_Anexos" => $Anexos,
+					"documentos_Lotes" => $Lotes,
+					"documentos_Seriales" => $Seriales
+				);
 				
-				array_push($Detalle,array(
-					"base_type" => ($row_Det['BaseType']==="") ? null : intval($row_Det['BaseType']),
-					"base_entry" => ($row_Det['BaseEntry']==="") ? null : intval($row_Det['BaseEntry']),
-					"base_line" => ($row_Det['BaseLine']==="") ? null : intval($row_Det['BaseLine']),
-					"line_num" => intval($row_Det['LineNum']),
-					"id_tipo_articulo" => "",
-					"tipo_articulo" => 0,
-					"id_articulo" => $row_Det['ItemCode'],
-					"articulo" => $row_Det['ItemName'],
-					"unidad_medida" => $row_Det['UnitMsr'],
-					"texto_libre" => $row_Det['FreeTxt'],
-					"id_bodega" => $row_Det['WhsCode'],
-					"cant_articulo" => intval($row_Det['Quantity']),
-					"precio_articulo" => intval($row_Det['Price']),
-					"dim1" => $row_Det['OcrCode'],
-					"dim2" => $row_Det['OcrCode2'],
-					"dim3" => $row_Det['OcrCode3'],
-					"dim4" => $row_Det['OcrCode4'],
-					"dim5" => $row_Det['OcrCode5'],
-					"id_proyecto" => $row_Det['PrjCode'],
-					"metodo_linea" => intval($row_Det['Metodo']),
-					"maneja_serial" => $row_Det['ManSerNum'],
-					"maneja_lote" => $row_Det['ManBtchNum'],
-					"CDU_id_servicio" => $row_Det['CDU_IdServicio'],
-					"CDU_id_metodo_aplicacion" => $row_Det['CDU_IdMetodoAplicacion'],
-					"CDU_id_tipo_plagas" => $row_Det['CDU_IdTipoPlagas'],
-					"CDU_areas_controladas" => $row_Det['CDU_AreasControladas'],
-					"CDU_cant_litros" => intval($row_Det['CDU_CantLitros']),
-					"CDU_dosificacion" => intval($row_Det['CDU_Dosificacion'])
-				));
-			}
-			
-			//Anexos
-			$i=0;
-			while($row_Anx=sqlsrv_fetch_array($SQL_Anx)){
+			}else{//Actualizando
 				
-				array_push($Anexos,array(
-					"id_anexo" => $i,
-					"tipo_documento" => intval($row_Anx['TipoDocumento']),
-					"id_documento" => intval($row_Anx['ID_Documento']),
-					"archivo" => $row_Anx['FileName'],
-					"ext_archivo" => $row_Anx['FileExt'],
-					"metodo" => intval($row_Anx['Metodo']),
-					"fecha" => FormatoFechaToSAP($row_Anx['Fecha']->format('Y-m-d')),
-					"id_usuario" => intval($row_Anx['ID_Usuario'])
-				));
-				$i++;
+				//Consultar cabecera
+				$SQL_Cab=Seleccionar("uvw_tbl_EntradaCompra",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
+				$row_Cab=sqlsrv_fetch_array($SQL_Cab);
+
+				//Consultar detalle
+				$SQL_Det=Seleccionar("uvw_tbl_EntradaCompraDetalle",'*',"ID_EntradaCompra='".$IdEntradaCompra."' and IdEvento='".$IdEvento."'");
+
+				//Consultar anexos
+				$SQL_Anx=Seleccionar("uvw_tbl_DocumentosSAP_Anexos",'*',"ID_Documento='".$IdEntradaCompra."' and TipoDocumento='20' and Metodo=1");
+
+				$Detalle=array();
+				$Anexos=array();
+				$Lotes=array();
+				$Seriales=array();
+
+				//Detalle
+				while($row_Det=sqlsrv_fetch_array($SQL_Det)){
+
+					array_push($Detalle,array(
+						"base_type" => ($row_Det['BaseType']==="") ? null : intval($row_Det['BaseType']),
+						"base_entry" => ($row_Det['BaseEntry']==="") ? null : intval($row_Det['BaseEntry']),
+						"base_line" => ($row_Det['BaseLine']==="") ? null : intval($row_Det['BaseLine']),
+						"line_num" => intval($row_Det['LineNum']),
+						"id_tipo_articulo" => "",
+						"tipo_articulo" => 0,
+						"id_articulo" => $row_Det['ItemCode'],
+						"articulo" => $row_Det['ItemName'],
+						"unidad_medida" => $row_Det['UnitMsr'],
+						"texto_libre" => $row_Det['FreeTxt'],
+						"id_bodega" => $row_Det['WhsCode'],
+						"cant_articulo" => intval($row_Det['Quantity']),
+						"precio_articulo" => intval($row_Det['Price']),
+						"dim1" => $row_Det['OcrCode'],
+						"dim2" => $row_Det['OcrCode2'],
+						"dim3" => $row_Det['OcrCode3'],
+						"dim4" => $row_Det['OcrCode4'],
+						"dim5" => $row_Det['OcrCode5'],
+						"id_proyecto" => $row_Det['PrjCode'],
+						"metodo_linea" => intval($row_Det['Metodo']),
+						"maneja_serial" => $row_Det['ManSerNum'],
+						"maneja_lote" => $row_Det['ManBtchNum'],
+						"CDU_id_servicio" => $row_Det['CDU_IdServicio'],
+						"CDU_id_metodo_aplicacion" => $row_Det['CDU_IdMetodoAplicacion'],
+						"CDU_id_tipo_plagas" => $row_Det['CDU_IdTipoPlagas'],
+						"CDU_areas_controladas" => $row_Det['CDU_AreasControladas'],
+						"CDU_cant_litros" => intval($row_Det['CDU_CantLitros']),
+						"CDU_dosificacion" => intval($row_Det['CDU_Dosificacion']),						
+						"CDU_cant_visita" => 0,
+						"CDU_codigo_empleado" => "",
+						"CDU_nombre_empleado" => "",
+						"CDU_texto_libre" => "",
+						"CDU_numero_ots" => "",
+						"CDU_id_direccion_destino" => "",
+						"estado_linea" => $row_Det['LineStatus'],
+						"docentry_documento" => intval($row_Det['DocEntry'])
+					));
+				}
+
+				//Anexos
+				$i=0;
+				while($row_Anx=sqlsrv_fetch_array($SQL_Anx)){
+
+					array_push($Anexos,array(
+						"id_anexo" => $i,
+						"tipo_documento" => intval($row_Anx['TipoDocumento']),
+						"id_documento" => intval($row_Anx['ID_Documento']),
+						"archivo" => $row_Anx['FileName'],
+						"ext_archivo" => $row_Anx['FileExt'],
+						"metodo" => intval($row_Anx['Metodo']),
+						"fecha" => FormatoFechaToSAP($row_Anx['Fecha']->format('Y-m-d')),
+						"id_usuario" => intval($row_Anx['ID_Usuario']),
+						"comentarios" => ""
+					));
+					$i++;
+				}
+
+				$Cabecera=array(
+					"id_documento" => intval($row_Cab['DocNum']),
+					"id_tipo_documento" => "20",
+					"tipo_documento" => "Entrada de compras",
+					"moneda_documento" => "$",
+					"estado" => $row_Cab['Cod_Estado'],
+					"id_doc_portal" => "".$row_Cab['ID_EntradaCompra']."",
+					"id_series" => intval($row_Cab['IdSeries']),
+					"id_cliente" => $row_Cab['CardCode'],
+					"cliente" => $row_Cab['NombreCliente'],
+					"id_contacto_cliente" => intval($row_Cab['CodigoContacto']),
+					"contacto_cliente" => $row_Cab['NombreContacto'],
+					"referencia" => $row_Cab['NumAtCard'],
+					"id_condicion_pago" => intval($row_Cab['IdCondicionPago']),
+					"id_direccion_facturacion" => $row_Cab['SucursalFacturacion'],
+					"id_direccion_destino" => $row_Cab['SucursalDestino'],
+					"fecha_contabilizacion" => FormatoFechaToSAP($row_Cab['DocDate']),
+					"fecha_vencimiento" => FormatoFechaToSAP($row_Cab['DocDueDate']),
+					"fecha_documento" => FormatoFechaToSAP($row_Cab['TaxDate']),
+					"comentarios" => $row_Cab['Comentarios'],
+					"usuario" => $row_Cab['Usuario'],
+					"usuario_autorizacion" => $row_Cab['Usuario'],
+					"fecha_actualizacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
+					"hora_actualizacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
+					"seg_actualizacion" => 0,
+					"id_anexo" => intval($row_Cab['IdAnexo']),
+					"metodo" => intval($row_Cab['Metodo']),
+					"id_llamada_servicio" => 0,
+					"docentry_llamada_servicio" => 0,
+					"docentry_documento" => intval($row_Cab['DocEntry']),
+					"id_vendedor" => intval($row_Cab['SlpCode']),
+					"id_bodega_origen" => "",
+  					"id_bodega_destino" => "",					
+					"documento_destino" => "18",
+					"documento_destino_borrador" => true,
+					"documento_destino" => "",
+					"documento_destino_borrador" => true,
+					"CDU_tipo_venta" => "",
+					"CDU_id_tipo_entrega" => "",
+					"CDU_id_annio_entrega" => "",
+					"CDU_entrega_descontable" => "",
+					"CDU_valor_cuota_descontable" => 0,
+					"CDU_MedioPago" => "",
+					"CDU_DocTributario" => "",
+					"CDU_TipoOperacion" => "",
+					"CDU_numero_ot" => "",
+					"CDU_id_creacion_OT_lote" => "",
+					"documentos_Lineas" => $Detalle,
+					"documentos_Anexos" => $Anexos,
+					"documentos_Lotes" => $Lotes,
+					"documentos_Seriales" => $Seriales
+				);
+
 			}
-			
-			//Lotes
-			while($row_Lotes=sqlsrv_fetch_array($SQL_Lotes)){
-				
-				array_push($Lotes,array(
-					"id_documento" => intval($row_Lotes['DocEntry']),
-					"id_linea" => intval($row_Lotes['DocLinea']),
-					"id_articulo" => $row_Lotes['ItemCode'],
-					"articulo" => $row_Lotes['ItemName'],
-					"cantidad" => intval($row_Lotes['Cantidad']),
-					"serial_lote" => $row_Lotes['DistNumber'],
-					"id_systema_articulo" => 0
-				));
-			}
-						
-			$Cabecera=array(
-				"id_documento" => 0,
-				"id_tipo_documento" => "20",
-				"tipo_documento" => "Entrada de compras",
-				"moneda_documento" => "$",
-				"estado" => $row_Cab['Cod_Estado'],
-				"id_doc_portal" => "".$row_Cab['ID_EntradaCompra']."",
-				"id_series" => intval($row_Cab['IdSeries']),
-				"id_cliente" => $row_Cab['CardCode'],
-				"cliente" => $row_Cab['NombreCliente'],
-				"id_contacto_cliente" => intval($row_Cab['CodigoContacto']),
-				"contacto_cliente" => $row_Cab['NombreContacto'],
-				"referencia" => $row_Cab['NumAtCard'],
-				"id_condicion_pago" => intval($row_Cab['IdCondicionPago']),
-				"id_direccion_facturacion" => $row_Cab['SucursalFacturacion'],
-				"id_direccion_destino" => $row_Cab['SucursalDestino'],
-				"fecha_contabilizacion" => FormatoFechaToSAP($row_Cab['DocDate']),
-				"fecha_vencimiento" => FormatoFechaToSAP($row_Cab['DocDueDate']),
-				"fecha_documento" => FormatoFechaToSAP($row_Cab['TaxDate']),
-				"comentarios" => $row_Cab['Comentarios'],
-				"usuario" => $row_Cab['Usuario'],
-				"fecha_creacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
-				"hora_creacion" => FormatoFechaToSAP($row_Cab['FechaRegistro']->format('Y-m-d'),$row_Cab['FechaRegistro']->format('H:i:s')),
-				"id_anexo" => 0,
-				"docentry_llamada_servicio" => 0,
-				"docentry_documento" => 0,
-				"id_llamada_servicio" => 0,
-				"id_vendedor" => intval($row_Cab['SlpCode']),
-				"metodo" => intval($row_Cab['Metodo']),
-				"documento_destino" => "18",
-				"documento_destino_borrador" => true,
-				"documentos_Lineas" => $Detalle,
-				"documentos_Anexos" => $Anexos,
-				"documentos_Lotes" => $Lotes,
-				"documentos_Seriales" => $Seriales
-			);
 			
 //			$Cabecera_json=json_encode($Cabecera);
 //			echo $Cabecera_json;
@@ -506,12 +649,6 @@ $ParamSerie=array(
 );
 $SQL_Series=EjecutarSP('sp_ConsultarSeriesDocumentos',$ParamSerie);
 
-$ParamSerie=array(
-	"'".$_SESSION['CodUser']."'",
-	"'20'"
-);
-$SQL_Almacen=EjecutarSP('sp_ConsultarAlmacenesUsuario',$ParamSerie);
-
 ?>
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
@@ -529,6 +666,7 @@ if(isset($_GET['a'])&&$_GET['a']==base64_encode("OK_ECompAdd")){
 				text: 'La Entrada de compras ha sido creada exitosamente.',
 				icon: 'success'
 			});
+			console.log('json:','$Cabecera_json');
 		});		
 		</script>";
 }
@@ -540,6 +678,7 @@ if(isset($_GET['a'])&&$_GET['a']==base64_encode("OK_ECompUpd")){
 				text: 'La Entrada de compras ha sido actualizada exitosamente.',
 				icon: 'success'
 			});
+			console.log('json:','$Cabecera_json');
 		});		
 		</script>";
 }
@@ -548,7 +687,7 @@ if(isset($sw_error)&&($sw_error==1)){
 		$(document).ready(function() {
 			Swal.fire({
                 title: '¡Advertencia!',
-                text: '".LSiqmlObs($msg_error)."',
+                text: `".LSiqmlObs($msg_error)."`,
                 icon: 'warning'
             });
 			console.log('json:','$Cabecera_json');
@@ -577,8 +716,8 @@ function BuscarArticulo(dato){
 	var almacen= document.getElementById("Almacen").value;
 	var cardcode= document.getElementById("CardCode").value;
 	var dim1= document.getElementById("Dim1").value;
-	var dim2= ''; //document.getElementById("Dim2").value;
-	var dim3= ''; //document.getElementById("Sucursal").value;
+	var dim2= document.getElementById("Dim2").value;
+	var dim3= document.getElementById("Sucursal").value;
 	var posicion_x; 
 	var posicion_y;  
 	posicion_x=(screen.width/2)-(1200/2);  
@@ -714,7 +853,6 @@ function AbrirFirma(IDCampo){
 				}
 			});
 		});
-		
 		$("#Serie").change(function(){
 			$('.ibox-content').toggleClass('sk-loading',true);
 			var Serie=document.getElementById('Serie').value;
@@ -728,7 +866,6 @@ function AbrirFirma(IDCampo){
 				}
 			});		
 		});
-		
 		$("#Sucursal").change(function(){
 			$('.ibox-content').toggleClass('sk-loading',true);
 			var Sucursal=document.getElementById('Sucursal').value;
@@ -861,6 +998,41 @@ function AbrirFirma(IDCampo){
 			}
 		});
 		
+		$("#Dim2").change(function(){
+			var frame=document.getElementById('DataGrid');
+			if(document.getElementById('Dim2').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if($edit==0){?>
+						$.ajax({
+							type: "GET",					
+							url: "registro.php?P=36&doctype=17&type=1&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_entrada_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser'];?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }else{?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=17&type=2&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&id=<?php echo $row['ID_EntradaCompra'];?>&evento=<?php echo $IdEvento;?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_entrada_compra.php?id=<?php echo base64_encode($row['ID_EntradaCompra']);?>&evento=<?php echo base64_encode($IdEvento);?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -1072,15 +1244,39 @@ function AbrirFirma(IDCampo){
 						  <?php }?>
 						</select>
 					</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Dim2" class="form-control" id="Dim2" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php while($row_Dim2=sqlsrv_fetch_array($SQL_Dim2)){?>
+									<option value="<?php echo $row_Dim2['OcrCode'];?>" <?php if((isset($row['OcrCode2'])&&($row['OcrCode2']!=""))&&(strcmp($row_Dim2['OcrCode'],$row['OcrCode2'])==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(!isset($_GET['Dim2']))&&($row_DatosEmpleados['CentroCosto2']!="")&&(strcmp($row_DatosEmpleados['CentroCosto2'],$row_Dim2['OcrCode'])==0)){echo "selected=\"selected\"";}elseif(isset($_GET['Dim2'])&&(strcmp($row_Dim2['OcrCode'],base64_decode($_GET['Dim2']))==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim2['OcrName'];?></option>
+							<?php 	}?>
+						</select>
+               	  	</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Sucursal" class="form-control" id="Sucursal" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php if($edit==1){
+									while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+									<option value="<?php echo $row_Sucursal['IdSucursal'];?>" <?php if(($edit==1)&&(isset($row['OcrCode3']))&&(strcmp($row_Sucursal['IdSucursal'],$row['OcrCode3'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['DeSucursal'];?></option>
+							<?php 	}
+								}?>
+						</select>
+               	  	</div>
+				</div>
+				<div class="form-group">
 					<label class="col-lg-1 control-label">Almacén <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
-						  <?php //if($edit==1){
+						  <?php if($edit==1){
 									while($row_Almacen=sqlsrv_fetch_array($SQL_Almacen)){?>
-									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($_GET['Almacen']))&&(strcmp($row_Almacen['WhsCode'],base64_decode($_GET['Almacen']))==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
+									<option value="<?php echo $row_Almacen['WhsCode'];?>" <?php if($dt_LS==1){if(strcmp($row_Almacen['WhsCode'],$row_LMT['WhsCode'])==0){ echo "selected=\"selected\"";}}elseif(($edit==1)&&(isset($row['WhsCode']))&&(strcmp($row_Almacen['WhsCode'],$row['WhsCode'])==0)){ echo "selected=\"selected\"";}elseif(($edit==0)&&(isset($_GET['Almacen']))&&(strcmp($row_Almacen['WhsCode'],base64_decode($_GET['Almacen']))==0)){echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName'];?></option>
 						  <?php 	}
-								//}?>
+								}?>
 						</select>
 					</div>
 					<label class="col-lg-1 control-label">Autorización</label>
@@ -1175,7 +1371,7 @@ function AbrirFirma(IDCampo){
 						<div class="col-lg-5">
 							<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas" form="CrearEntradaCompra" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
 							  <?php while($row_EmpleadosVentas=sqlsrv_fetch_array($SQL_EmpleadosVentas)){?>
-									<option value="<?php echo $row_EmpleadosVentas['ID_EmpVentas'];?>" <?php if($edit==0){if(($_SESSION['CodigoEmpVentas']!="")&&(strcmp($row_EmpleadosVentas['ID_EmpVentas'],$_SESSION['CodigoEmpVentas'])==0)){ echo "selected=\"selected\"";}}elseif($edit==1){if(($row['SlpCode']!="")&&(strcmp($row_EmpleadosVentas['ID_EmpVentas'],$row['SlpCode'])==0)){ echo "selected=\"selected\"";}}?>><?php echo $row_EmpleadosVentas['DE_EmpVentas'];?></option>
+									<option value="<?php echo $row_EmpleadosVentas['ID_EmpVentas'];?>" <?php if($edit==0&&$sw_error==0){if(($_SESSION['CodigoEmpVentas']!="")&&(strcmp($row_EmpleadosVentas['ID_EmpVentas'],$_SESSION['CodigoEmpVentas'])==0)){ echo "selected=\"selected\"";}}elseif($edit==1||$sw_error==1){if(($row['SlpCode']!="")&&(strcmp($row_EmpleadosVentas['ID_EmpVentas'],$row['SlpCode'])==0)){ echo "selected=\"selected\"";}}?>><?php echo $row_EmpleadosVentas['DE_EmpVentas'];?></option>
 							  <?php }?>
 							</select>
 						</div>
@@ -1349,7 +1545,7 @@ function AbrirFirma(IDCampo){
 		 <?php 
 		 if($edit==1){?>
 		 $('#Serie option:not(:selected)').attr('disabled',true);
-		 $('#Sucursal option:not(:selected)').attr('disabled',true);
+		 //$('#Sucursal option:not(:selected)').attr('disabled',true);
 		 $('#Almacen option:not(:selected)').attr('disabled',true);
 		 $('#Dim1 option:not(:selected)').attr('disabled',true);
 		 $('#Dim2 option:not(:selected)').attr('disabled',true);

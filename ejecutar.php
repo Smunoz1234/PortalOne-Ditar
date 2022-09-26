@@ -1,6 +1,6 @@
 <?php
 include("includes/conect_srv.php");
-$Consulta="Select * From tbl_Usuarios Where ID_Usuario > 1100";
+$Consulta="Select * From tbl_Usuarios";
 $SQL=sqlsrv_query($conexion,$Consulta);
 $sw=0;
 $vOk="";

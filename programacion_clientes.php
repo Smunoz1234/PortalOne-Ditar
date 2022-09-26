@@ -59,14 +59,15 @@ if(isset($_GET['Validacion'])&&$_GET['Validacion']!=""){
 if($sw==1){
 	//Ejecutar SP
 	$ParamCons=array(
-		"'".$FechaInicial."'",
-		"'".$FechaFinal."'",
+		"'".FormatoFecha($FechaInicial)."'",
+		"'".FormatoFecha($FechaFinal)."'",
 		"'".$Cliente."'",
 		"'".$Sucursal."'",
 		"'".$Sede."'",
-		$Validacion
+		"'".$Validacion."'",
+		"'".$_SESSION['CodUser']."'"
 	);
-	$SQL=EjecutarSP('usp_Apm_Cronograma_vs_programacion',$ParamCons);
+	$SQL=EjecutarSP('usp_Programacion_Clientes',$ParamCons);
 	
 }
 //echo $Cons;
@@ -124,7 +125,7 @@ if($sw==1){
                         <li>
                             <a href="#">Servicios</a>
                         </li>
-						 <li>
+						<li>
                             <a href="#">Asistentes</a>
                         </li>
                         <li class="active">
@@ -139,7 +140,18 @@ if($sw==1){
 			    <div class="ibox-content">
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="programacion_clientes.php" method="get" id="formBuscar" class="form-horizontal">
+					  <div class="form-group">
+						<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+					   </div>
 						<div class="form-group">
+							<label class="col-lg-1 control-label">Fechas</label>
+							<div class="col-lg-3">
+								<div class="input-daterange input-group" id="datepicker">
+									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
+									<span class="input-group-addon">hasta</span>
+									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+								</div>
+							</div>
 							<label class="col-lg-1 control-label">Cliente</label>
 							<div class="col-lg-3">
 								<input name="Cliente" type="hidden" id="Cliente" value="<?php if(isset($_GET['Cliente'])&&($_GET['Cliente']!="")){ echo $_GET['Cliente'];}?>">
@@ -150,7 +162,7 @@ if($sw==1){
 							 <select id="Sucursal" name="Sucursal" class="form-control select2">
 								<option value="">(Todos)</option>
 								<?php 
-								 if($sw_suc==1){//Cuando se ha seleccionado una opción
+								 if(isset($_GET['Cliente'])&&($_GET['Cliente']!="")){//Cuando se ha seleccionado una opción
 									 if(PermitirFuncion(205)){
 										$Where="CodigoCliente='".$_GET['Cliente']."'";
 										$SQL_Sucursal=Seleccionar("uvw_Sap_tbl_Clientes_Sucursales","NombreSucursal",$Where);
@@ -161,20 +173,8 @@ if($sw==1){
 									 while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
 										<option value="<?php echo $row_Sucursal['NombreSucursal'];?>" <?php if(strcmp($row_Sucursal['NombreSucursal'],$_GET['Sucursal'])==0){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['NombreSucursal'];?></option>
 								<?php }
-								 }elseif($sw_suc==2){//Cuando no se ha seleccionado todavia, al entrar a la pagina
-									  while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
-										<option value="<?php echo $row_Sucursal['NombreSucursal'];?>"><?php echo $row_Sucursal['NombreSucursal'];?></option>
-								<?php }
 								 }?>
 							</select>
-							</div>
-							<label class="col-lg-1 control-label">Fechas</label>
-							<div class="col-lg-3">
-								<div class="input-daterange input-group" id="datepicker">
-									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
-									<span class="input-group-addon">hasta</span>
-									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
-								</div>
 							</div>
 						</div>
 						<div class="form-group">
@@ -199,13 +199,15 @@ if($sw==1){
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>							
 						</div>
+					  <?php if($sw==1){?>
 					  	<div class="form-group">
 							<div class="col-lg-10 col-md-10">
-								<a href="exportar_excel.php?exp=2&Cons=0&<?php echo $_SERVER['QUERY_STRING'];?>">
+								<a href="exportar_excel.php?exp=9&Cons=1&Cliente=<?php echo base64_encode($Cliente);?>&Sucursal=<?php echo base64_encode($Sucursal);?>&Sede=<?php echo base64_encode($Sede);?>&Validacion=<?php echo base64_encode($Validacion);?>">
 									<img src="css/exp_excel.png" width="50" height="30" alt="Exportar a Excel" title="Exportar a Excel"/>
 								</a>
 							</div>						
 						</div>
+					  <?php }?>
 				 </form>
 			</div>
 			</div>
@@ -277,6 +279,7 @@ if($sw==1){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             });
 			 $('#FechaFinal').datepicker({
@@ -285,6 +288,7 @@ if($sw==1){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             }); 
 			$(".select2").select2();
@@ -318,6 +322,9 @@ if($sw==1){
                 pageLength: 10,
 				order: [[ 0, "desc" ]],
                 dom: '<"html5buttons"B>lTfgitp',
+				rowGroup: {
+					dataSrc: [0,1]
+				},
 				language: {
 					"decimal":        "",
 					"emptyTable":     "No se encontraron resultados.",

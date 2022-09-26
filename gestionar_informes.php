@@ -21,16 +21,16 @@ if(isset($_GET['FechaInicial'])&&$_GET['FechaInicial']!=""){
 	$FechaInicial=$_GET['FechaInicial'];
 }else{
 	//Restar dias a la fecha actual
-	$fecha = date('d/m/Y');
+	$fecha = date('Y-m-d');
 	$nuevafecha = strtotime ('-'.ObtenerVariable("DiasRangoFechasGestionar").' day');
-	$nuevafecha = date ( 'd/m/Y' , $nuevafecha);
+	$nuevafecha = date ( 'Y-m-d' , $nuevafecha);
 	$FechaInicial=$nuevafecha;
 }
 if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 	$sw=1;
 	$FechaFinal=$_GET['FechaFinal'];
 }else{
-	$FechaFinal=date('d/m/Y');
+	$FechaFinal=date('Y-m-d');
 }
 
 if(isset($_GET['Cliente'])){
@@ -140,7 +140,7 @@ if(isset($_GET['Categoria'])){
 	$Filtro.=" and ID_TipoCategoria=2";
 }
 if($sw==1){
-	$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '$FechaInicial' and '$FechaFinal') $Filtro Order by Fecha DESC";
+	$Cons="Select * From uvw_tbl_archivos Where (Fecha Between '".FormatoFecha($FechaInicial)."' and '".FormatoFecha($FechaFinal)."') $Filtro Order by Fecha DESC";
 }else{
 	$Cons="";
 }
@@ -190,7 +190,8 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
 				type: "POST",
 				url: "ajx_cbo_sucursales_clientes_simple.php?CardCode="+document.getElementById('Cliente').value,
 				success: function(response){
-					$('#Sucursal').html(response).fadeIn();
+					$('#Sucursal').html(response);
+					$('#Sucursal').trigger('change');
 				}
 			});
 		});
@@ -208,6 +209,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
 					cancelButtonText: "Cancelar"
 				}).then((result) => {
 					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
 						location.href='registro.php?P=13&type=2&id='+id;
 					}
 				});
@@ -254,58 +256,61 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
 			    	<div class="ibox-content">
 						<?php include("includes/spinner.php"); ?>
 			  			<form action="gestionar_informes.php" method="get" id="formBuscar" class="form-horizontal">
-			  		<div class="form-group">
-						<label class="col-lg-1 control-label">Fechas</label>
-						<div class="col-lg-3">
-							<div class="input-daterange input-group" id="datepicker">
-								<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
-								<span class="input-group-addon">hasta</span>
-								<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+							<div class="form-group">
+								<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 							</div>
-						</div>
-				  </div>
-				  <div class="form-group">
-						<label class="col-lg-1 control-label">Cliente</label>
-						<div class="col-lg-3">
-							<select name="Cliente" class="form-control m-b chosen-select" id="Cliente">
-								<option value="" selected="selected">(Todos)</option>
-							<?php while($row_Cliente=sqlsrv_fetch_array($SQL_Cliente)){?>
-								<option value="<?php echo $row_Cliente['CodigoCliente'];?>" <?php if((isset($_GET['Cliente']))&&(strcmp($row_Cliente['CodigoCliente'],$_GET['Cliente'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Cliente['NombreCliente'];?></option>
-							<?php }?>
-							</select>
-						</div>
-						<label class="col-lg-1 control-label">Sucursal</label>
-						<div class="col-lg-2">
-						 <select id="Sucursal" name="Sucursal" class="form-control">
-							<option value="">(Todos)</option>
-							<?php 
-							 if($sw_suc==1){//Mostrar el cliente seleccionado
-								 if(PermitirFuncion(205)){
-									$Where="CodigoCliente='".$_GET['Cliente']."'";
-									$SQL_Sucursal=Seleccionar("uvw_Sap_tbl_Clientes_Sucursales","NombreSucursal",$Where);
-								 }else{
-									$Where="CodigoCliente='".$_GET['Cliente']."' and ID_Usuario = ".$_SESSION['CodUser'];
-									$SQL_Sucursal=Seleccionar("uvw_tbl_SucursalesClienteUsuario","NombreSucursal",$Where);	
-								 }
-								 while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
-									<option value="<?php echo $row_Sucursal['NombreSucursal'];?>" <?php if(strcmp($row_Sucursal['NombreSucursal'],$_GET['Sucursal'])==0){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['NombreSucursal'];?></option>
-							<?php }
-							 }elseif($sw_suc==2){//Si no se ha seleccionado ningun cliente
-								  while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
-									<option value="<?php echo $row_Sucursal['NombreSucursal'];?>"><?php echo $row_Sucursal['NombreSucursal'];?></option>
-							<?php }								 
-							 }?>
-						</select>
-						</div>
-						<label class="col-lg-1 control-label">Categoría</label>
-						<div class="col-lg-2">
-						 <?php include_once("includes/select_categorias_informes.php"); ?>
-						</div>
-						<div class="col-lg-1 pull-right">
-							<button type="submit" class="btn btn-outline btn-success"><i class="fa fa-search"></i> Buscar</button>
-				    	</div>
-				  </div>	   
-			 </form>
+							<div class="form-group">
+								<label class="col-lg-1 control-label">Fechas</label>
+								<div class="col-lg-3">
+									<div class="input-daterange input-group" id="datepicker">
+										<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial;?>"/>
+										<span class="input-group-addon">hasta</span>
+										<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal;?>" />
+									</div>
+								</div>
+						  </div>
+						  <div class="form-group">
+								<label class="col-lg-1 control-label">Cliente</label>
+								<div class="col-lg-3">
+									<select name="Cliente" class="form-control select2" id="Cliente">
+										<option value="" selected="selected">(Todos)</option>
+									<?php while($row_Cliente=sqlsrv_fetch_array($SQL_Cliente)){?>
+										<option value="<?php echo $row_Cliente['CodigoCliente'];?>" <?php if((isset($_GET['Cliente']))&&(strcmp($row_Cliente['CodigoCliente'],$_GET['Cliente'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Cliente['NombreCliente'];?></option>
+									<?php }?>
+									</select>
+								</div>
+								<label class="col-lg-1 control-label">Sucursal</label>
+								<div class="col-lg-2">
+								 <select id="Sucursal" name="Sucursal" class="form-control select2">
+									<option value="">(Todos)</option>
+									<?php 
+									 if($sw_suc==1){//Mostrar el cliente seleccionado
+										 if(PermitirFuncion(205)){
+											$Where="CodigoCliente='".$_GET['Cliente']."'";
+											$SQL_Sucursal=Seleccionar("uvw_Sap_tbl_Clientes_Sucursales","NombreSucursal",$Where);
+										 }else{
+											$Where="CodigoCliente='".$_GET['Cliente']."' and ID_Usuario = ".$_SESSION['CodUser'];
+											$SQL_Sucursal=Seleccionar("uvw_tbl_SucursalesClienteUsuario","NombreSucursal",$Where);	
+										 }
+										 while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+											<option value="<?php echo $row_Sucursal['NombreSucursal'];?>" <?php if(strcmp($row_Sucursal['NombreSucursal'],$_GET['Sucursal'])==0){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['NombreSucursal'];?></option>
+									<?php }
+									 }elseif($sw_suc==2){//Si no se ha seleccionado ningun cliente
+										  while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+											<option value="<?php echo $row_Sucursal['NombreSucursal'];?>"><?php echo $row_Sucursal['NombreSucursal'];?></option>
+									<?php }								 
+									 }?>
+								</select>
+								</div>
+								<label class="col-lg-1 control-label">Categoría</label>
+								<div class="col-lg-2">
+								 <?php include_once("includes/select_categorias_informes.php"); ?>
+								</div>
+								<div class="col-lg-1 pull-right">
+									<button type="submit" class="btn btn-outline btn-success"><i class="fa fa-search"></i> Buscar</button>
+								</div>
+						  </div>	   
+					 </form>
 					</div>
 				</div>
 			</div>
@@ -374,7 +379,8 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-				format: 'dd/mm/yyyy'
+				todayHighlight: true,
+				format: 'yyyy-mm-dd'
             });
 			 $('#FechaFinal').datepicker({
                 todayBtn: "linked",
@@ -382,10 +388,11 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_File_delete"))){
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-				format: 'dd/mm/yyyy'
+				todayHighlight: true,
+				format: 'yyyy-mm-dd'
             }); 
 			
-			$('.chosen-select').chosen({width: "100%"});
+			$(".select2").select2();
 			
             $('.dataTables-example').DataTable({
                 pageLength: 25,

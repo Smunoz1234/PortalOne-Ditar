@@ -24,6 +24,8 @@ $Cliente = isset($_GET['Cliente']) ? $_GET['Cliente'] : "";
 $Sucursal = isset($_GET['Sucursal']) ? $_GET['Sucursal'] : "";
 $Bodega = isset($_GET['Bodega']) ? $_GET['Bodega'] : "";
 $Producto = isset($_GET['Producto']) ? $_GET['Producto'] : "";
+$Motonave = isset($_GET['Motonave']) ? $_GET['Motonave'] : "";
+$Estado = isset($_GET['Estado']) ? $_GET['Estado'] : "";
 $Tabla = isset($_GET['Tabla']) ? $_GET['Tabla'] : 1;
 
 if($sw==1){
@@ -33,7 +35,9 @@ if($sw==1){
 		"'".$Cliente."'",
 		"'".$Sucursal."'",
 		"'".$Bodega."'",
-		"'".$Producto."'"
+		"'".$Producto."'",
+		"'".$Motonave."'",
+		"'".$Estado."'"
 	);
 
 	$SQL_Datos=EjecutarSP('sp_DashboardPuerto',$Param);
@@ -48,8 +52,8 @@ if($sw==1){
 		}
 
 		array_push($datos, [
-			'temperatura_carga'=>number_format($row_Datos['temperatura_carga'],1),
-			'humedad_carga'=>number_format($row_Datos['humedad_carga'],1),
+			'temperatura_carga'=>$row_Datos['temperatura_carga'],
+			'humedad_carga'=>$row_Datos['humedad_carga'],
 			'fecha'=>$row_Datos['fecha']->format('Y-m-d'),
 		]);
 	}
@@ -73,6 +77,12 @@ $SQL_Bodega=Seleccionar('tbl_BodegasPuerto','*',"codigo_cliente='".$Cliente."' a
 
 //Productos
 $SQL_Producto=Seleccionar('tbl_ProductosPuerto','*','','producto_puerto');
+
+//Motonave
+$SQL_Motonave=Seleccionar('tbl_TransportesPuerto','*','','transporte_puerto');
+
+//Estado
+$SQL_EstadoFrm=Seleccionar('tbl_EstadoFormulario','*');
 
 ?>
 <!DOCTYPE html>
@@ -115,7 +125,7 @@ $(document).ready(function(){
 		var Cliente=document.getElementById("Cliente").value;
 		$.ajax({
 			type: "POST",
-			url: "ajx_cbo_select.php?type=36&id="+Sucursal+"&clt="+Cliente,
+			url: "ajx_cbo_select.php?type=36&id="+Sucursal+"&clt="+Cliente+"&selec=1",
 			success: function(response){
 				$('#Bodega').html(response).fadeIn();
 				$('.ibox-content').toggleClass('sk-loading',false);
@@ -211,7 +221,25 @@ $(document).ready(function(){
 							</div>
 						</div>
 					  	<div class="form-group">
-							<div class="col-lg-12">
+							<label class="col-lg-1 control-label">Motonave</label>
+							<div class="col-lg-3">
+								<select name="Motonave" class="form-control select2" id="Motonave">
+									<option value="">(Todos)</option>
+								  <?php while($row_Motonave=sqlsrv_fetch_array($SQL_Motonave)){?>
+										<option value="<?php echo $row_Motonave['id_transporte_puerto'];?>" <?php if((isset($_GET['Motonave']))&&(strcmp($row_Motonave['id_transporte_puerto'],$_GET['Motonave'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Motonave['transporte_puerto'];?></option>
+								  <?php }?>
+								</select>
+							</div>
+							<label class="col-lg-1 control-label">Estado</label>
+							<div class="col-lg-3">
+								<select name="Estado" class="form-control" id="Estado">
+										<option value="">(Todos)</option>
+								  <?php while($row_EstadoFrm=sqlsrv_fetch_array($SQL_EstadoFrm)){?>
+										<option value="<?php echo $row_EstadoFrm['Cod_Estado'];?>" <?php if((isset($_GET['Estado']))&&(strcmp($row_EstadoFrm['Cod_Estado'],$_GET['Estado'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_EstadoFrm['NombreEstado'];?></option>
+								  <?php }?>
+								</select>
+							</div>
+							<div class="col-lg-4">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
@@ -220,7 +248,7 @@ $(document).ready(function(){
 			</div>
 		  </div>
 		  <?php if($Tabla==2){?>
-          <div class="row">
+          <div class="row m-b-md">
            <div class="col-lg-12">
 			    <div class="ibox-content form-horizontal">
 					<?php include("includes/spinner.php"); ?>
@@ -234,6 +262,8 @@ $(document).ready(function(){
 								<th>Fecha</th>
 								<th>Bodega</th>
 								<th>Producto</th>
+								<th>Motonave</th>
+								<th>Estado</th>
 								<th>Temperatura de la carga (°C)</th>
 								<th>Humedad de la carga (%)</th>
 							</tr>
@@ -241,13 +271,15 @@ $(document).ready(function(){
 							<tbody>
 							<?php $SQL=EjecutarSP('sp_DashboardPuerto',$Param);
 							  while($row=sqlsrv_fetch_array($SQL)){ ?>
-								 <tr class="gradeX">
-										<td><?php echo $row['fecha']->format('Y-m-d');?></td>
-										<td><?php echo $row['bodega_puerto'];?></td>						
-										<td><?php echo $row['producto_puerto'];?></td>
-										<td><?php echo number_format($row['temperatura_carga'],2);?></td>
-										<td><?php echo number_format($row['humedad_carga'],2);?></td>
-									</tr>
+								<tr class="gradeX">
+									<td><?php echo $row['fecha']->format('Y-m-d');?></td>
+									<td><?php echo $row['bodega_puerto'];?></td>						
+									<td><?php echo $row['producto_puerto'];?></td>
+									<td><?php echo $row['transporte_puerto'];?></td>
+									<td><span <?php if($row['estado']=='O'){echo "class='label label-info'";}elseif($row['estado']=='A'){echo "class='label label-danger'";}else{echo "class='label label-primary'";}?>><?php echo $row['nombre_estado'];?></span></td>
+									<td><?php echo number_format($row['temperatura_carga'],2);?></td>
+									<td><?php echo number_format($row['humedad_carga'],2);?></td>
+								</tr>
 							<?php }?>
 							</tbody>
 							</table>

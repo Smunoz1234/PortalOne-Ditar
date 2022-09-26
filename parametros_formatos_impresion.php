@@ -1,11 +1,18 @@
 <?php 
 require_once("includes/conexion.php");
 PermitirAcceso(219);
+error_reporting(E_ALL ^ E_WARNING);
 
 $sw_error=0;
 $msg_error="";
+$existeRuta=0;
 
 $dirRuta=CrearObtenerDirRuta(ObtenerVariable("RutaFormatosImpresion"));
+
+if(!$dirRuta) {
+	$existeRuta=1;
+}
+
 //Crear nuevo parametro
 if(isset($_POST['MM_Insert'])&&($_POST['MM_Insert']!="")){
 	
@@ -163,7 +170,12 @@ if(isset($sw_error)&&($sw_error==1)){
 						</div>
 						<div class="form-group">
 							<div class="col-lg-6">
-								<button class="btn btn-primary" type="button" id="NewParam" onClick="CrearCampo();"><i class="fa fa-plus-circle"></i> Crear nuevo registro</button>  
+							<?php if($existeRuta==1){?>
+									<div class="alert alert-danger">
+										La ruta <b><?php echo ObtenerVariable("RutaFormatosImpresion");?></b> no existe. Por favor verifique en los Parámetros generales.
+									</div>
+							<?php }?>
+							<button class="btn btn-primary" type="button" id="NewParam" onClick="CrearCampo();"><i class="fa fa-plus-circle"></i> Crear nuevo registro</button>  
 							</div>
 						</div>
 					  	<input type="hidden" id="P" name="P" value="frmParam" />

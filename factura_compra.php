@@ -386,8 +386,8 @@ function BuscarArticulo(dato){
 	var almacen= document.getElementById("Almacen").value;
 	var cardcode= document.getElementById("CardCode").value;
 	var dim1= document.getElementById("Dim1").value;
-	var dim2= ''; //document.getElementById("Dim2").value;
-	var dim3= ''; //document.getElementById("Sucursal").value;
+	var dim2= document.getElementById("Dim2").value;
+	var dim3= document.getElementById("Sucursal").value;
 	var posicion_x; 
 	var posicion_y;  
 	posicion_x=(screen.width/2)-(1200/2);  
@@ -913,6 +913,29 @@ function MostrarRet(){
 						  <?php }?>
 						</select>
 					</div>
+					<?php $row_DimReparto=sqlsrv_fetch_array($SQL_DimReparto);?>
+					<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?> <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Dim2" class="form-control" id="Dim2" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php while($row_Dim2=sqlsrv_fetch_array($SQL_Dim2)){?>
+									<option value="<?php echo $row_Dim2['OcrCode'];?>" <?php if((isset($row['OcrCode2'])&&($row['OcrCode2']!=""))&&(strcmp($row_Dim2['OcrCode'],$row['OcrCode2'])==0)){echo "selected=\"selected\"";}elseif(($edit==0)&&(!isset($_GET['Dim2']))&&($row_DatosEmpleados['CentroCosto2']!="")&&(strcmp($row_DatosEmpleados['CentroCosto2'],$row_Dim2['OcrCode'])==0)){echo "selected=\"selected\"";}elseif(isset($_GET['Dim2'])&&(strcmp($row_Dim2['OcrCode'],base64_decode($_GET['Dim2']))==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Dim2['OcrName'];?></option>
+							<?php 	}?>
+						</select>
+               	  	</div>
+					<label class="col-lg-1 control-label">Sucursal <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+                    	<select name="Sucursal" class="form-control" id="Sucursal" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+                          <?php if($edit==1){
+									while($row_Sucursal=sqlsrv_fetch_array($SQL_Sucursal)){?>
+									<option value="<?php echo $row_Sucursal['IdSucursal'];?>" <?php if(($edit==1)&&(isset($row['OcrCode3']))&&(strcmp($row_Sucursal['IdSucursal'],$row['OcrCode3'])==0)){ echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['DeSucursal'];?></option>
+							<?php 	}
+								}?>
+						</select>
+               	  	</div>
+				</div>
+				<div class="form-group">					
 					<label class="col-lg-1 control-label">Almacén <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if(($edit==1)&&($row['Cod_Estado']=='C')){echo "disabled='disabled'";}?>>

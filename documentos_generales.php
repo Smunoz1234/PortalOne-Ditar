@@ -41,7 +41,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 <head>
 <?php include_once("includes/cabecera.php"); ?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title><?php echo NOMBRE_PORTAL;?> | <?php echo $row_Cat['NombreCategoria'];?></title>
+<title><?php echo $row_Cat['NombreCategoria'];?> | <?php echo NOMBRE_PORTAL;?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 
@@ -77,6 +77,9 @@ $SQL=sqlsrv_query($conexion,$Cons);
 			    <div class="ibox-content">
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="documentos_generales.php" method="get" id="formBuscar" class="form-horizontal">
+				 	<div class="form-group">
+						<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+					</div>
 					<div class="form-group">
 						<label class="col-lg-1 control-label">Fechas</label>
 						<div class="col-lg-3">
@@ -93,7 +96,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 					</div>
 				 </form>
 				</div>
-				</div>
+			</div>
 		</div>
          <br>
           <div class="row">
@@ -118,7 +121,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
 							<td><?php echo $row['Comentarios'];?></td>
 							<td><?php if($row['Fecha']!=""){ echo $row['Fecha']->format('Y-m-d');}else{?><p class="text-muted">--</p><?php }?></td>
 							<td><?php echo $row['NombreUsuario'];?></td>
-							<td><?php if($row['Archivo']!=""){?><a href="filedownload.php?file=<?php echo base64_encode($row['ID_Archivo']);?>&dtype=<?php echo base64_encode("1");?>" target="_blank" class="btn btn-link btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }else{?><p class="text-muted">Ninguno</p><?php }?></td>
+							<td><?php if($row['Archivo']!=""){?><a href="filedownload.php?file=<?php echo base64_encode($row['ID_Archivo']);?>&dtype=<?php echo base64_encode("1");?>" target="_blank" class="btn btn-success btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }else{?><p class="text-muted">Ninguno</p><?php }?></td>
 						</tr>
 					<?php }?>
                     </tbody>
@@ -152,6 +155,7 @@ $SQL=sqlsrv_query($conexion,$Cons);
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             });
 			 $('#FechaFinal').datepicker({
@@ -160,10 +164,10 @@ $SQL=sqlsrv_query($conexion,$Cons);
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
+				todayHighlight: true,
 				format: 'yyyy-mm-dd'
             }); 
-			
-			$('.chosen-select').chosen({width: "100%"});
+
 			
             $('.dataTables-example').DataTable({
                 pageLength: 25,

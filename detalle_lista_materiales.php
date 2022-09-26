@@ -159,6 +159,26 @@ function SeleccionarTodos(){
 }
 
 function Totalizar(num){
+	//alert(num);
+	var SubTotal=0;
+	var Total=0;
+	var i=1;
+	for(i=1;i<=num;i++){
+		var TotalLinea=document.getElementById('LineTotal'+i);
+		var PrecioLinea=document.getElementById('Precio'+i);
+		var CantLinea=document.getElementById('Cantidad'+i);
+		
+		var Precio=parseFloat(PrecioLinea.value.replace(/,/g, ''));
+		var Cant=parseFloat(CantLinea.value.replace(/,/g, ''));
+		
+		var SubTotalLinea=Precio*Cant;
+
+		SubTotal=parseFloat(SubTotal)+parseFloat(SubTotalLinea);
+	}
+	Total=parseFloat(Total)+parseFloat(SubTotal);
+	//return Total;
+	//alert(Total);
+	window.parent.document.getElementById('Total').value=number_format(parseFloat(Total),2);
 	window.parent.document.getElementById('TotalItems').value=num;
 }
 </script>
@@ -224,7 +244,7 @@ function Totalizar(num){
 			
 			<td><input size="15" type="text" id="UndMedida<?php echo $i;?>" name="UndMedida[]" class="form-control" readonly value="<?php echo $row['UndMedida'];?>"></td>
 			
-			<td><input size="15" type="text" autocomplete="off" id="Cantidad<?php echo $i;?>" name="Cantidad[]" class="form-control" value="<?php echo number_format($row['Cantidad'],2);?>" onChange="ActualizarDatos('Cantidad',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);"></td>
+			<td><input size="15" type="text" autocomplete="off" id="Cantidad<?php echo $i;?>" name="Cantidad[]" class="form-control" value="<?php echo number_format($row['Cantidad'],2);?>" onChange="ActualizarDatos('Cantidad',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" onBlur="CalcularTotal(<?php echo $i;?>);"></td>
 			
 			<td>
 				<select id="WhsCode<?php echo $i;?>" name="WhsCode[]" class="form-control select2" onChange="ActualizarDatos('WhsCode',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);">
@@ -302,9 +322,9 @@ function Totalizar(num){
 				<input size="50" type="text" id="CDU_AreasControladas<?php echo $i;?>" name="CDU_AreasControladas[]" class="form-control" value="<?php echo $row['CDU_AreasControladas'];?>" onChange="ActualizarDatos('CDU_AreasControladas',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);">
 			</td>
 			
-			<td><input size="15" type="text" id="Precio<?php echo $i;?>" name="Precio[]" class="form-control" value="<?php echo number_format($row['Precio'],2);?>" onChange="ActualizarDatos('Precio',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);"></td>
+			<td><input size="15" type="text" id="Precio<?php echo $i;?>" name="Precio[]" class="form-control" value="<?php echo number_format($row['Precio'],2);?>" onChange="ActualizarDatos('Precio',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" onBlur="CalcularTotal(<?php echo $i;?>);"></td>
 			
-			<td><input size="15" type="text" id="LineTotal<?php echo $i;?>" name="LineTotal[]" class="form-control" readonly value="<?php echo number_format($row['Precio'],2);?>"></td>
+			<td><input size="15" type="text" id="LineTotal<?php echo $i;?>" name="LineTotal[]" class="form-control" readonly value="<?php echo number_format($row['Total'],2);?>"></td>
 			
 			<td>
 				<select id="ListaPrecio<?php echo $i;?>" name="ListaPrecio[]" class="form-control select2" onChange="ActualizarDatos('IdListaPrecio',<?php echo $i;?>,<?php echo $row['ChildNum'];?>);">
@@ -347,6 +367,28 @@ function Totalizar(num){
 	</table>
 	</div>
 </form>
+<script>
+function CalcularTotal(line){
+	var TotalLinea=document.getElementById('LineTotal'+line);
+	var PrecioLinea=document.getElementById('Precio'+line);
+	var CantLinea=document.getElementById('Cantidad'+line);
+	var Linea=document.getElementById('LineNum'+line);
+	
+	if(CantLinea.value>0){
+		var Precio=PrecioLinea.value.replace(/,/g, '');
+		var Cant=CantLinea.value.replace(/,/g, '');
+			
+		TotalLinea.value=number_format(Precio*Cant,2);
+		Totalizar(<?php if(isset($i)){echo $i-1;}else{echo 0;}?>);
+		//window.parent.document.getElementById('TotalSolicitud').value='500';	
+	}else{
+		alert("No puede solicitar cantidad en 0. Si ya no va a solicitar este articulo, borre la linea.");
+		CantLinea.value="1.00";
+		//ActualizarDatos(1,line,Linea.value);
+	}
+	
+}
+</script>
 <script>
 	 $(document).ready(function(){
 		 $(".alkin").on('click', function(){

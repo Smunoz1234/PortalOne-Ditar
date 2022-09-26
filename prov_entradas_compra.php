@@ -25,7 +25,6 @@ if(isset($_GET['FechaFinal'])&&$_GET['FechaFinal']!=""){
 	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 }else{
 	$FechaFinal=date('Y-m-d');
-	$WhereFecha="and (DocDate Between '$FechaInicial' and '$FechaFinal')";
 //	$FechaFinal="";
 }
 
@@ -155,7 +154,7 @@ $SQL=Seleccionar('uvw_Sap_tbl_EntradasCompras','*',"CardCode='".$_SESSION['Codig
 						<td><?php //echo $row['PrjName'];?></td>
 						<td><?php echo $row['NumAtCard'];?></td>						
 						<td><span <?php if($row['Cod_Estado']=='O'){echo "class='label label-info'";}else{echo "class='label label-danger'";}?>><?php echo $row['NombreEstado'];?></span></td>
-						<td><a href="prov_detalle_entrada_compra.php?id=<?php echo base64_encode($row['ID_EntradaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_entradas_compra.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <?php if(PermitirFuncion(603)){?><a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_EntradaCompra']);?>&ObType=<?php echo base64_encode('20');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a><?php }?></td>
+						<td><a href="prov_detalle_entrada_compra.php?id=<?php echo base64_encode($row['ID_EntradaCompra']);?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('prov_entradas_compra.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_EntradaCompra']);?>&ObType=<?php echo base64_encode('20');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a></td>
 					</tr>
 					<?php }?>
                     </tbody>

@@ -57,18 +57,6 @@ if(isset($_GET['Sucursal'])&&$_GET['Sucursal']!=""){
 	$Filtro.=" and OcrCode3='".$_GET['Sucursal']."'";
 }
 
-if(isset($_GET['Firmado'])&&$_GET['Firmado']!=""){
-	$Filtro.=" and DocFirmado='".$_GET['Firmado']."'";
-}
-
-if(isset($_GET['TieneSalida'])&&$_GET['TieneSalida']!=""){
-	if($_GET['TieneSalida']=="SI"){
-		$Filtro.=" and (DocDestinoDocEntry IS NOT NULL)";
-	}else{
-		$Filtro.=" and (DocDestinoDocEntry IS NULL)";
-	}
-}
-
 if(isset($_GET['Series'])&&$_GET['Series']!=""){
 	$Filtro.=" and [IdSeries]='".$_GET['Series']."'";
 	$SQL_Sucursal=SeleccionarGroupBy('uvw_Sap_tbl_SeriesSucursalesAlmacenes','IdSucursal, DeSucursal',"IdSerie='".$_GET['Series']."'","IdSucursal, DeSucursal");
@@ -92,7 +80,7 @@ if(isset($_GET['BuscarDato'])&&$_GET['BuscarDato']!=""){
 	$Filtro.=" and (DocNum LIKE '%".$_GET['BuscarDato']."%' OR NombreContacto LIKE '%".$_GET['BuscarDato']."%' OR DocNumLlamadaServicio LIKE '%".$_GET['BuscarDato']."%' OR ID_LlamadaServicio LIKE '%".$_GET['BuscarDato']."%' OR IdDocPortal LIKE '%".$_GET['BuscarDato']."%' OR NombreEmpleadoVentas LIKE '%".$_GET['BuscarDato']."%' OR Comentarios LIKE '%".$_GET['BuscarDato']."%' OR DocBaseDocNum LIKE '%".$_GET['BuscarDato']."%' OR DocDestinoDocNum LIKE '%".$_GET['BuscarDato']."%')";
 }
 
-$Cons="Select * From uvw_Sap_tbl_TrasladosSalidas Where (DocDate Between '$FechaInicial' and '$FechaFinal') $Filtro Order by DocNum DESC";
+$Cons="Select * From uvw_Sap_tbl_TrasladosInventarios Where (DocDate Between '$FechaInicial' and '$FechaFinal') $Filtro Order by DocNum DESC";
 //echo $Cons;
 $SQL=sqlsrv_query($conexion,$Cons);
 ?>
@@ -109,10 +97,10 @@ $SQL=sqlsrv_query($conexion,$Cons);
 if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvAdd"))){
 	echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
                 title: '¡Listo!',
                 text: 'El traslado ha sido creado exitosamente.',
-                type: 'success'
+                icon: 'success'
             });
 		});		
 		</script>";
@@ -120,10 +108,10 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvAdd"))){
 if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvUpd"))){
 	echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
                 title: '¡Listo!',
                 text: 'El traslado ha sido actualizado exitosamente.',
-                type: 'success'
+                icon: 'success'
             });
 		});		
 		</script>";
@@ -189,8 +177,8 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvUpd"))){
 			    <div class="ibox-content">
 					 <?php include("includes/spinner.php"); ?>
 				  <form action="consultar_traslado_inventario.php" method="get" id="formBuscar" class="form-horizontal">
-						<div class="form-group">
-							<label class="col-xs-12"><h3 class="bg-muted p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
+					  	<div class="form-group">
+							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
 						<div class="form-group">
 							<label class="col-lg-1 control-label">Fechas</label>
@@ -252,27 +240,11 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvUpd"))){
 								  <?php }?>
 								</select>
 							</div>
-							<label class="col-lg-1 control-label">Firmado</label>
-							<div class="col-lg-3">
-								<select name="Firmado" class="form-control" id="Firmado">
-									<option value="">(Todos)</option>
-									<option value="SI" <?php if(isset($_GET['Firmado'])&&($_GET['Firmado']=='SI')){ echo "selected=\"selected\"";}?>>SI</option>
-									<option value="NO" <?php if(isset($_GET['Firmado'])&&($_GET['Firmado']=='NO')){ echo "selected=\"selected\"";}?>>NO</option>
-								</select>
-							</div>
-							<label class="col-lg-1 control-label">Tiene salida</label>
-							<div class="col-lg-2">
-								<select name="TieneSalida" class="form-control" id="TieneSalida">
-									<option value="">(Todos)</option>
-									<option value="SI" <?php if(isset($_GET['TieneSalida'])&&($_GET['TieneSalida']=='SI')){ echo "selected=\"selected\"";}?>>SI</option>
-									<option value="NO" <?php if(isset($_GET['TieneSalida'])&&($_GET['TieneSalida']=='NO')){ echo "selected=\"selected\"";}?>>NO</option>
-								</select>
-							</div>
-							<div class="col-lg-1">
+							<div class="col-lg-8">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
-						<?php if($sw==1){?>
+					 	<?php if($sw==1){?>
 					  	<div class="form-group">
 							<div class="col-lg-10 col-md-10">
 								<a href="exportar_excel.php?exp=7&Cons=<?php echo base64_encode($Cons);?>">
@@ -302,7 +274,7 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvUpd"))){
 						<th>Documento base</th>
 						<th>Documento destino</th>
 						<th>Usuario creación</th>
-						<th>Firmado</th>
+						<th>Estado</th>
 						<th>Acciones</th>
                     </tr>
                     </thead>
@@ -320,8 +292,11 @@ if(isset($_GET['a'])&&($_GET['a']==base64_encode("OK_TrasInvUpd"))){
 							<td><?php if($row['DocBaseDocEntry']!=""){?><a href="solicitud_traslado.php?id=<?php echo base64_encode($row['DocBaseDocEntry']);?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']);?>&tl=1" target="_blank"><?php echo $row['DocBaseDocNum'];?></a><?php }else{echo "--";}?></td>
 							<td><?php if($row['DocDestinoDocEntry']!=""){?><a href="salida_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']);?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']);?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum'];?></a><?php }else{echo "--";}?></td>
 							<td><?php echo $row['UsuarioCreacion'];?></td>
-							<td><span <?php if($row['DocFirmado']=='SI'){echo "class='label label-info'";}else{echo "class='label label-danger'";}?>><?php echo $row['DocFirmado'];?></span></td>
-							<td><a href="traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']);?>&id_portal=<?php echo base64_encode($row['IdDocPortal']);?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('consultar_traslado_inventario.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a> <a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']);?>&ObType=<?php echo base64_encode('67');?>&IdFrm=<?php echo base64_encode('0');?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a> <button type="button" class="btnCopy btn btn-primary btn-xs" title="Copiar enlace" data-clipboard-text="<?php echo ObtenerHostURL();?>traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']);?>&id_portal=<?php echo base64_encode($row['IdDocPortal']);?>&tl=1"><i class="fa fa-copy"></i></button></td>
+							<td><span <?php if($row['Cod_Estado']=='O'){echo "class='label label-info'";}else{echo "class='label label-danger'";}?>><?php echo $row['NombreEstado'];?></span></td>
+							<td>
+								<a href="traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']);?>&id_portal=<?php echo base64_encode($row['IdDocPortal']);?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']);?>&pag=<?php echo base64_encode('consultar_traslado_inventario.php');?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
+								<a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']);?>&ObType=<?php echo base64_encode('67');?>&IdFrm=<?php echo base64_encode($row['IdSeries']);?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
+							</td>
 						</tr>
 					<?php }
 						}?>

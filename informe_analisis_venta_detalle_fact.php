@@ -91,7 +91,7 @@ $row_Count=sqlsrv_fetch_array($SQL_Count);
 											<h2 class="font-bold">Ganancias (%)</h2>
 										</div>
 										<div class="ibox-content">
-											<h2 class="no-margins"><span class="font-bold <?php if($_POST['PrctGanancia']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($_POST['PrctGanancia'],2)."%";?></span></h2>
+											<h2 class="no-margins"><span class="font-bold <?php if($_POST['PrctGanancia']<0 || $_POST['Ganancia']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo ($_POST['Ganancia']<0) ? number_format($_POST['PrctGanancia']*-1,2)."%" : number_format($_POST['PrctGanancia'],2)."%";?></span></h2>
 										</div>
 									</div>
 								</div>
@@ -131,7 +131,7 @@ $row_Count=sqlsrv_fetch_array($SQL_Count);
 											<td><span <?php if($row['IdEstadoLlamada']=='-3'){echo "class='label label-info'";}elseif($row['IdEstadoLlamada']=='-2'){echo "class='label label-warning'";}else{echo "class='label label-danger'";}?>><?php echo $row['DeEstadoLlamada'];?></span></td>
 											<td><?php echo $row['DeObjeto'];?></td>											
 											<td><a href="<?php echo $row['Link'];?>.php?id=<?php echo base64_encode($row['DocEntry']);?>&tl=1" target="_blank"><?php echo $row['DocNum'];?></a></td>
-											<td><span class="badge <?php if($row['IdObjeto']==13){echo "badge-success";}elseif($row['IdObjeto']==15){echo "badge-danger";}else{echo "badge-muted";}?>"><?php if($row['IdObjeto']==13){echo "(+) ";}elseif($row['IdObjeto']==15){echo "(-) ";} echo number_format($row['Costos'],2);?></span></td>
+											<td><span class="badge <?php if($row['IdObjeto']==13 || $row['IdObjeto']==16){echo "badge-success";}elseif($row['IdObjeto']==15){echo "badge-danger";}else{echo "badge-muted";}?>"><?php if($row['IdObjeto']==13 || $row['IdObjeto']==16){echo "(+) ";}elseif($row['IdObjeto']==15){echo "(-) ";} echo number_format($row['Costos'],2);?></span></td>
 											<td><?php echo $row['DocDate'];?></td>
 											<td><span <?php if($row['Cod_Estado']=='O'){echo "class='label label-info'";}else{echo "class='label label-danger'";}?>><?php echo $row['NombreEstado'];?></span></td>
 											<td class="text-center form-inline w-80">
@@ -159,10 +159,10 @@ $row_Count=sqlsrv_fetch_array($SQL_Count);
  $(document).ready(function(){
 	 
 	var table = $('.dataTables-DetailsFact').DataTable({
-		pageLength: 10,
-		dom: '<"html5buttons"B>lTfgitp',
-		orderCellsTop: false,
 		ordering: false,
+		info: false,
+		paging: false,
+		searching: false,
 		rowGroup: {
 			dataSrc: 0
 		},

@@ -63,7 +63,7 @@ $SQL=EjecutarSP('usp_InformeVentas',$ParamCons);
 											<td><?php echo number_format($row['Sales'],2);?></td>
 											<td><?php echo number_format($row['Costos'],2);?></td>
 											<td class="<?php if($row['GrossProfit']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossProfit'],2);?></td>
-											<td class="<?php if($row['GrossPrcnt']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossPrcnt'],2);?></td>
+											<td class="<?php if($row['GrossPrcnt']<0 || $row['GrossProfit']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossPrcnt'],2);?></td>
 											<td><?php echo $row['TipoCostos'];?></td>
 											<td><a href="#" onClick="VerDetalleFactura('<?php echo $row['DocEntry'];?>','<?php echo $row['DocNum'];?>','<?php echo $row['Sales'];?>','<?php echo $row['Costos'];?>','<?php echo $row['GrossProfit'];?>','<?php echo $row['GrossPrcnt'];?>');" class="btn btn-warning btn-xs"><i class="fa fa-folder-open-o"></i> Ver detalles</a></td>
 										</tr>
@@ -75,7 +75,7 @@ $SQL=EjecutarSP('usp_InformeVentas',$ParamCons);
 								</tbody>
 								</table>
 								<div class="col-lg-12">
-									<a href="exportar_excel.php?exp=10&Cons=<?php echo base64_encode(implode(",",$ParamCons));?>&sp=<?php echo base64_encode("sp_ConsultarFormTemp");?>">
+									<a href="exportar_excel.php?exp=10&Cons=<?php echo base64_encode(implode(",",$ParamCons));?>&sp=<?php echo base64_encode("usp_InformeVentas");?>">
 										<img src="css/exp_excel.png" width="50" height="30" alt="Exportar a Excel" title="Exportar a Excel"/>
 									</a>
 								</div>
@@ -118,7 +118,7 @@ $SQL=EjecutarSP('usp_InformeVentas',$ParamCons);
 											<td><?php echo number_format($row['Sales'],2);?></td>
 											<td><?php echo number_format($row['Costos'],2);?></td>
 											<td class="<?php if($row['GrossProfit']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossProfit'],2);?></td>
-											<td class="<?php if($row['GrossPrcnt']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossPrcnt'],2);?></td>
+											<td class="<?php if($row['GrossPrcnt']<0 || $row['GrossProfit']<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($row['GrossPrcnt'],2);?></td>
 										</tr>
 								<?php 
 									$TotalVentas+=$row['Sales'];
@@ -172,9 +172,9 @@ $SQL=EjecutarSP('usp_InformeVentas',$ParamCons);
 										<div class="ibox-title">
 											<h2 class="font-bold">Ganancias (%)</h2>
 										</div>
-										<?php $PrcntGanancia=(($TotalVentas-$TotalCostos)!=0) ? (($TotalVentas-$TotalCostos)*100)/$TotalVentas : 0; ?>
+										<?php $PrcntGanancia=(($TotalVentas-$TotalCostos)!=0 && $TotalVentas!=0) ? (($TotalVentas-$TotalCostos)*100)/$TotalVentas : 0; ?>
 										<div class="ibox-content">
-											<h2 class="no-margins"><span class="font-bold <?php if($PrcntGanancia<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($PrcntGanancia,2)."%";?></span></h2>
+											<h2 class="no-margins"><span class="font-bold <?php if($PrcntGanancia<0 || $TotalGanancia<0){echo "text-danger";}else{echo "text-navy";}?>"><?php echo number_format($PrcntGanancia,2)."%";?></span></h2>
 										</div>
 									</div>
 								</div>

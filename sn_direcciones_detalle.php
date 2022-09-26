@@ -22,7 +22,7 @@ $tipodir=isset($_GET['tdir']) ? $_GET['tdir'] : "";
 if($edit==0){//Creando
 	
 }else{//Actualizando
-	$SQL=Seleccionar('uvw_Sap_tbl_Clientes_Sucursales','*',"[CodigoCliente]='".$id."' and [NumeroLinea]='".$linea_direccion."'");
+	$SQL=Seleccionar('uvw_Sap_tbl_SociosNegociosSucursales','*',"[CodigoCliente]='".$id."' and [NumeroLinea]='".$linea_direccion."'");
 	$row=sqlsrv_fetch_array($SQL);
 }
 
@@ -43,7 +43,7 @@ $SQL_Estrato=Seleccionar('tbl_EstratosSN','*','','Estrato');
 </div>	
 <div class="form-group">
 	<label class="control-label">Nombre dirección <span class="text-danger">*</span></label>
-	<input name="Address" type="text" required class="form-control" id="Address" maxlength="50" onChange="GuardarDatos();">
+	<input name="Address" type="text" required class="form-control" id="Address" maxlength="50" onChange="GuardarDatos();"> <!-- readonly -->
 </div>
 <div class="form-group">
 	<label class="control-label">Dirección <span class="text-danger">*</span></label>
@@ -165,7 +165,13 @@ function CargarDatos(){
 	
 	if(sw>=0){
 		document.getElementById('AdresType').value = json[0].direcciones[sw].tipo_direccion;
+		
 		document.getElementById('Address').value = json[0].direcciones[sw].nombre_direccion;
+		
+		if($("#Address").val() != "") {
+			$('#Address').prop('readonly', true); // SMM, 04/04/2022
+		}
+
 		document.getElementById('Street').value = json[0].direcciones[sw].direccion;
 		document.getElementById('County').value = json[0].direcciones[sw].departamento;
 		BuscarCiudad(false);
