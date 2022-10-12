@@ -22,7 +22,7 @@ if (!isset($_SESSION)) {
 }
 
 define("VERSION", "2.1.0");
-define("BDPRO","PortalOneDitar_PRUEBAS");
+define("BDPRO","PortalOneDitar_Sandbox");
 define("BDPRUEBAS","");
 
 
