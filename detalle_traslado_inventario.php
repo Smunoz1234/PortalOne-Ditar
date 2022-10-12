@@ -336,7 +336,7 @@ function SeleccionarTodos(){
 				<th>Almacén origen</th>
 				<th>Almacén destino</th>
 				<th>Stock almacén</th>
-				
+
 				<!-- Dimensiones dinámicas, SMM 31/08/2022 -->
 				<?php foreach ($array_Dimensiones as &$dim) {?>
 					<th><?php echo $dim["DimDesc"]; ?></th>
