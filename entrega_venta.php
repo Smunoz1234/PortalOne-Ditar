@@ -217,7 +217,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                 // Consultar el motivo de autorización según el id, SMM 20/08/2022
                 $SQL_Motivos = Seleccionar("uvw_tbl_Autorizaciones_Motivos", "*", "IdMotivoAutorizacion = '$IdMotivo'");
                 $row_MotivoAutorizacion = sqlsrv_fetch_array($SQL_Motivos);
-                $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'];
+                $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'] ?? "";
                 // Hasta aquí, 16/08/2022
 
             } else {
@@ -331,8 +331,17 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
 if (isset($_GET['dt_OV']) && ($_GET['dt_OV']) == 1) {
     $dt_OV = 1;
 
+    // SMM, 30/09/2022
+    $ID_Documento = "'" . base64_decode($_GET['OV']) . "'";
+
+    $WhereAnexos = "ID_Documento=$ID_Documento";
+    // echo $WhereAnexos;
+
+    Eliminar("tbl_DocumentosSAP_Anexos", $WhereAnexos);
+    // Hasta aquí, 30/09/2022
+
     $ParametrosCopiarOrdenToEntrega = array(
-        "'" . base64_decode($_GET['OV']) . "'",
+        $ID_Documento, // SMM, 30/09/2022
         "'" . base64_decode($_GET['Evento']) . "'",
         "'" . base64_decode($_GET['Almacen']) . "'",
         "'" . base64_decode($_GET['Cardcode']) . "'",
@@ -366,6 +375,9 @@ if (isset($_GET['dt_OV']) && ($_GET['dt_OV']) == 1) {
     //Orden de servicio, SMM, 02/08/2022
     $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . base64_decode($_GET['LS']) . "'");
     $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
+
+    // Anexos, SMM 30/09/2022
+    $SQL_Anexo = Seleccionar('uvw_tbl_DocumentosSAP_Anexos', '*', $WhereAnexos);
 }
 // Fin, Verificar que viene de una Orden de Ventas
 
@@ -1369,7 +1381,20 @@ function verAutorizacion() {
 					</div>
 					<div class="form-group">
 						<div class="col-lg-6">
-							<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode('15'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+							<!-- SMM, 06/10/2022 -->
+							<div class="btn-group">
+								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
+								<ul class="dropdown-menu">
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=15 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
+										<li>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+										</li>
+									<?php }?>
+								</ul>
+							</div>
+							<!-- Hasta aquí, 06/10/2022 -->
+
 							<a href="#" class="btn btn-outline btn-info" onClick="VerMapaRel('<?php echo base64_encode($row['DocEntry']); ?>','<?php echo base64_encode('15'); ?>');"><i class="fa fa-sitemap"></i> Mapa de relaciones</a>
 						</div>
 						<div class="col-lg-6">
@@ -1684,8 +1709,8 @@ if ($edit == 1 || $sw_error == 1) {
 						 </form>
 						<div id="tab-3" class="tab-pane">
 							<div class="panel-body">
-								<?php if ($edit == 1) {
-    if ($row['IdAnexo'] != 0) {?>
+								<?php if (($edit == 1) || sqlsrv_has_rows($SQL_Anexo)) {
+    if ((($edit == 1) && ($row['IdAnexo'] != 0)) || (sqlsrv_has_rows($SQL_Anexo) && ($edit == 0))) {?>
 										<div class="form-group">
 											<div class="col-lg-4">
 											 <ul class="folder-list" style="padding: 0">
@@ -1696,7 +1721,7 @@ if ($edit == 1 || $sw_error == 1) {
             $NameFirma = $row_Anexo['NombreArchivo'];
         }
         ?>
-												<li><a href="attachdownload.php?file=<?php echo base64_encode($row_Anexo['AbsEntry']); ?>&line=<?php echo base64_encode($row_Anexo['Line']); ?>" target="_blank" class="btn-link btn-xs"><i class="<?php echo $Icon; ?>"></i> <?php echo $row_Anexo['NombreArchivo']; ?></a></li>
+												<li><a <?php if ($edit == 0) {echo "disabled";} else {echo "href='attachdownload.php?file=" . base64_encode($row_Anexo['AbsEntry']) . "&line=" . base64_encode($row_Anexo['Line']) . "'";}?> target="_blank" class="btn-link btn-xs"><i class="<?php echo $Icon; ?>"></i> <?php echo $row_Anexo['NombreArchivo']; ?></a></li>
 											<?php }?>
 											 </ul>
 											</div>
@@ -1706,7 +1731,7 @@ if ($edit == 1 || $sw_error == 1) {
 								<?php if (($edit == 0) || (($edit == 1) && ($row['Cod_Estado'] == 'O'))) {?>
 								<div class="row">
 									<form action="upload.php" class="dropzone" id="dropzoneForm" name="dropzoneForm">
-										<?php if ($sw_error == 0) {LimpiarDirTemp();}?>
+										<?php if (($sw_error == 0) && ($dt_OV == 0)) {LimpiarDirTemp();}?>
 										<div class="fallback">
 											<input name="File" id="File" type="file" form="dropzoneForm" />
 										</div>
