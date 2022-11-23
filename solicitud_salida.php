@@ -215,27 +215,16 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
 
             //Enviar datos al WebServices
             try {
-                require_once "includes/conect_ws.php";
                 $Parametros = array(
-                    'pIdSolSalida' => $IdSolSalida,
-                    'pIdEvento' => $IdEvento,
-                    'pLogin' => $_SESSION['User'],
+                    'id_documento' => intval($IdSolSalida),
+                    'id_evento' => intval($IdEvento),
                 );
-                $Client->AppPortal_InsertarSolicitudSalida($Parametros);
-                //$Client->AppPortal_InsertarSolSalida($Parametros);
-                $Respuesta = $Client->__getLastResponse();
-                $Contenido = new SimpleXMLElement($Respuesta, 0, false, "s", true);
-                $espaciosDeNombres = $Contenido->getNamespaces(true);
-                $Nodos = $Contenido->children($espaciosDeNombres['s']);
-                $Nodo = $Nodos->children($espaciosDeNombres['']);
-                $Nodo2 = $Nodo->children($espaciosDeNombres['']);
+                $Metodo = "SolicitudTrasladosInventarios";
+                $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
 
-                $Archivo = json_decode($Nodo2, true);
-                if ($Archivo['ID_Respuesta'] == "0") {
-                    //InsertarLog(1, 0, 'Error al generar el informe');
-                    //throw new Exception('Error al generar el informe. Error de WebServices');
+                if ($Resultado->Success == 0) {
                     $sw_error = 1;
-                    $msg_error = $Archivo['DE_Respuesta'];
+                    $msg_error = $Resultado->Mensaje;
                 } else {
                     sqlsrv_close($conexion);
                     if ($_POST['tl'] == 0) { //Creando solicitud
