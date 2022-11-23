@@ -384,7 +384,7 @@ $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Solicitud de salida | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Solicitud de traslado | <?php echo NOMBRE_PORTAL; ?></title>
 <?php
 if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SolSalAdd")) {
     echo "<script>
@@ -480,6 +480,13 @@ function ConsultarDatosCliente(){
 					$('#ContactoCliente').html(response).fadeIn();
 				}
 			});
+
+			<?php if ($edit == 0 && $sw_error == 0) { // Limpiar carrito detalle. ?>
+			$.ajax({
+				type: "POST",
+				url: "includes/procedimientos.php?type=7&objtype=1250000001&cardcode="+carcode
+			});
+			<?php }?>
 
 			// Recargar sucursales.
 			$.ajax({
@@ -793,7 +800,7 @@ function ConsultarDatosCliente(){
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Solicitud de salida</h2>
+                    <h2>Solicitud de traslado</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -802,7 +809,7 @@ function ConsultarDatosCliente(){
                             <a href="#">Inventario</a>
                         </li>
                         <li class="active">
-                            <strong>Solicitud de salida</strong>
+                            <strong>Solicitud de traslado</strong>
                         </li>
                     </ol>
                 </div>
@@ -849,7 +856,7 @@ function ConsultarDatosCliente(){
 						<div class="col-lg-9">
 							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];}?>">
 
-							<input name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($edit == 1)) {echo "readonly";}?>>
+							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($edit == 1)) {echo "readonly";}?>>
 						</div>
 					</div>
 					<div class="form-group">
