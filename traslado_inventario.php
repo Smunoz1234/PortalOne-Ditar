@@ -147,9 +147,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "'" . $_POST['CondicionPago'] . "'",
                 "'" . $_POST['Almacen'] . "'",
                 "'" . $_POST['AlmacenDestino'] . "'",
-                "'" . $_POST['Dim1'] . "'",
-                "'" . $_POST['Dim2'] . "'",
-                "'" . $_POST['Sucursal'] . "'",
+
+                // Se eliminaron las dimensiones, SMM 23/11/2022
+
                 "NULL",
                 "'" . $_POST['Autorizacion'] . "'",
                 "NULL",
@@ -159,6 +159,15 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "NULL",
             );
         }
+
+        // Enviar el valor de la dimensiones dinámicamente al SP.
+        foreach ($array_Dimensiones as &$dim) {
+            $Dim_PostValue = $_POST[strval($dim['IdPortalOne'])];
+
+            // El nombre de los parámetros es diferente en cada documento.
+            array_push($ParametrosCabTrasladoInv, "'$Dim_PostValue'");
+        } // SMM, 23/11/2022
+
         $SQL_CabeceraTrasladoInv = EjecutarSP('sp_tbl_TrasladoInventario', $ParametrosCabTrasladoInv, $_POST['P']);
         if ($SQL_CabeceraTrasladoInv) {
             if ($Type == 1) {
@@ -656,9 +665,13 @@ function BuscarArticulo(dato){
 	var almacendestino= document.getElementById("AlmacenDestino").value;
 	var cardcode= document.getElementById("CardCode").value;
 
-	var dim1= document.getElementById("Dim1").value;
-	var dim2= document.getElementById("Dim2").value;
-	var dim3= document.getElementById("Sucursal").value;
+	// SMM, 29/08/2022
+	var dim1= ((document.getElementById("Dim1") || {}).value) || "";
+	var dim2= ((document.getElementById("Dim2") || {}).value) || "";
+	var dim3= ((document.getElementById("Dim3") || {}).value) || "";
+	var dim4= ((document.getElementById("Dim4") || {}).value) || "";
+	var dim5= ((document.getElementById("Dim5") || {}).value) || "";
+	// Hasta aquí, 29/08/2022
 
 	var posicion_x;
 	var posicion_y;
@@ -896,6 +909,8 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 				// console.log(url20);
 				// console.log("ajx_cbo_select.php?type=20");
 
+				console.log("Cargando almacenes origen...");
+
 				$('#Almacen').html(response).fadeIn();
 				// $('#Almacen').trigger('change');
 
@@ -913,10 +928,18 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 				type: "POST",
 				url: `${url20}&twhs=2`,
 				success: function(response){
+					console.log("Cargando almacenes destino...");
+
 					$('#AlmacenDestino').html(response).fadeIn();
 					//$('#AlmacenDestino').trigger('change');
 
 					$('.ibox-content').toggleClass('sk-loading',false);
+				},
+				error: function(error) {
+					// Mensaje de error
+					console.log("Line 923", error.responseText);
+
+					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
 	<?php }?>
@@ -1147,7 +1170,7 @@ include_once 'md_frm_campos_adicionales.php';
 						<div class="col-lg-9">
 							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif ($dt_SS == 1) {echo $row_Cliente['CodigoCliente'];}?>">
 
-							<input name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_SS == 1) {echo $row_Cliente['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_SS == 1) || ($edit == 1)) {echo "readonly";}?>>
+							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_SS == 1) {echo $row_Cliente['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_SS == 1) || ($edit == 1)) {echo "readonly";}?>>
 						</div>
 					</div>
 					<div class="form-group">
