@@ -138,9 +138,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             "'" . $_POST['SucursalDestino'] . "'",
             "'" . $_POST['DireccionDestino'] . "'",
             "'" . $_POST['CondicionPago'] . "'",
-            "'" . $_POST['CentroCosto'] . "'",
-            "'" . $_POST['UnidadNegocio'] . "'",
-            "'" . $_POST['Sucursal'] . "'",
+
+            // Se eliminaron las dimensiones, SMM 23/11/2022
+
             "NULL",
             "'N'",
             "'" . $_POST['TipoEntrega'] . "'",
@@ -153,6 +153,15 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             "'" . $_SESSION['CodUser'] . "'",
             "$Type",
         );
+
+        // Enviar el valor de la dimensiones dinámicamente al SP.
+        foreach ($array_Dimensiones as &$dim) {
+            $Dim_PostValue = $_POST[strval($dim['IdPortalOne'])];
+
+            // El nombre de los parámetros es diferente en cada documento.
+            array_push($ParametrosCabSalidaInv, "'$Dim_PostValue'");
+        } // SMM, 23/11/2022
+
         $SQL_CabeceraSalidaInv = EjecutarSP('sp_tbl_SalidaInventario', $ParametrosCabSalidaInv, $_POST['P']);
         if ($SQL_CabeceraSalidaInv) {
             if ($Type == 1) {
@@ -202,27 +211,16 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 
             //Enviar datos al WebServices
             try {
-                require_once "includes/conect_ws.php";
                 $Parametros = array(
-                    'pIdSalidaTras' => $IdSalidaInv,
-                    'pIdEvento' => $IdEvento,
-                    'pLogin' => $_SESSION['User'],
+                    'id_documento' => intval($IdSalidaInv),
+                    'id_evento' => intval($IdEvento),
                 );
-                $Client->AppPortal_InsertarSalidaTraslado($Parametros);
-                //$Client->AppPortal_InsertarSolSalida($Parametros);
-                $Respuesta = $Client->__getLastResponse();
-                $Contenido = new SimpleXMLElement($Respuesta, 0, false, "s", true);
-                $espaciosDeNombres = $Contenido->getNamespaces(true);
-                $Nodos = $Contenido->children($espaciosDeNombres['s']);
-                $Nodo = $Nodos->children($espaciosDeNombres['']);
-                $Nodo2 = $Nodo->children($espaciosDeNombres['']);
+                $Metodo = "SalidasInventarios";
+                $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
 
-                $Archivo = json_decode($Nodo2, true);
-                if ($Archivo['ID_Respuesta'] == "0") {
-                    //InsertarLog(1, 0, 'Error al generar el informe');
-                    //throw new Exception('Error al generar el informe. Error de WebServices');
+                if ($Resultado->Success == 0) {
                     $sw_error = 1;
-                    $msg_error = $Archivo['DE_Respuesta'];
+                    $msg_error = $Resultado->Mensaje;
                 } else {
                     sqlsrv_close($conexion);
                     if ($_POST['tl'] == 0) { //Creando salida
@@ -269,10 +267,10 @@ if (isset($_GET['dt_TI']) && ($_GET['dt_TI']) == 1) { //Verificar que viene de u
     if (!$SQL_CopiarTrasladoInvToSalidaInv) {
         echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
 				title: '¡Ha ocurrido un error!',
 				text: 'No se pudo copiar el Traslado en la Salida de inventario.',
-				type: 'error'
+				icon: 'error'
 			});
 		});
 		</script>";
@@ -297,8 +295,8 @@ if ($edit == 1 && $sw_error == 0) {
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
-	// SMM, 05/09/2022
-	// echo $Cons;
+    // SMM, 05/09/2022
+    // echo $Cons;
 
     //Clientes
     $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
@@ -407,10 +405,10 @@ $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'
 if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SalInvAdd")) {
     echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
 				title: '¡Listo!',
 				text: 'La Salida de inventario ha sido creada exitosamente.',
-				type: 'success'
+				icon: 'success'
 			});
 		});
 		</script>";
@@ -418,10 +416,10 @@ if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SalInvAdd")) {
 if (isset($sw_error) && ($sw_error == 1)) {
     echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
                 title: '¡Ha ocurrido un error!',
                 text: '" . str_replace("'", "", $msg_error) . "',
-                type: 'error'
+                icon: 'error'
             });
 		});
 		</script>";
@@ -463,10 +461,10 @@ function BuscarArticulo(dato){
 			remote=open('buscar_articulo.php?dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "9";} else {echo "10";}?>&idsalidainv=<?php if ($edit == 1) {echo base64_encode($row['ID_SalidaInv']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3','remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
-			swal({
+			Swal.fire({
 				title: "¡Error!",
 				text: "Debe seleccionar un cliente y un almacén",
-				type: "error",
+				icon: "error",
 				confirmButtonText: "OK"
 			});
 		}
@@ -621,13 +619,14 @@ function ConsultarDatosCliente(){
 			});
 		});
 
-		$("#Sucursal").change(function(){
+		// Actualizado. SMM, 23/11/2022
+		$("#Dim1").change(function(){
 			$('.ibox-content').toggleClass('sk-loading',true);
-			var Sucursal=document.getElementById('Sucursal').value;
+			var Dim1=document.getElementById('Dim1').value;
 			var Serie=document.getElementById('Serie').value;
 			$.ajax({
 				type: "POST",
-				url: "ajx_cbo_select.php?type=20&id="+Sucursal+"&serie="+Serie+"&tdoc=60",
+				url: "ajx_cbo_select.php?type=20&id="+Dim1+"&serie="+Serie+"&tdoc=60",
 				success: function(response){
 					$('#Almacen').html(response).fadeIn();
 					$('.ibox-content').toggleClass('sk-loading',false);
@@ -635,6 +634,7 @@ function ConsultarDatosCliente(){
 				}
 			});
 		});
+
 		$("#Almacen").change(function(){
 			$('.ibox-content').toggleClass('sk-loading',true);
 			var carcode=document.getElementById('CardCode').value;
@@ -647,6 +647,7 @@ function ConsultarDatosCliente(){
 			}
 			$('.ibox-content').toggleClass('sk-loading',false);
 		});
+
 		$("#TipoEntrega").change(function(){
 			$('.ibox-content').toggleClass('sk-loading',true);
 			var TipoEnt=document.getElementById('TipoEntrega').value;
@@ -758,7 +759,7 @@ function ConsultarDatosCliente(){
 						<div class="col-lg-9">
 							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif ($dt_TI == 1) {echo $row_Cliente['CodigoCliente'];}?>">
 
-							<input name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_TI == 1) {echo $row_Cliente['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1) || ($edit == 1)) {echo "readonly";}?>>
+							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_TI == 1) {echo $row_Cliente['NombreCliente'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1) || ($edit == 1)) {echo "readonly";}?>>
 						</div>
 					</div>
 					<div class="form-group">
@@ -1124,17 +1125,15 @@ if (isset($_GET['return'])) {
 	 $(document).ready(function(){
 		 $("#CrearSalidaInventario").validate({
 			 submitHandler: function(form){
-				 if(Validar()){
-					swal({
+				if(Validar()){
+					Swal.fire({
 						title: "¿Está seguro que desea guardar los datos?",
-						type: "info",
+						icon: "info",
 						showCancelButton: true,
-						closeOnConfirm: true,
 						confirmButtonText: "Si, confirmo",
 						cancelButtonText: "No"
-					},
-					function(isConfirm){
-						if(isConfirm){
+					}).then((result) => {
+						if (result.isConfirmed) {
 							$('.ibox-content').toggleClass('sk-loading',true);
 							form.submit();
 						}
@@ -1270,10 +1269,10 @@ function Validar(){
 			success: function(data){
 				if(data.Estado=='0'){
 					result=false;
-					swal({
+					Swal.fire({
 						title: data.Title,
 						text: data.Mensaje,
-						type: data.Icon,
+						icon: data.Icon,
 					});
 				}
 			}
@@ -1284,10 +1283,10 @@ function Validar(){
 
 	if(TotalItems.value=="0"){
 		result=false;
-		swal({
+		Swal.fire({
 			title: '¡Lo sentimos!',
 			text: 'No puede guardar el documento sin contenido. Por favor verifique.',
-			type: 'error'
+			icon: 'error'
 		});
 	}
 
