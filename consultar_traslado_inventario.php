@@ -56,6 +56,20 @@ if (isset($_GET['Sucursal']) && $_GET['Sucursal'] != "") {
     $Filtro .= " and OcrCode3='" . $_GET['Sucursal'] . "'";
 }
 
+// SMM, 25/11/2022
+if (isset($_GET['Firmado']) && $_GET['Firmado'] != "") {
+    $Filtro .= " and DocFirmado='" . $_GET['Firmado'] . "'";
+}
+
+// SMM, 25/11/2022
+if (isset($_GET['TieneSalida']) && $_GET['TieneSalida'] != "") {
+    if ($_GET['TieneSalida'] == "SI") {
+        $Filtro .= " and (DocDestinoDocEntry IS NOT NULL)";
+    } else {
+        $Filtro .= " and (DocDestinoDocEntry IS NULL)";
+    }
+}
+
 if (isset($_GET['Series']) && $_GET['Series'] != "") {
     $Filtro .= " and [IdSeries]='" . $_GET['Series'] . "'";
     $SQL_Sucursal = SeleccionarGroupBy('uvw_Sap_tbl_SeriesSucursalesAlmacenes', 'IdSucursal, DeSucursal', "IdSerie='" . $_GET['Series'] . "'", "IdSucursal, DeSucursal");
@@ -177,7 +191,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 			    <div class="ibox-content">
 					 <?php include "includes/spinner.php";?>
 				  <form action="consultar_traslado_inventario.php" method="get" id="formBuscar" class="form-horizontal">
-					  	<div class="form-group">
+						<div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
 						<div class="form-group">
@@ -189,21 +203,21 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
 								</div>
 							</div>
-							<label class="col-lg-1 control-label">Estado</label>
-							<div class="col-lg-3">
-								<select name="Estado" class="form-control" id="Estado">
-										<option value="">(Todos)</option>
-								  <?php while ($row_Estado = sqlsrv_fetch_array($SQL_Estado)) {?>
-										<option value="<?php echo $row_Estado['Cod_Estado']; ?>" <?php if ((isset($_GET['Estado'])) && (strcmp($row_Estado['Cod_Estado'], $_GET['Estado']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Estado['NombreEstado']; ?></option>
-								  <?php }?>
-								</select>
-							</div>
 							<label class="col-lg-1 control-label">Serie</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Series" class="form-control" id="Series">
 										<option value="">(Todos)</option>
 								  <?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
 										<option value="<?php echo $row_Series['IdSeries']; ?>" <?php if ((isset($_GET['Series'])) && (strcmp($row_Series['IdSeries'], $_GET['Series']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Series['DeSeries']; ?></option>
+								  <?php }?>
+								</select>
+							</div>
+							<label class="col-lg-1 control-label">Empleado</label>
+							<div class="col-lg-3">
+								<select name="Empleado" class="form-control select2" id="Empleado">
+										<?php if (PermitirFuncion(1203)) {?><option value="">(Todos)</option><?php }?>
+								  <?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
+										<option value="<?php echo $row_Empleado['ID_Empleado']; ?>" <?php if ((isset($_GET['Empleado'])) && (strcmp($row_Empleado['ID_Empleado'], $_GET['Empleado']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Empleado['NombreEmpleado']; ?></option>
 								  <?php }?>
 								</select>
 							</div>
@@ -231,20 +245,39 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 							</div>
 						</div>
 					  	<div class="form-group">
-							<label class="col-lg-1 control-label">Empleado</label>
+						  	<label class="col-lg-1 control-label">Estado</label>
 							<div class="col-lg-3">
-								<select name="Empleado" class="form-control select2" id="Empleado">
-										<?php if (PermitirFuncion(1203)) {?><option value="">(Todos)</option><?php }?>
-								  <?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
-										<option value="<?php echo $row_Empleado['ID_Empleado']; ?>" <?php if ((isset($_GET['Empleado'])) && (strcmp($row_Empleado['ID_Empleado'], $_GET['Empleado']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Empleado['NombreEmpleado']; ?></option>
+								<select name="Estado" class="form-control" id="Estado">
+										<option value="">(Todos)</option>
+								  <?php while ($row_Estado = sqlsrv_fetch_array($SQL_Estado)) {?>
+										<option value="<?php echo $row_Estado['Cod_Estado']; ?>" <?php if ((isset($_GET['Estado'])) && (strcmp($row_Estado['Cod_Estado'], $_GET['Estado']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Estado['NombreEstado']; ?></option>
 								  <?php }?>
 								</select>
 							</div>
-							<div class="col-lg-8">
+
+							<label class="col-lg-1 control-label">Firmado</label>
+							<div class="col-lg-3">
+								<select name="Firmado" class="form-control" id="Firmado">
+									<option value="">(Todos)</option>
+									<option value="SI" <?php if (isset($_GET['Firmado']) && ($_GET['Firmado'] == 'SI')) {echo "selected=\"selected\"";}?>>SI</option>
+									<option value="NO" <?php if (isset($_GET['Firmado']) && ($_GET['Firmado'] == 'NO')) {echo "selected=\"selected\"";}?>>NO</option>
+								</select>
+							</div>
+							<label class="col-lg-1 control-label">Tiene salida</label>
+							<div class="col-lg-3">
+								<select name="TieneSalida" class="form-control" id="TieneSalida">
+									<option value="">(Todos)</option>
+									<option value="SI" <?php if (isset($_GET['TieneSalida']) && ($_GET['TieneSalida'] == 'SI')) {echo "selected=\"selected\"";}?>>SI</option>
+									<option value="NO" <?php if (isset($_GET['TieneSalida']) && ($_GET['TieneSalida'] == 'NO')) {echo "selected=\"selected\"";}?>>NO</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-lg-12">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
-					 	<?php if ($sw == 1) {?>
+						<?php if ($sw == 1) {?>
 					  	<div class="form-group">
 							<div class="col-lg-10 col-md-10">
 								<a href="exportar_excel.php?exp=7&Cons=<?php echo base64_encode($Cons); ?>">
@@ -275,6 +308,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 						<th>Documento destino</th>
 						<th>Usuario creación</th>
 						<th>Estado</th>
+						<th>Firmado</th>
 						<th>Acciones</th>
                     </tr>
                     </thead>
@@ -289,13 +323,19 @@ if ($sw == 1) {
 							<td><?php echo $row['DocDate']; ?></td>
 							<td><?php echo $row['NombreCliente']; ?></td>
 							<td><?php echo $row['NomEmpleado']; ?></td>
-							<td><?php if ($row['DocBaseDocEntry'] != "") {?><a href="solicitud_traslado.php?id=<?php echo base64_encode($row['DocBaseDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocBaseDocNum']; ?></a><?php } else {echo "--";}?></td>
+							<td><?php if ($row['DocBaseDocEntry'] != "") {?><a href="solicitud_salida.php?id=<?php echo base64_encode($row['DocBaseDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocBaseDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="salida_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php echo $row['UsuarioCreacion']; ?></td>
+							
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
+
+							<td><span <?php if ($row['DocFirmado'] == 'SI') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['DocFirmado']; ?></span></td>
 							<td>
 								<a href="traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_traslado_inventario.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
-								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&ObType=<?php echo base64_encode('67'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
+								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&ObType=<?php echo base64_encode('67'); ?>&IdFrm=<?php echo base64_encode('0'); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
+
+								<!-- SMM, 25/11/2022 -->
+								<button type="button" class="btnCopy btn btn-primary btn-xs" title="Copiar enlace" data-clipboard-text="<?php echo ObtenerHostURL(); ?>traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1"><i class="fa fa-copy"></i></button>
 							</td>
 						</tr>
 					<?php }

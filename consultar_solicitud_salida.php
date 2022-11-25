@@ -110,10 +110,10 @@ $SQL = sqlsrv_query($conexion, $Cons);
 if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalAdd"))) {
     echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
                 title: '¡Listo!',
                 text: 'La Solicitud de salida ha sido agregada exitosamente.',
-                type: 'success'
+                icon: 'success'
             });
 		});
 		</script>";
@@ -121,10 +121,10 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalAdd"))) {
 if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
     echo "<script>
 		$(document).ready(function() {
-			swal({
+			Swal.fire({
                 title: '¡Listo!',
                 text: 'La Solicitud de salida ha sido actualizada exitosamente.',
-                type: 'success'
+                icon: 'success'
             });
 		});
 		</script>";
@@ -341,6 +341,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 						<th>Fecha solicitud</th>
 						<th>Solicitado para</th>
 						<th>Tipo entrega</th>
+						<th>Comentarios</th> <!-- SMM, 25/11/2022 -->
 						<th>Descontable</th>
 						<th>Documento destino</th>
 						<th>Firmado</th>
@@ -361,6 +362,7 @@ if ($sw == 1) {
 							<td><?php echo $row['DocDate']; ?></td>
 							<td><?php echo $row['NomEmpleado']; ?></td>
 							<td><?php echo $row['DeTipoEntrega']; ?></td>
+							<td><?php echo SubComent($row['Comentarios']); ?></td> <!-- SMM, 25/11/2022 -->
 							<td><?php echo $row['Descontable']; ?></td>
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="traslado_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php echo $row['DocFirmado']; ?></td>
