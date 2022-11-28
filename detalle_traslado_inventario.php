@@ -13,6 +13,11 @@ $array_Dimensiones = [];
 while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
     array_push($array_Dimensiones, $row_Dimension);
 }
+
+$encode_Dimensiones = json_encode($array_Dimensiones);
+$cadena_Dimensiones = "JSON.parse('$encode_Dimensiones'.replace(/\\n|\\r/g, ''))";
+// echo "<script> console.log('cadena_Dimensiones'); </script>";
+// echo "<script> console.log($cadena_Dimensiones); </script>";
 // Hasta aquí, SMM 31/08/2022
 
 $sw = 0;
@@ -272,13 +277,16 @@ function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almac
 	});
 }
 
+// SMM, 25/11/2022
 function Seleccionar(ID){
 	var btnBorrarLineas=document.getElementById('btnBorrarLineas');
+	var btnDuplicarLineas=document.getElementById('btnDuplicarLineas');
 	var Check = document.getElementById('chkSel'+ID).checked;
 	var sw=-1;
 	json.forEach(function(element,index){
-//		console.log(element,index);
-//		console.log(json[index])deta
+		// console.log(element,index);
+		// console.log(json[index]);
+
 		if(json[index]==ID){
 			sw=index;
 		}
@@ -293,28 +301,62 @@ function Seleccionar(ID){
 		cant++;
 	}
 	if(cant>0){
-		$("#btnBorrarLineas").removeClass("disabled");
+		$("#btnBorrarLineas").prop('disabled', false);
+		$("#btnDuplicarLineas").prop('disabled', false);
 	}else{
-		$("#btnBorrarLineas").addClass("disabled");
+		$("#btnBorrarLineas").prop('disabled', true);
+		$("#btnDuplicarLineas").prop('disabled', true);
 	}
 
-	//console.log(json);
+	// console.log(json);
 }
 
+// SMM, 25/11/2022
+function DuplicarLinea(){
+	if(confirm(String.fromCharCode(191)+'Est'+String.fromCharCode(225)+' seguro que desea duplicar estos registros?')){
+		$.ajax({
+			type: "GET",
+			<?php if ($type == 1) {?>
+			url: "includes/procedimientos.php?type=59&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
+			<?php } else {?>
+			url: "includes/procedimientos.php?type=59&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
+			<?php }?>
+			success: function(response){
+				window.location.href="detalle_traslado_inventario.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
+			},
+			error: function(error) {
+				console.log(error.responseText);
+			}
+		});
+	}
+}
+
+// SMM, 25/11/2022
 function SeleccionarTodos(){
 	var Check = document.getElementById('chkAll').checked;
 	if(Check==false){
 		json=[];
 		cant=0;
-		$("#btnBorrarLineas").addClass("disabled");
+		$("#btnBorrarLineas").prop('disabled', true);
+		$("#btnDuplicarLineas").prop('disabled', true);
 	}
-	$(".chkSel").prop("checked", Check);
+	$(".chkSel:not(:disabled)").prop("checked", Check);
+
 	if(Check){
-		$(".chkSel").trigger('change');
+		$(".chkSel:not(:disabled)").trigger('change');
+	}
+}
+
+// SMM, 25/11/2022
+function ConsultarArticulo(articulo){
+	if(articulo!=""){
+		self.name='opener';
+		remote=open('articulos.php?id='+articulo+'&ext=1&tl=1','remote','location=no,scrollbar=yes,menubars=no,toolbars=no,resizable=yes,fullscreen=yes,status=yes');
+		remote.focus();
 	}
 }
 </script>
-</script>
+
 </head>
 
 <body>
@@ -323,11 +365,14 @@ function SeleccionarTodos(){
 	<table width="100%" class="table table-bordered">
 		<thead>
 			<tr>
-				<?php if ($Estado == 1) {?>
-					<th class="text-center form-inline w-80"><div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div> <button type="button" id="btnBorrarLineas" title="Borrar lineas" class="btn btn-danger btn-xs disabled" onClick="BorrarLinea();"><i class="fa fa-trash"></i></button></th>
-				<?php } else {?>
-					<th>&nbsp;</th>
-				<?php }?>
+				<!-- SMM, 25/11/2022 -->
+				<th class="text-center form-inline w-150">
+					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div>
+					<button type="button" id="btnBorrarLineas" title="Borrar lineas" class="btn btn-danger btn-xs" disabled onClick="BorrarLinea();"><i class="fa fa-trash"></i></button>
+					<button type="button" id="btnDuplicarLineas" title="Duplicar lineas" class="btn btn-success btn-xs" disabled onClick="DuplicarLinea();"><i class="fa fa-copy"></i></button>
+				</th>
+				<!-- Hasta aquí, 25/11/2022 -->
+
 				<th>Código artículo</th>
 				<th>Nombre artículo</th>
 				<th>Unidad</th>
@@ -366,13 +411,13 @@ if ($sw == 1) {
         sqlsrv_fetch($SQL_Proyecto, SQLSRV_SCROLL_ABSOLUTE, -1);
         ?>
 		<tr>
-			<td class="text-center">
-				<?php if (($row['TreeType'] != "T") && ($row['LineStatus'] == "O") && ($Estado == 1)) {?>
-					<div class="checkbox checkbox-success no-margins">
-						<input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One"><label></label>
-					</div>
-				<?php }?>
+			<!-- SMM, 25/11/2022 -->
+			<td class="text-center form-inline w-150">
+				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if ($row['LineStatus'] == 'C' || $Estado == 2) {echo "disabled='disabled'";}?>><label></label></div>
+				<button type="button" class="btn btn-success btn-xs" onClick="ConsultarArticulo('<?php echo base64_encode($row['ItemCode']); ?>');" title="Consultar Articulo"><i class="fa fa-search"></i></button>
 			</td>
+			<!-- Hasta aquí, 25/11/2022 -->
+			
 			<td><input size="20" type="text" id="ItemCode<?php echo $i; ?>" name="ItemCode[]" class="form-control" readonly value="<?php echo $row['ItemCode']; ?>"><input type="hidden" name="LineNum[]" id="LineNum<?php echo $i; ?>" value="<?php echo $row['LineNum']; ?>"></td>
 			<td><input size="50" type="text" id="ItemName<?php echo $i; ?>" name="ItemName[]" class="form-control" value="<?php echo $row['ItemName']; ?>" maxlength="100" onChange="ActualizarDatos('ItemName',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || $Estado == 2) {echo "readonly";}?>></td>
 			<td><input size="15" type="text" id="UnitMsr<?php echo $i; ?>" name="UnitMsr[]" class="form-control" readonly value="<?php echo $row['UnitMsr']; ?>"></td>
@@ -441,6 +486,7 @@ $i++;}
 }
 ?>
 		<?php if ($Estado == 1) {?>
+		<!-- Estos son los campos vacios al final del detalle -->
 		<tr>
 			<td>&nbsp;</td>
 			<td><input size="20" type="text" id="ItemCodeNew" name="ItemCodeNew" class="form-control"></td>
@@ -453,8 +499,6 @@ $i++;}
 			<td><input size="15" type="text" id="OnHandNew" name="OnHandNew" class="form-control"></td>
 
 			<td><input size="20" type="text" id="OcrCodeNew" name="OcrCodeNew" class="form-control"></td>
-			<td><input size="20" type="text" id="OcrCode2New" name="OcrCode2New" class="form-control"></td>
-			<td><input size="20" type="text" id="OcrCode3New" name="OcrCode3New" class="form-control"></td>
 			<td><input size="70" type="text" id="ProyectoNew" name="ProyectoNew" class="form-control"></td>
 
 			<td><input size="50" type="text" id="FreeTxtNew" name="FreeTxtNew" class="form-control"></td>

@@ -381,7 +381,7 @@ if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SolSalAdd")) {
 			Swal.fire({
 				title: '¡Listo!',
 				text: 'La Solicitud de salida ha sido creada exitosamente.',
-				type: 'success'
+				icon: 'success'
 			});
 		});
 		</script>";
@@ -392,7 +392,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 			Swal.fire({
                 title: '¡Ha ocurrido un error!',
                 text: '" . str_replace("'", "", $msg_error) . "',
-                type: 'error'
+                icon: 'error'
             });
 		});
 		</script>";
@@ -431,13 +431,13 @@ function BuscarArticulo(dato){
 
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")){
-			remote=open('buscar_articulo.php?dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3','remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			remote=open('buscar_articulo.php?dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
 				title: "¡Error!",
 				text: "Debe seleccionar un cliente y un almacén",
-				type: "error",
+				icon: "error",
 				confirmButtonText: "OK"
 			});
 		}
@@ -1084,7 +1084,7 @@ if ($edit == 1 || $sw_error == 1) {
 					</ul>
 					<div class="tab-content">
 						<div id="tab-1" class="tab-pane active">
-							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0) {echo "detalle_solicitud_salida.php";} else {echo "detalle_solicitud_salida.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal);}?>"></iframe>
+							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_solicitud_salida.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_solicitud_salida.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode']. "&whscode=" . $row['WhsCode'];} else {echo "detalle_solicitud_salida.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal) . "&docentry=" . base64_encode($row['DocEntry']);}?>"></iframe>
 						</div>
 						<?php if ($edit == 1) {?>
 						<div id="tab-2" class="tab-pane">
@@ -1233,19 +1233,17 @@ if (isset($_GET['return'])) {
 <!-- InstanceBeginEditable name="EditRegion4" -->
 <script>
 	 $(document).ready(function(){
-		 $("#CrearSolicitudSalida").validate({
+		$("#CrearSolicitudSalida").validate({
 			 submitHandler: function(form){
 				if(Validar()){
 					Swal.fire({
 						title: "¿Está seguro que desea guardar los datos?",
-						type: "info",
+						icon: "info",
 						showCancelButton: true,
-						closeOnConfirm: true,
 						confirmButtonText: "Si, confirmo",
 						cancelButtonText: "No"
-					},
-					function(isConfirm){
-						if(isConfirm){
+					}).then((result) => {
+						if (result.isConfirmed) {
 							$('.ibox-content').toggleClass('sk-loading',true);
 							form.submit();
 						}
@@ -1374,7 +1372,7 @@ function Validar(){
 				Swal.fire({
 					title: '¡Lo sentimos!',
 					text: 'Este documento ya fue actualizado por otro usuario. Debe recargar la página para volver a cargar los datos.',
-					type: 'error'
+					icon: 'error'
 				});
 			}
 		}
@@ -1385,7 +1383,7 @@ function Validar(){
 		Swal.fire({
 			title: '¡Lo sentimos!',
 			text: 'No puede guardar el documento sin contenido. Por favor verifique.',
-			type: 'error'
+			icon: 'error'
 		});
 	}
 

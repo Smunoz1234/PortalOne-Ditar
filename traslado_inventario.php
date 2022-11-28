@@ -228,6 +228,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             //Consultar Lotes
             $SQL_Lotes = Seleccionar("uvw_tbl_LotesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
 
+			// Consultar Seriales, 24/11/2022
+            $SQL_Seriales = Seleccionar("uvw_tbl_SerialesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
+
             $Detalle = array();
             $Anexos = array();
             $Lotes = array();
@@ -303,6 +306,20 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                     "cantidad" => intval($row_Lotes['Cantidad']),
                     "serial_lote" => $row_Lotes['DistNumber'],
                     "id_systema_articulo" => intval($row_Lotes['SysNumber']),
+                ));
+            }
+
+			// Seriales, 24/11/2022
+            while ($row_Seriales = sqlsrv_fetch_array($SQL_Seriales)) {
+
+                array_push($Seriales, array(
+                    "id_documento" => intval($row_Seriales['DocEntry']),
+                    "id_linea" => intval($row_Seriales['DocLinea']),
+                    "id_articulo" => $row_Seriales['ItemCode'],
+                    "articulo" => $row_Seriales['ItemName'],
+                    "cantidad" => intval($row_Seriales['Cantidad']),
+                    "serial_lote" => $row_Seriales['DistNumber'],
+                    "id_systema_articulo" => intval($row_Seriales['SysNumber']),
                 ));
             }
 
@@ -638,7 +655,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 		$(document).ready(function() {
 			Swal.fire({
                 title: '¡Ha ocurrido un error!',
-                text: '" . LSiqmlObs($msg_error) . "',
+                text: '" . preg_replace('/\s+/', ' ', LSiqmlObs($msg_error)) . "',
                 icon: 'warning'
             });
 			console.log('json:','$Cabecera_json');
@@ -721,7 +738,7 @@ function AbrirFirma(IDCampo){
 			var almacen=document.getElementById('Almacen').value;
 			var almacendestino=document.getElementById('AlmacenDestino').value;
 
-			<?php if ($edit == 0 && $dt_DR == 0) {?>
+			<?php if ($edit == 0 && $dt_DR == 0 && $dt_SS == 0) {?>
 			$.ajax({
 				type: "POST",
 				url: "includes/procedimientos.php?type=7&objtype=67&cardcode="+carcode
