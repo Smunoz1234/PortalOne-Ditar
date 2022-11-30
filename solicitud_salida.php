@@ -131,16 +131,17 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             "'" . $_POST['SucursalDestino'] . "'",
             "'" . $_POST['DireccionDestino'] . "'",
             "'" . $_POST['CondicionPago'] . "'",
+            "'" . $_POST['Almacen'] . "'",
+            "'" . $_POST['AlmacenDestino'] . "'", // SMM, 29/11/2022
 
             // Se eliminaron las dimensiones, SMM 29/08/2022
 
-            "NULL",
-            "'N'",
+            "'" . $_POST['PrjCode'] . "'", // SMM, 29/11/2022
+            "'" . $_POST['Autorizacion'] . "'", // SMM, 29/11/2022
             "'" . $_POST['TipoEntrega'] . "'",
             $AnioEntrega,
             $EntregaDescont,
             $ValorCuotaDesc,
-            "'" . $_POST['Almacen'] . "'",
             "'" . $_POST['Empleado'] . "'",
             "'" . $_SESSION['CodUser'] . "'",
             "'" . $_SESSION['CodUser'] . "'",
@@ -284,6 +285,9 @@ if ($edit == 1 && $sw_error == 0) {
     //Almacenes
     $SQL_Almacen = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'WhsCode, WhsName', "IdSeries='" . $row['IdSeries'] . "'", "WhsCode, WhsName", 'WhsName');
 
+	// Almacenes destino. SMM, 29/11/2022
+    $SQL_AlmacenDestino = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'ToWhsCode, ToWhsName', "IdSeries='" . $row['IdSeries'] . "'", "ToWhsCode, ToWhsName", 'ToWhsName');
+
     //Anexos
     $SQL_Anexo = Seleccionar('uvw_Sap_tbl_DocumentosSAP_Anexos', '*', "AbsEntry='" . $row['IdAnexo'] . "'");
 
@@ -325,9 +329,11 @@ if ($sw_error == 1) {
     //Almacenes
     $SQL_Almacen = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'WhsCode, WhsName', "IdSeries='" . $row['IdSeries'] . "'", "WhsCode, WhsName", 'WhsName');
 
+    // Almacenes destino. SMM, 29/11/2022
+    $SQL_AlmacenDestino = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'ToWhsCode, ToWhsName', "IdSeries='" . $row['IdSeries'] . "'", "ToWhsCode, ToWhsName", 'ToWhsName');
+
     //Anexos
     $SQL_Anexo = Seleccionar('uvw_Sap_tbl_DocumentosSAP_Anexos', '*', "AbsEntry='" . $row['IdAnexo'] . "'");
-
 }
 
 // Se eliminaron las dimensiones en esta parte, SMM 29/08/2022
@@ -360,6 +366,9 @@ $ParamSerie = array(
     "'1250000001'",
 );
 $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
+
+// Proyectos, SMM 29/11/2022
+$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
 
 // Stiven Muñoz Murillo, 29/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
@@ -423,6 +432,9 @@ function BuscarArticulo(dato){
 	var dim4= ((document.getElementById("Dim4") || {}).value) || "";
 	var dim5= ((document.getElementById("Dim5") || {}).value) || "";
 	// Hasta aquí, 29/08/2022
+
+	// SMM, 29/11/2022
+	let proyecto = document.getElementById("PrjCode").value;
 
 	var posicion_x;
 	var posicion_y;
@@ -678,6 +690,25 @@ function ConsultarDatosCliente(){
 					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
+
+			$.ajax({
+				type: "POST",
+				url: `${url20}&twhs=2`,
+				success: function(response){
+					console.log("Cargando almacenes destino...");
+
+					$('#AlmacenDestino').html(response).fadeIn();
+					//$('#AlmacenDestino').trigger('change');
+
+					$('.ibox-content').toggleClass('sk-loading',false);
+				},
+				error: function(error) {
+					// Mensaje de error
+					console.log("Line 923", error.responseText);
+
+					$('.ibox-content').toggleClass('sk-loading', false);
+				}
+			});
 		<?php }?>
 
 		var CardCode = document.getElementById('CardCode').value;
@@ -773,6 +804,86 @@ function ConsultarDatosCliente(){
 			$('.ibox-content').toggleClass('sk-loading',false);
 		});
 
+		// Actualización del AlmacenDestino en las líneas, SMM 29/11/2022
+		/*
+		$("#AlmacenDestino").change(function(){
+			var frame=document.getElementById('DataGrid');
+			if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=6&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=6&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_TrasladoInv']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		*/
+		// Actualizar AlmacenDestino, llega hasta aquí.
+
+		// Actualización del proyecto en las líneas, SMM 29/11/2022
+		/*
+		$("#PrjCode").change(function() {
+			var frame=document.getElementById('DataGrid');
+
+			if(document.getElementById('PrjCode').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=1&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=1&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		*/
+		// Actualizar proyecto, llega hasta aquí.
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -1003,18 +1114,48 @@ if ($edit == 1 || $sw_error == 1) {
 
 
 				<div class="form-group">
-					<label class="col-lg-1 control-label">Almacén <span class="text-danger">*</span></label>
+					<label class="col-lg-1 control-label">Almacén origen <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
-						  <?php if ($edit == 1) {
-    while ($row_Almacen = sqlsrv_fetch_array($SQL_Almacen)) {?>
+						  	<?php if ($edit == 1) {?>
+    							<?php while ($row_Almacen = sqlsrv_fetch_array($SQL_Almacen)) {?>
 									<option value="<?php echo $row_Almacen['WhsCode']; ?>" <?php if (($edit == 1) && (isset($row['WhsCode'])) && (strcmp($row_Almacen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName']; ?></option>
-						  <?php }
-}?>
+						  		<?php }?>
+							<?php }?>
 						</select>
 					</div>
 
+					<!-- Inicio, AlmacenDestino -->
+					<label class="col-lg-1 control-label">Almacén destino</label>
+					<div class="col-lg-3">
+						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<option value="">Seleccione...</option>
+						  <?php if ($edit == 1) {?>
+							<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
+								<option value="<?php echo $row_AlmacenDestino['ToWhsCode']; ?>" <?php if (($edit == 1) && (isset($row['ToWhsCode'])) && (strcmp($row_AlmacenDestino['ToWhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmacenDestino['ToWhsName']; ?></option>
+						  	<?php }?>
+						  <?php }?>
+						</select>
+					</div>
+					<!-- Fin, AlmacenDestino -->
+
+					<!-- Inicio, Proyecto -->
+					<label class="col-lg-1 control-label">Proyecto <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+						<select id="PrjCode" name="PrjCode" class="form-control select2" required="required" form="CrearOrdenVenta" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+								<option value="">(NINGUNO)</option>
+							<?php while ($row_Proyecto = sqlsrv_fetch_array($SQL_Proyecto)) {?>
+								<option value="<?php echo $row_Proyecto['IdProyecto']; ?>" <?php if ((isset($row['PrjCode'])) && (strcmp($row_Proyecto['IdProyecto'], $row['PrjCode']) == 0)) {echo "selected=\"selected\"";} elseif ((isset($_GET['Proyecto'])) && (strcmp($row_Proyecto['IdProyecto'], base64_decode($_GET['Proyecto'])) == 0)) {echo "selected=\"selected\"";}?>>
+									<?php echo $row_Proyecto['DeProyecto']; ?>
+								</option>
+							<?php }?>
+						</select>
+					</div>
+					<!-- Fin, Proyecto -->
+				</div>
+
+				<div class="form-group">
 					<label class="col-lg-1 control-label">Solicitado para</label>
 					<div class="col-lg-3">
                     	<select name="Empleado" class="form-control select2" id="Empleado" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
@@ -1036,6 +1177,17 @@ if ($edit == 1 || $sw_error == 1) {
 						</select>
                	  	</div>
 					<!-- Hasta aquí -->
+
+					<!-- Inicio, Autorización -->
+					<label class="col-lg-1 control-label">Autorización</label>
+					<div class="col-lg-3">
+                    	<select name="Autorizacion" class="form-control" id="Autorizacion" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+                          <?php while ($row_EstadoAuth = sqlsrv_fetch_array($SQL_EstadoAuth)) {?>
+								<option value="<?php echo $row_EstadoAuth['IdAuth']; ?>" <?php if (($edit == 1) && (isset($row['AuthPortal'])) && (strcmp($row_EstadoAuth['IdAuth'], $row['AuthPortal']) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && ($row_EstadoAuth['IdAuth'] == 'N')) {echo "selected=\"selected\"";}?>><?php echo $row_EstadoAuth['DeAuth']; ?></option>
+						  <?php }?>
+						</select>
+               	  	</div>
+					<!-- Fin, Autorización -->
 				</div>
 
 				<div class="form-group">
@@ -1084,7 +1236,7 @@ if ($edit == 1 || $sw_error == 1) {
 					</ul>
 					<div class="tab-content">
 						<div id="tab-1" class="tab-pane active">
-							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_solicitud_salida.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_solicitud_salida.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode']. "&whscode=" . $row['WhsCode'];} else {echo "detalle_solicitud_salida.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal) . "&docentry=" . base64_encode($row['DocEntry']);}?>"></iframe>
+							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_solicitud_salida.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_solicitud_salida.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'] . "&whscode=" . $row['WhsCode'];} else {echo "detalle_solicitud_salida.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal) . "&docentry=" . base64_encode($row['DocEntry']);}?>"></iframe>
 						</div>
 						<?php if ($edit == 1) {?>
 						<div id="tab-2" class="tab-pane">

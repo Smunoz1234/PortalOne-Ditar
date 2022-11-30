@@ -150,7 +150,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 
                 // Se eliminaron las dimensiones, SMM 23/11/2022
 
-                "NULL",
+                "'" . $_POST['PrjCode'] . "'", // SMM, 29/11/2022
                 "'" . $_POST['Autorizacion'] . "'",
                 "NULL",
                 "NULL",
@@ -613,6 +613,9 @@ $ParamSerie = array(
 );
 $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
+// Proyectos, SMM 29/11/2022
+$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
+
 // Stiven Muñoz Murillo, 29/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
 $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'Not Found'";
@@ -689,6 +692,9 @@ function BuscarArticulo(dato){
 	var dim4= ((document.getElementById("Dim4") || {}).value) || "";
 	var dim5= ((document.getElementById("Dim5") || {}).value) || "";
 	// Hasta aquí, 29/08/2022
+
+	// SMM, 29/11/2022
+	let proyecto = document.getElementById("PrjCode").value;
 
 	var posicion_x;
 	var posicion_y;
@@ -1108,6 +1114,47 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 //			}
 //			$('.ibox-content').toggleClass('sk-loading',false);
 //		});
+
+		// Actualización del proyecto en las líneas, SMM 29/11/2022
+		/*
+		$("#PrjCode").change(function() {
+			var frame=document.getElementById('DataGrid');
+
+			if(document.getElementById('PrjCode').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=1&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=1&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		*/
+		// Actualizar proyecto, llega hasta aquí.
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -1348,27 +1395,45 @@ if ($edit == 1 || $sw_error == 1) {
 }?>
 						</select>
 					</div>
+
 					<label class="col-lg-1 control-label">Almacén destino <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
-						  <?php if ($edit == 1) {
-    while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
-									<option value="<?php echo $row_AlmacenDestino['ToWhsCode']; ?>" <?php if (($edit == 1) && (isset($row['ToWhsCode'])) && (strcmp($row_AlmacenDestino['ToWhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmacenDestino['ToWhsName']; ?></option>
-						  <?php }
-}?>
+						  <?php if ($edit == 1) {?>
+							<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
+								<option value="<?php echo $row_AlmacenDestino['ToWhsCode']; ?>" <?php if (($edit == 1) && (isset($row['ToWhsCode'])) && (strcmp($row_AlmacenDestino['ToWhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmacenDestino['ToWhsName']; ?></option>
+						  	<?php }?>
+						  <?php }?>
 						</select>
 					</div>
+
+					<!-- Inicio, Proyecto -->
+					<label class="col-lg-1 control-label">Proyecto <span class="text-danger">*</span></label>
+					<div class="col-lg-3">
+						<select id="PrjCode" name="PrjCode" class="form-control select2" required="required" form="CrearOrdenVenta" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+								<option value="">(NINGUNO)</option>
+							<?php while ($row_Proyecto = sqlsrv_fetch_array($SQL_Proyecto)) {?>
+								<option value="<?php echo $row_Proyecto['IdProyecto']; ?>" <?php if ((isset($row['PrjCode'])) && (strcmp($row_Proyecto['IdProyecto'], $row['PrjCode']) == 0)) {echo "selected=\"selected\"";} elseif ((isset($_GET['Proyecto'])) && (strcmp($row_Proyecto['IdProyecto'], base64_decode($_GET['Proyecto'])) == 0)) {echo "selected=\"selected\"";}?>>
+									<?php echo $row_Proyecto['DeProyecto']; ?>
+								</option>
+							<?php }?>
+						</select>
+					</div>
+					<!-- Fin, Proyecto -->
+				</div>
+				
+				<div class="form-group">
 					<label class="col-lg-1 control-label">Autorización</label>
-					<div class="col-lg-2">
+					<div class="col-lg-3">
                     	<select name="Autorizacion" class="form-control" id="Autorizacion" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
                           <?php while ($row_EstadoAuth = sqlsrv_fetch_array($SQL_EstadoAuth)) {?>
 								<option value="<?php echo $row_EstadoAuth['IdAuth']; ?>" <?php if (($edit == 1) && (isset($row['AuthPortal'])) && (strcmp($row_EstadoAuth['IdAuth'], $row['AuthPortal']) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && ($row_EstadoAuth['IdAuth'] == 'N')) {echo "selected=\"selected\"";}?>><?php echo $row_EstadoAuth['DeAuth']; ?></option>
 						  <?php }?>
 						</select>
                	  	</div>
-
 				</div>
+
 				<?php /*?>
 <div class="form-group">
 <label class="col-lg-1 control-label">Solicitado para</label>
