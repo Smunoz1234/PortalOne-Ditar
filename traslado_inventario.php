@@ -510,8 +510,9 @@ if (isset($_GET['dt_SS']) && ($_GET['dt_SS']) == 1) { //Verificar que viene de u
     $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
     $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
 
-    //Sucursal destino
+    // Sucursales. SMM, 01/12/2022
     $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND NombreSucursal='" . base64_decode($_GET['Sucursal']) . "'");
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND NombreSucursal='" . base64_decode($_GET['SucursalFact']) . "' AND TipoDireccion='B'", 'NombreSucursal');
 
     //Contacto cliente
     $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
@@ -878,7 +879,6 @@ function verAutorizacion() {
 					console.log("736->", error.responseText);
 				}
 			});
-			<?php }?>
 
 			$.ajax({
 				type: "POST",
@@ -891,6 +891,7 @@ function verAutorizacion() {
 					console.log("749->", error.responseText);
 				}
 			});
+			<?php }?>
 
 			// Recargar condición de pago.
 			$.ajax({
@@ -1029,7 +1030,7 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 		let tDoc = 67;
 		let Serie = document.getElementById('Serie').value;
 
-		var url20 = `ajx_cbo_select.php?type=20&id=${DimIdPO}&serie=${Serie}&tdoc=${tDoc}&WhsCode=<?php echo isset($_GET['Almacen']) ? base64_decode($_GET['Almacen']) : ($row['WhsCode'] ?? ""); ?>`;
+		var url20 = `ajx_cbo_select.php?type=20&id=${DimIdPO}&serie=${Serie}&tdoc=${tDoc}&WhsCode=<?php echo isset($_GET['Almacen']) ? base64_decode($_GET['Almacen']) : ($row['WhsCode'] ?? ""); ?>&ToWhsCode=<?php echo isset($_GET['AlmacenDestino']) ? base64_decode($_GET['AlmacenDestino']) : ($row['ToWhsCode'] ?? ""); ?>`;
 
 		$.ajax({
 			type: "POST",
@@ -1475,8 +1476,8 @@ if ($edit == 1 || $sw_error == 1) {
 						<div class="col-lg-5">
 							<select name="SucursalFacturacion" class="form-control select2" id="SucursalFacturacion" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							  <option value="">Seleccione...</option>
-							  <?php if ($edit == 1 || $sw_error == 1) {while ($row_SucursalFacturacion = sqlsrv_fetch_array($SQL_SucursalFacturacion)) {?>
-									<option value="<?php echo $row_SucursalFacturacion['NombreSucursal']; ?>" <?php if ((isset($row['SucursalFacturacion'])) && (strcmp($row_SucursalFacturacion['NombreSucursal'], $row['SucursalFacturacion']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_SucursalFacturacion['NombreSucursal']; ?></option>
+							  <?php if (($edit == 1) || ($sw_error == 1) || ($dt_SS == 1)) {while ($row_SucursalFacturacion = sqlsrv_fetch_array($SQL_SucursalFacturacion)) {?>
+									<option value="<?php echo $row_SucursalFacturacion['NombreSucursal']; ?>" <?php if ((isset($row['SucursalFacturacion'])) && (strcmp($row_SucursalFacturacion['NombreSucursal'], $row['SucursalFacturacion']) == 0)) {echo "selected=\"selected\"";} elseif (isset($_GET['SucursalFact']) && (strcmp($row_SucursalFacturacion['NombreSucursal'], base64_decode($_GET['SucursalFact'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_SucursalFacturacion['NombreSucursal']; ?></option>
 							  <?php }}?>
 							</select>
 						</div>
@@ -2034,9 +2035,14 @@ if (!PermitirFuncion(403)) {?>
 		  <?php if ($edit == 0) {?>
 		 $("#CardName").easyAutocomplete(options);
 	 	 <?php }?>
+
 		 <?php if ($dt_SS == 1) {?>
-		 $('#CardCode').trigger('change');
+			$('#CardCode').trigger('change');
+
+			// SMM, 01/12/2022
+			$('#SucursalFacturacion').trigger('change');
 		<?php }?>
+
 		<?php if ($edit == 0) {?>
 		 $('#Serie').trigger('change');
 	 	<?php }?>
