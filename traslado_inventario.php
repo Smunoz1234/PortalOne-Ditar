@@ -1223,7 +1223,6 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 //		});
 
 		// Actualización del proyecto en las líneas, SMM 29/11/2022
-		/*
 		$("#PrjCode").change(function() {
 			var frame=document.getElementById('DataGrid');
 
@@ -1240,7 +1239,7 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 							<?php if ($edit == 0) {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&doctype=1&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							url: "registro.php?P=36&doctype=6&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
 								frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
@@ -1249,9 +1248,9 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 						<?php } else {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&doctype=1&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							url: "registro.php?P=36&doctype=6&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_TrasladoInv']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1260,7 +1259,6 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 				});
 			}
 		});
-		*/
 		// Actualizar proyecto, llega hasta aquí.
 	});
 </script>

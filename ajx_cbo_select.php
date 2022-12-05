@@ -447,8 +447,16 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $SQL = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'ToWhsCode, ToWhsName', "IdSeries='" . $_GET['serie'] . "' and IdSucursal='" . $_GET['id'] . "' and IdTipoDocumento='" . $_GET['tdoc'] . "' and ToWhsCode <> ''", "ToWhsCode, ToWhsName", 'ToWhsName');
                 $Num = sqlsrv_num_rows($SQL);
                 if ($Num) {
+                    $ToWhsCode = $_GET['ToWhsCode'] ?? ""; // SMM, 01/12/2022
+                    echo "<option value=''>Seleccione...</option>"; // SMM, 01/12/2022
+
                     while ($row = sqlsrv_fetch_array($SQL)) {
-                        echo "<option value=\"" . $row['ToWhsCode'] . "\">" . $row['ToWhsName'] . "</option>";
+                        if ($ToWhsCode == $row['ToWhsCode']) {
+                            // Stiven Muñoz Murillo, 01/12/2022
+                            echo "<option selected=\"selected\" value=\"" . $row['ToWhsCode'] . "\">" . $row['ToWhsName'] . "</option>";
+                        } else {
+                            echo "<option value=\"" . $row['ToWhsCode'] . "\">" . $row['ToWhsName'] . "</option>";
+                        }
                     }
                 } else {
                     echo "<option value=''>Seleccione...</option>";

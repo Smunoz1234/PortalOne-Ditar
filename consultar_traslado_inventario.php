@@ -1,6 +1,13 @@
 <?php require_once "includes/conexion.php";
 PermitirAcceso(1204);
 $sw = 0;
+
+// SMM, 25/11/2022
+$DimSeries = intval(ObtenerVariable("DimensionSeries"));
+$SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimCode=$DimSeries");
+$row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones);
+$Nombre_DimSeries = $row_Dimension["DimName"];
+
 //Estado actividad
 $SQL_Estado = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 
@@ -228,7 +235,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 								<input name="Cliente" type="hidden" id="Cliente" value="<?php if (isset($_GET['Cliente']) && ($_GET['Cliente'] != "")) {echo $_GET['Cliente'];}?>">
 								<input name="NombreCliente" type="text" class="form-control" id="NombreCliente" placeholder="Para TODOS, dejar vacio..." value="<?php if (isset($_GET['NombreCliente']) && ($_GET['NombreCliente'] != "")) {echo $_GET['NombreCliente'];}?>">
 							</div>
-							<label class="col-lg-1 control-label">Sucursal</label>
+							<label class="col-lg-1 control-label"><?php echo $Nombre_DimSeries; ?></label>
 							<div class="col-lg-3">
 								<select name="Sucursal" class="form-control" id="Sucursal">
 									<option value="">(Todos)</option>
@@ -326,7 +333,7 @@ if ($sw == 1) {
 							<td><?php if ($row['DocBaseDocEntry'] != "") {?><a href="solicitud_salida.php?id=<?php echo base64_encode($row['DocBaseDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocBaseDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="salida_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php echo $row['UsuarioCreacion']; ?></td>
-							
+
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
 
 							<td><span <?php if ($row['DocFirmado'] == 'SI') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['DocFirmado']; ?></span></td>
@@ -335,7 +342,7 @@ if ($sw == 1) {
 								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&ObType=<?php echo base64_encode('67'); ?>&IdFrm=<?php echo base64_encode('0'); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 
 								<!-- SMM, 25/11/2022 -->
-								<!-- button type="button" class="btnCopy btn btn-primary btn-xs" title="Copiar enlace" data-clipboard-text="<?php echo ObtenerHostURL(); ?>traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1"><i class="fa fa-copy"></i></button -->
+								<button type="button" class="btnCopy btn btn-primary btn-xs" title="Copiar enlace" data-clipboard-text="<?php echo ObtenerHostURL(); ?>traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1"><i class="fa fa-copy"></i></button>
 							</td>
 						</tr>
 					<?php }

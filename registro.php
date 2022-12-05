@@ -3236,6 +3236,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
                         "'" . $_SESSION['CodUser'] . "'",
+                        "'" . ($_GET['actodos'] ?? 0) . "'", // SMM, 02/12/2022
                     );
                     $SQL = EjecutarSP('sp_tbl_SolicitudSalidaDetalleCarritoUpdCampos', $Parametros, 36);
                     if ($SQL) {
@@ -3255,6 +3256,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
                         "'" . $_SESSION['CodUser'] . "'",
+                        "'" . ($_GET['actodos'] ?? 0) . "'", // SMM, 02/12/2022
                     );
                     $SQL = EjecutarSP('sp_tbl_SolicitudSalidaDetalleUpdCampos', $Parametros, 36);
                     if ($SQL) {

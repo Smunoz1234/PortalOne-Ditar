@@ -1,6 +1,13 @@
 <?php require_once "includes/conexion.php";
 PermitirAcceso(1202);
 $sw = 0;
+
+// SMM, 25/11/2022
+$DimSeries = intval(ObtenerVariable("DimensionSeries"));
+$SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimCode=$DimSeries");
+$row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones);
+$Nombre_DimSeries = $row_Dimension["DimName"];
+
 //Estado actividad
 $SQL_Estado = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 
@@ -252,7 +259,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 								<input name="Cliente" type="hidden" id="Cliente" value="<?php if (isset($_GET['Cliente']) && ($_GET['Cliente'] != "")) {echo $_GET['Cliente'];}?>">
 								<input name="NombreCliente" type="text" class="form-control" id="NombreCliente" placeholder="Para TODOS, dejar vacio..." value="<?php if (isset($_GET['NombreCliente']) && ($_GET['NombreCliente'] != "")) {echo $_GET['NombreCliente'];}?>">
 							</div>
-							<label class="col-lg-1 control-label">Sucursal</label>
+							<label class="col-lg-1 control-label"><?php echo $Nombre_DimSeries; ?></label>
 							<div class="col-lg-3">
 								<select name="Sucursal" class="form-control" id="Sucursal">
 									<option value="">(Todos)</option>
