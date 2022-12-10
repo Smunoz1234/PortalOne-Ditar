@@ -92,7 +92,10 @@ if (isset($_GET['Series']) && $_GET['Series'] != "") {
         }
         $i++;
     }
-    $Filtro .= " and [IdSeries] IN (" . $FilSerie . ")";
+
+    // Comentado para no filtra por serie. SMM, 09/12/2022
+    // $Filtro .= " and [IdSeries] IN (" . $FilSerie . ")";
+
     $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 }
 
@@ -100,8 +103,29 @@ if (isset($_GET['BuscarDato']) && $_GET['BuscarDato'] != "") {
     $Filtro .= " and (DocNum LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreContacto LIKE '%" . $_GET['BuscarDato'] . "%' OR DocNumLlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR ID_LlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR IdDocPortal LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreEmpleadoVentas LIKE '%" . $_GET['BuscarDato'] . "%' OR Comentarios LIKE '%" . $_GET['BuscarDato'] . "%')";
 }
 
-$Cons = "Select * From uvw_Sap_tbl_SolicitudesSalidas_Consulta Where (DocDate Between '$FechaInicial' and '$FechaFinal') $Filtro Order by DocNum DESC";
-//echo $Cons;
+$Cons = "SELECT * FROM uvw_Sap_tbl_SolicitudesSalidas_Borrador WHERE (DocDate BETWEEN '$FechaInicial' AND '$FechaFinal') $Filtro ORDER BY DocNum DESC";
+
+// SMM, 09/12/2022
+if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
+    $Where = "DocNum LIKE '%" . trim($_GET['DocNum']) . "%'";
+
+    $FilSerie = "";
+    $i = 0;
+    while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {
+        if ($i == 0) {
+            $FilSerie .= "'" . $row_Series['IdSeries'] . "'";
+        } else {
+            $FilSerie .= ",'" . $row_Series['IdSeries'] . "'";
+        }
+        $i++;
+    }
+    // $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
+
+    $Cons = "Select * From uvw_Sap_tbl_SolicitudesSalidas_Borrador Where $Where";
+}
+
+// echo $Cons;
 $SQL = sqlsrv_query($conexion, $Cons);
 ?>
 <!DOCTYPE html>
@@ -110,7 +134,7 @@ $SQL = sqlsrv_query($conexion, $Cons);
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Consultar solicitud de salida | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Consultar solicitud de salida borrador | <?php echo NOMBRE_PORTAL; ?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <?php
@@ -199,7 +223,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Consultar solicitud de salida</h2>
+                    <h2>Consultar solicitud de salida borrador</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -211,7 +235,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
                             <a href="#">Consultas</a>
                         </li>
                         <li class="active">
-                            <strong>Consultar solicitud de salida</strong>
+                            <strong>Consultar solicitud de salida borrador</strong>
                         </li>
                     </ol>
                 </div>
@@ -221,7 +245,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 				<div class="col-lg-12">
 			    <div class="ibox-content">
 					 <?php include "includes/spinner.php";?>
-				  <form action="consultar_solicitud_salida.php" method="get" id="formBuscar" class="form-horizontal">
+				  <form action="consultar_solicitud_salida_borrador.php" method="get" id="formBuscar" class="form-horizontal">
 						<div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
@@ -315,10 +339,21 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 									</select>
 								</div>
 							</div>
-							<div class="col-lg">
+
+							<!-- Número de documento -->
+							<label class="col-lg-1 control-label">Número documento</label>
+							<div class="col-lg-3">
+								<input name="DocNum" type="text" class="form-control" id="DocNum" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if (isset($_GET['DocNum']) && ($_GET['DocNum'] != "")) {echo $_GET['DocNum'];}?>">
+							</div>
+							<!-- SMM, 09/12/2022 -->
+						</div>
+
+						<div class="form-group">
+							<div class="col-lg-12">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
+
 						<?php if ($sw == 1) {?>
 					  	<div class="form-group">
 							<div class="col-lg-10 col-md-10">
@@ -343,6 +378,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
                     <thead>
                     <tr>
                         <th>Número</th>
+						<th>ID</th> <!-- SMM, 10/12/2022 -->
 						<th>Serie</th>
 						<th>Sucursal</th>
 						<th>Fecha solicitud</th>
@@ -364,6 +400,9 @@ if ($sw == 1) {
     while ($row = sqlsrv_fetch_array($SQL)) {?>
 						 <tr class="gradeX">
 							<td><?php echo $row['DocNum']; ?></td>
+							
+							<td><?php echo $row['ID_SolSalida']; ?></td> <!-- SMM, 10/12/2022 -->
+
 							<td><?php echo $row['DeSeries']; ?></td>
 							<td><?php echo $row['OcrName3']; ?></td>
 							<td><?php echo $row['DocDate']; ?></td>
@@ -377,7 +416,7 @@ if ($sw == 1) {
 							<td><?php echo $row['UsuarioActualizacion']; ?></td>
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
 							<td>
-								<a href="solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_solicitud_salida.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
+								<a href="solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_solicitud_salida_borrador.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
 								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_SolSalida']); ?>&ObType=<?php echo base64_encode('1250000001'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 							</td>
 						</tr>

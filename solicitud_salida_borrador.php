@@ -185,7 +185,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             array_push($ParametrosCabSolSalida, "'$Dim_PostValue'");
         } // SMM, 29/08/2022
 
-        $SQL_CabeceraSolSalida = EjecutarSP('sp_tbl_SolicitudSalida', $ParametrosCabSolSalida, $_POST['P']);
+        $SQL_CabeceraSolSalida = EjecutarSP('sp_tbl_SolicitudSalida_Borrador', $ParametrosCabSolSalida, $_POST['P']);
         if ($SQL_CabeceraSolSalida) {
             if ($Type == 1) {
                 $row_CabeceraSolSalida = sqlsrv_fetch_array($SQL_CabeceraSolSalida);
@@ -348,13 +348,13 @@ if ($edit == 1 && $sw_error == 0) {
         "'" . $IdPortal . "'",
         "'" . $_SESSION['CodUser'] . "'",
     );
-    $LimpiarSolSalida = EjecutarSP('sp_EliminarDatosSolicitudSalida', $ParametrosLimpiar);
+    $LimpiarSolSalida = EjecutarSP('sp_EliminarDatosSolicitudSalida_Borrador', $ParametrosLimpiar);
 
     $SQL_IdEvento = sqlsrv_fetch_array($LimpiarSolSalida);
     $IdEvento = $SQL_IdEvento[0];
 
     //Solicitud de salida
-    $Cons = "Select * From uvw_tbl_SolicitudSalida Where DocEntry='" . $IdSolSalida . "' AND IdEvento='" . $IdEvento . "'";
+    $Cons = "Select * From uvw_tbl_SolicitudSalida_Borrador Where DocEntry='" . $IdSolSalida . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -398,7 +398,7 @@ if ($edit == 1 && $sw_error == 0) {
 if ($sw_error == 1) {
 
     //Solicitud salida
-    $Cons = "Select * From uvw_tbl_SolicitudSalida Where ID_SolSalida='" . $IdSolSalida . "' AND IdEvento='" . $IdEvento . "'";
+    $Cons = "Select * From uvw_tbl_SolicitudSalida_Borrador Where ID_SolSalida='" . $IdSolSalida . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -483,7 +483,7 @@ $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Solicitud de traslado | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Solicitud de traslado borrador | <?php echo NOMBRE_PORTAL; ?></title>
 <?php
 if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SolSalAdd")) {
     echo "<script>
@@ -625,15 +625,15 @@ function verAutorizacion() {
 
 			<?php if ($edit == 0) {?>
 				if(carcode!="" && almacen!=""){
-					frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode+"&whscode="+almacen;
+					frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode+"&whscode="+almacen;
 				}else{
-					frame.src="detalle_solicitud_salida.php";
+					frame.src="detalle_solicitud_salida_borrador.php";
 				}
 			<?php } else {?>
 				if(carcode!="" && almacen!=""){
-					frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
+					frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
 				}else{
-					frame.src="detalle_solicitud_salida.php";
+					frame.src="detalle_solicitud_salida_borrador.php";
 				}
 			<?php }?>
 
@@ -735,7 +735,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -744,7 +744,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -765,7 +765,7 @@ function verAutorizacion() {
 	$("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 
 		var docType = 4;
-		var detalleDoc = "detalle_solicitud_salida.php";
+		var detalleDoc = "detalle_solicitud_salida_borrador.php";
 
 		var frame = document.getElementById('DataGrid');
 		var DimIdPO = document.getElementById('<?php echo $dim['IdPortalOne']; ?>').value;
@@ -929,7 +929,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -938,7 +938,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -968,7 +968,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -977,7 +977,7 @@ function verAutorizacion() {
 							type: "GET",
 							url: "registro.php?P=36&doctype=4&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1003,7 +1003,7 @@ function verAutorizacion() {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Solicitud de traslado</h2>
+                    <h2>Solicitud de traslado borrador</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -1012,7 +1012,7 @@ function verAutorizacion() {
                             <a href="#">Inventario</a>
                         </li>
                         <li class="active">
-                            <strong>Solicitud de traslado</strong>
+                            <strong>Solicitud de traslado borrador</strong>
                         </li>
                     </ol>
                 </div>
@@ -1140,7 +1140,7 @@ function verAutorizacion() {
 							<?php if ($row['DocDestinoDocEntry'] != "") {?>
 								<a href="traslado_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank" class="btn btn-outline btn-success pull-right m-l-sm">Ir a documento destino <i class="fa fa-external-link"></i></a>
 							<?php }?>
-							<button type="button" onClick="javascript:location.href='actividad.php?dt_DM=1&Cardcode=<?php echo base64_encode($row['CardCode']); ?>&Contacto=<?php echo base64_encode($row['CodigoContacto']); ?>&Sucursal=<?php echo base64_encode($row['SucursalDestino']); ?>&Direccion=<?php echo base64_encode($row['DireccionDestino']); ?>&DM_type=<?php echo base64_encode('1250000001'); ?>&DM=<?php echo base64_encode($row['DocEntry']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('solicitud_salida.php'); ?>'" class="alkin btn btn-outline btn-primary pull-right"><i class="fa fa-plus-circle"></i> Agregar actividad</button>
+							<button type="button" onClick="javascript:location.href='actividad.php?dt_DM=1&Cardcode=<?php echo base64_encode($row['CardCode']); ?>&Contacto=<?php echo base64_encode($row['CodigoContacto']); ?>&Sucursal=<?php echo base64_encode($row['SucursalDestino']); ?>&Direccion=<?php echo base64_encode($row['DireccionDestino']); ?>&DM_type=<?php echo base64_encode('1250000001'); ?>&DM=<?php echo base64_encode($row['DocEntry']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('solicitud_salida_borrador.php'); ?>'" class="alkin btn btn-outline btn-primary pull-right"><i class="fa fa-plus-circle"></i> Agregar actividad</button>
 						</div>
 					</div>
 				</div>
@@ -1152,7 +1152,7 @@ function verAutorizacion() {
 				 <?php include "includes/spinner.php";?>
           <div class="row">
            <div class="col-lg-12">
-              <form action="solicitud_salida.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearSolicitudSalida">
+              <form action="solicitud_salida_borrador.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearSolicitudSalida">
 				<div class="form-group">
 					<label class="col-md-8 col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-user"></i> Información de cliente</h3></label>
 					<label class="col-md-4 col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-calendar"></i> Fechas y estado de documento</h3></label>
@@ -1451,7 +1451,7 @@ if ($edit == 1 || $sw_error == 1) {
 					</ul>
 					<div class="tab-content">
 						<div id="tab-1" class="tab-pane active">
-							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_solicitud_salida.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_solicitud_salida.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'] . "&whscode=" . $row['WhsCode'];} else {echo "detalle_solicitud_salida.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal) . "&docentry=" . base64_encode($row['DocEntry']);}?>"></iframe>
+							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_solicitud_salida_borrador.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_solicitud_salida_borrador.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'] . "&whscode=" . $row['WhsCode'];} else {echo "detalle_solicitud_salida_borrador.php?id=" . base64_encode($row['ID_SolSalida']) . "&evento=" . base64_encode($row['IdEvento']) . "&type=2&status=" . base64_encode($EstadoReal) . "&docentry=" . base64_encode($row['DocEntry']);}?>"></iframe>
 						</div>
 						<?php if ($edit == 1) {?>
 						<div id="tab-2" class="tab-pane">
@@ -1549,7 +1549,7 @@ if (isset($_GET['return'])) {
 } elseif (isset($_POST['return'])) {
     $return = base64_decode($_POST['return']);
 } else {
-    $return = "solicitud_salida.php?";
+    $return = "solicitud_salida_borrador.php?";
 }
 ?>
 						<a href="<?php echo $return; ?>" class="btn btn-outline btn-default"><i class="fa fa-arrow-circle-o-left"></i> Regresar</a>
@@ -1569,7 +1569,7 @@ if (isset($_GET['return'])) {
 }?>
 <!-- Hasta aquí, 29/08/2022 -->
 
-					<?php if (($edit == 1) && ($row['Cod_Estado'] != 'C')) {?>
+					<?php if (false && (($edit == 1) && ($row['Cod_Estado'] != 'C'))) {?>
 					<div class="col-lg-3">
 						<div class="btn-group pull-right">
                             <button data-toggle="dropdown" class="btn btn-success dropdown-toggle"><i class="fa fa-mail-forward"></i> Copiar a <i class="fa fa-caret-down"></i></button>
