@@ -3,7 +3,7 @@ include("includes/definicion.php");
 if (!isset($_SESSION)) {
   session_start();
 }
-if (isset($_SESSION['User'])&&$_SESSION['User']!="") {
+if (true || (isset($_SESSION['User'])&&$_SESSION['User']!="")) {
 	header('Location:index1.php');
 	exit();
 }

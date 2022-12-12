@@ -172,7 +172,7 @@ if (isset($_POST['User']) || isset($_POST['Password'])) {
 			<div class="form-group">
 				<label class="form-label d-flex justify-content-between align-items-end">
 				  <div>Contrase&ntilde;a</div>
-				  <a href="recordar_clave.php" class="d-block small">&iquest;Olvidaste tu contrase&ntilde;a?</a>
+				  <!-- a href="recordar_clave.php" class="d-block small">&iquest;Olvidaste tu contrase&ntilde;a?</a -->
 				</label>
 				<input name="Password" type="password" required="" class="form-control" id="Password" maxlength="50" autocomplete="off">
 			</div>
