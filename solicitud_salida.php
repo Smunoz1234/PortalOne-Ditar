@@ -32,6 +32,9 @@ $IdTipoDocumento = 1250000001; // Cambiar por el ID respectivo.
 $success = 1; // Confirmación de autorización (1 - Autorizado / 0 - NO Autorizado)
 $mensajeProceso = ""; // Mensaje proceso, mensaje de salida del procedimiento almacenado.
 
+// Bandera que indica si el documento se autoriza desde SAP.
+$autorizaSAP = ""; // SMM, 13/12/2022
+
 // Procesos de autorización, SMM 30/11/2022
 $SQL_Procesos = Seleccionar("uvw_tbl_Autorizaciones_Procesos", "*", "Estado = 'Y' AND IdTipoDocumento = $IdTipoDocumento");
 
@@ -175,6 +178,12 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             "'" . ($_POST['IdMotivoAutorizacion'] ?? "") . "'",
             "'" . ($_POST['ComentariosAutor'] ?? "") . "'",
             "'" . ($_POST['MensajeProceso'] ?? "") . "'",
+			// SMM, 14/12/2022
+            "'" . ($_POST['AutorizacionSAP'] ?? "") . "'",
+			"'" . ($_POST['FechaAutorizacionPO'] ?? "") . "'",
+            "'" . ($_POST['HoraAutorizacionPO'] ?? "") . "'",
+            "'" . ($_POST['UsuarioAutorizacionPO'] ?? "") . "'",
+            "'" . ($_POST['ComentarioAutorizacionPO'] ?? "") . "'",
         );
 
         // Enviar el valor de la dimensiones dinámicamente al SP.
@@ -198,8 +207,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
 
                     if (in_array($_SESSION['Perfil'], $ids_perfiles) || (count($ids_perfiles) == 0)) {
                         $sql = $row_Proceso['Condiciones'] ?? '';
+                        $autorizaSAP = $row_Proceso['AutorizacionSAP'] ?? ''; // SMM, 13/12/2022
 
-                        $sql = str_replace("[IdDocumento]", $IdEntregaVenta, $sql);
+                        // Aquí se debe reemplazar por el ID del documento. SMM, 13/12/2022
+                        $sql = str_replace("[IdDocumento]", $IdSolSalida, $sql);
                         $sql = str_replace("[IdEvento]", $IdEvento, $sql);
 
                         $stmt = sqlsrv_query($conexion, $sql);
@@ -229,10 +240,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
                 }
 
                 // Consultar el motivo de autorización según el ID.
-				if($IdMotivo != "") {
-					$SQL_Motivos = Seleccionar("uvw_tbl_Autorizaciones_Motivos", "*", "IdMotivoAutorizacion = '$IdMotivo'");
-					$row_MotivoAutorizacion = sqlsrv_fetch_array($SQL_Motivos);
-				}
+                if ($IdMotivo != "") {
+                    $SQL_Motivos = Seleccionar("uvw_tbl_Autorizaciones_Motivos", "*", "IdMotivoAutorizacion = '$IdMotivo'");
+                    $row_MotivoAutorizacion = sqlsrv_fetch_array($SQL_Motivos);
+                }
 
                 $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'] ?? "";
 
@@ -287,6 +298,12 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
                 }
             } catch (Exception $e) {
                 echo 'Excepcion capturada: ', $e->getMessage(), "\n";
+            }
+
+            // SMM, 13/12/2022
+            if ($debug_Condiciones && ($success == 1)) {
+                $success = 0;
+                echo 'La bandera "$success" cambio de 1 a 0, en el modo de depuración';
             }
 
             // Verificar que el documento cumpla las Condiciones o este Pendiente de Autorización.
@@ -484,6 +501,7 @@ $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
 <title>Solicitud de traslado | <?php echo NOMBRE_PORTAL; ?></title>
+
 <?php
 if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SolSalAdd")) {
     echo "<script>
@@ -507,7 +525,21 @@ if (isset($sw_error) && ($sw_error == 1)) {
 		});
 		</script>";
 }
+
+// SMM, 13/12/2022
+if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_BorradorAdd"))) {
+    echo "<script>
+		$(document).ready(function() {
+			Swal.fire({
+                title: '¡Listo!',
+                text: 'El documento en borrador se ha creado exitosamente.',
+                icon: 'success'
+            });
+		});
+		</script>";
+}
 ?>
+
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <style>
@@ -519,6 +551,18 @@ if (isset($sw_error) && ($sw_error == 1)) {
 	}
 	.nav-tabs > li > a{
 		padding: 14px 20px 14px 25px !important;
+	}
+
+	/**
+	* Stiven Muñoz Murillo
+	* 14/12/2022
+	 */
+	.bootstrap-maxlength {
+		background-color: black;
+		z-index: 9999999;
+	}
+	.swal2-container {
+		z-index: 9999999 !important;
 	}
 </style>
 <script>
@@ -1033,84 +1077,112 @@ function verAutorizacion() {
 
 							<!-- form id="formAUT" -->
 								<div class="modal-body">
-									<div class="ibox-content">
-										<div class="form-group">
-											<label class="col-lg-2">Motivo <span class="text-danger">*</span></label>
-											<div class="col-lg-10">
-												<input required type="hidden" form="CrearEntregaVenta" class="form-control" name="IdMotivoAutorizacion" id="IdMotivoAutorizacion" value="<?php echo $IdMotivo; ?>">
-												<input readonly type="text" style="color: black; font-weight: bold;" class="form-control" id="MotivoAutorizacion" value="<?php echo $motivoAutorizacion; ?>">
-											</div>
-										</div>
-										<br><br><br>
-										<div class="form-group">
-											<label class="col-lg-2">Mensaje proceso</label>
-											<div class="col-lg-10">
-												<textarea readonly form="CrearEntregaVenta" style="color: black; font-weight: bold;" class="form-control" name="MensajeProceso" id="MensajeProceso" type="text" maxlength="250" rows="4"><?php if ($mensajeProceso != "") {echo $mensajeProceso;} elseif ($edit == 1 || $sw_error == 1) {echo $row['ComentariosMotivo'];}?></textarea>
-											</div>
-										</div>
-										<br><br><br>
-										<br><br><br>
-										<div class="form-group">
-											<label class="col-lg-2">Comentarios autor <span class="text-danger">*</span></label>
-											<div class="col-lg-10">
-												<textarea <?php if ($edit == 1) {echo "readonly";}?> form="CrearEntregaVenta" class="form-control required" name="ComentariosAutor" id="ComentariosAutor" type="text" maxlength="250" rows="4"><?php if ($edit == 1 || $sw_error == 1) {echo $row['ComentariosAutor'];} elseif (isset($_GET['ComentariosAutor'])) {echo base64_decode($_GET['ComentariosAutor']);}?></textarea>
-											</div>
-										</div>
-										<br><br><br>
-
-										<!-- Inicio, Componente Fecha y Hora -->
-										<br><br><br>
-										<div class="form-group">
-											<div class="row">
-												<label class="col-lg-6 control-label" style="text-align: left !important;">Fecha y hora decisión SAP B1</label>
-											</div>
-											<div class="row">
-												<div class="col-lg-6 input-group date">
-													<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly name="FechaAutorizacion" type="text" autocomplete="off" class="form-control" id="FechaAutorizacion" value="<?php if (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');}?>" placeholder="YYYY-MM-DD">
-												</div>
-												<div class="col-lg-6 input-group clockpicker" data-autoclose="true">
-													<input readonly name="HoraAutorizacion" id="HoraAutorizacion" type="text" autocomplete="off" class="form-control" value="<?php if (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];}?>" placeholder="hh:mm">
-													<span class="input-group-addon">
-														<span class="fa fa-clock-o"></span>
-													</span>
+									<div class="ibox">
+										<div class="ibox-title bg-success">
+											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Sección 1</h5>
+											<a class="collapse-link pull-right" style="color: white;">
+												<i class="fa fa-chevron-up"></i>
+											</a>
+										</div> <!-- ibox-title -->
+										<div class="ibox-content">
+											<div class="form-group">
+												<label class="control-label col-lg-2">Autorización <span class="text-danger">*</span></label>
+												<div class="col-lg-10">
+													<select readonly form="CrearSolicitudSalida" class="form-control" id="AutorizacionSAP" name="AutorizacionSAP" style="color: black; font-weight: bold;">
+														<option value="" <?php if ($autorizaSAP == "") {echo "selected";} elseif (!isset($row['AutorizacionSAP']) || ($row['AutorizacionSAP'] == "")) {echo "selected";}?>>Seleccione...</option>
+														<option value="Y" <?php if ($autorizaSAP == "Y") {echo "selected";} elseif (isset($row['AutorizacionSAP']) && ($row['AutorizacionSAP'] == "Y")) {echo "selected";}?>>Se autoriza desde SAP</option>
+														<option value="N" <?php if ($autorizaSAP == "N") {echo "selected";} elseif (isset($row['AutorizacionSAP']) && ($row['AutorizacionSAP'] == "N")) {echo "selected";}?>>Se autoriza desde PortalOne</option>
+													</select>
 												</div>
 											</div>
-										</div>
-										<!-- Fin, Componente Fecha y Hora -->
 
-										<br>
-										<div class="form-group">
-											<label class="col-lg-2">Decisión</label>
-											<div class="col-lg-10">
-												<?php if (isset($row_Autorizaciones['EstadoAutorizacion'])) {?>
-													<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly
-													value="<?php echo $row_Autorizaciones['EstadoAutorizacion']; ?>" style="font-weight: bold; color: white; background-color: <?php echo $row_Autorizaciones['ColorEstadoAutorizacion']; ?>;">
-												<?php } else {?>
-													<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly>
-												<?php }?>
+											<br><br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Motivo <span class="text-danger">*</span></label>
+												<div class="col-lg-10">
+													<input required type="hidden" form="CrearSolicitudSalida" class="form-control" name="IdMotivoAutorizacion" id="IdMotivoAutorizacion" value="<?php echo $IdMotivo; ?>">
+													<input readonly type="text" style="color: black; font-weight: bold;" class="form-control" id="MotivoAutorizacion" value="<?php echo $motivoAutorizacion; ?>">
+												</div>
 											</div>
-										</div>
-										<br><br><br>
-										<div class="form-group">
-											<label class="col-lg-2">Usuario autorizador</label>
-											<div class="col-lg-10">
-												<?php if (isset($row_Autorizaciones['IdUsuarioAutorizacion_SAPB1'])) {?>
-													<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly
-													value="<?php echo $row_Autorizaciones['NombreUsuarioAutorizacion_SAPB1']; ?>">
-												<?php } else {?>
-													<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly>
-												<?php }?>
+
+											<br><br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Mensaje proceso</label>
+												<div class="col-lg-10">
+													<textarea readonly form="CrearSolicitudSalida" style="color: black; font-weight: bold;" class="form-control" name="MensajeProceso" id="MensajeProceso" type="text" maxlength="250" rows="4"><?php if ($mensajeProceso != "") {echo $mensajeProceso;} elseif ($edit == 1 || $sw_error == 1) {echo $row['ComentariosMotivo'];}?></textarea>
+												</div>
 											</div>
-										</div>
-										<br><br><br>
-										<div class="form-group">
-											<label class="col-lg-2">Comentarios autorizador</label>
-											<div class="col-lg-10">
-												<textarea readonly type="text" maxlength="200" rows="4" class="form-control" name="ComentariosAutorizador" id="ComentariosAutorizador"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];}?></textarea>
+											<br><br><br>
+											<br><br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Comentarios autor <span class="text-danger">*</span></label>
+												<div class="col-lg-10">
+													<textarea <?php if ($edit == 1) {echo "readonly";}?> form="CrearSolicitudSalida" class="form-control required" name="ComentariosAutor" id="ComentariosAutor" type="text" maxlength="250" rows="4"><?php if ($edit == 1 || $sw_error == 1) {echo $row['ComentariosAutor'];} elseif (isset($_GET['ComentariosAutor'])) {echo base64_decode($_GET['ComentariosAutor']);}?></textarea>
+												</div>
 											</div>
-										</div>
-										<br><br><br><br>
-									</div>
+											<br><br><br>
+										</div> <!-- ibox-content -->
+									</div> <!-- ibox -->
+									<div class="ibox">
+										<div class="ibox-title bg-success">
+											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Sección 2</h5>
+											<a class="collapse-link pull-right" style="color: white;">
+												<i class="fa fa-chevron-down"></i>
+											</a>
+										</div> <!-- ibox-title -->
+										<div class="ibox-content" style="display: none;">
+											<br>
+											<div class="form-group">
+												<div class="row">
+													<label class="col-lg-6 control-label" style="text-align: left !important;">Fecha y hora decisión</label>
+												</div>
+												<div class="row">
+													<div class="col-lg-6 input-group date">
+														<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly name="FechaAutorizacion" type="text" autocomplete="off" class="form-control" id="FechaAutorizacion" value="<?php if (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');}?>" placeholder="YYYY-MM-DD">
+													</div>
+													<div class="col-lg-6 input-group clockpicker" data-autoclose="true">
+														<input readonly name="HoraAutorizacion" id="HoraAutorizacion" type="text" autocomplete="off" class="form-control" value="<?php if (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];}?>" placeholder="hh:mm">
+														<span class="input-group-addon">
+															<span class="fa fa-clock-o"></span>
+														</span>
+													</div>
+												</div>
+											</div> <!-- form-group -->
+
+											<br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Decisión (Estado)</label>
+												<div class="col-lg-10">
+													<?php if (isset($row_Autorizaciones['EstadoAutorizacion'])) {?>
+														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly
+														value="<?php echo $row_Autorizaciones['EstadoAutorizacion']; ?>" style="font-weight: bold; color: white; background-color: <?php echo $row_Autorizaciones['ColorEstadoAutorizacion']; ?>;">
+													<?php } else {?>
+														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly>
+													<?php }?>
+												</div>
+											</div>
+											<br><br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Usuario autorizador</label>
+												<div class="col-lg-10">
+													<?php if (isset($row_Autorizaciones['IdUsuarioAutorizacion_SAPB1'])) {?>
+														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly
+														value="<?php echo $row_Autorizaciones['NombreUsuarioAutorizacion_SAPB1']; ?>">
+													<?php } else {?>
+														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly>
+													<?php }?>
+												</div>
+											</div>
+											<br><br><br>
+											<div class="form-group">
+												<label class="col-lg-2">Comentarios autorizador</label>
+												<div class="col-lg-10">
+													<textarea readonly type="text" maxlength="200" rows="4" class="form-control" name="ComentariosAutorizador" id="ComentariosAutorizador"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];}?></textarea>
+												</div>
+											</div>
+											<br><br><br><br>
+										</div> <!-- ibox-content -->
+									</div> <!-- ibox -->
 								</div>
 
 								<div class="modal-footer">
@@ -1288,7 +1360,7 @@ if ($edit == 1 || $sw_error == 1) {
 						<select name="CondicionPago" class="form-control" id="CondicionPago" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
 						  <?php while ($row_CondicionPago = sqlsrv_fetch_array($SQL_CondicionPago)) {?>
-								<option value="<?php echo $row_CondicionPago['IdCondicionPago']; ?>" <?php if ($edit == 1) {if (($row['IdCondicionPago'] != "") && (strcmp($row_CondicionPago['IdCondicionPago'], $row['IdCondicionPago']) == 0)) {echo "selected=\"selected\"";}}?>><?php echo $row_CondicionPago['NombreCondicion']; ?></option>
+								<option value="<?php echo $row_CondicionPago['IdCondicionPago']; ?>" <?php if ($edit == 1 || $sw_error) {if (isset($row['IdCondicionPago']) && ($row['IdCondicionPago'] != "") && (strcmp($row_CondicionPago['IdCondicionPago'], $row['IdCondicionPago']) == 0)) {echo "selected=\"selected\"";}}?>><?php echo $row_CondicionPago['NombreCondicion']; ?></option>
 						  <?php }?>
 						</select>
 				  	</div>
