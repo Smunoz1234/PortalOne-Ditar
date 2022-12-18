@@ -178,10 +178,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             "'" . ($_POST['IdMotivoAutorizacion'] ?? "") . "'",
             "'" . ($_POST['ComentariosAutor'] ?? "") . "'",
             "'" . ($_POST['MensajeProceso'] ?? "") . "'",
-			// SMM, 14/12/2022
+            // SMM, 14/12/2022
             "'" . ($_POST['AutorizacionSAP'] ?? "") . "'",
-			"'" . ($_POST['FechaAutorizacionPO'] ?? "") . "'",
-            "'" . ($_POST['HoraAutorizacionPO'] ?? "") . "'",
+            $_POST['FechaAutorizacionPO'] ?? "NULL",
+            $_POST['HoraAutorizacionPO'] ?? "NULL",
             "'" . ($_POST['UsuarioAutorizacionPO'] ?? "") . "'",
             "'" . ($_POST['ComentarioAutorizacionPO'] ?? "") . "'",
         );
@@ -514,13 +514,17 @@ if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_SolSalAdd")) {
 		});
 		</script>";
 }
+
+// SMM, 15/12/2022
 if (isset($sw_error) && ($sw_error == 1)) {
+    $error_title = ($success == 0) ? "Advertencia" : "Ha ocurrido un error";
+
     echo "<script>
 		$(document).ready(function() {
 			Swal.fire({
-                title: '¡Ha ocurrido un error!',
-                text: '" . str_replace("'", "", $msg_error) . "',
-                icon: 'error'
+                title: '¡$error_title!',
+                text: '" . preg_replace('/\s+/', ' ', LSiqmlObs($msg_error)) . "',
+                icon: 'warning'
             });
 		});
 		</script>";
@@ -1079,7 +1083,7 @@ function verAutorizacion() {
 								<div class="modal-body">
 									<div class="ibox">
 										<div class="ibox-title bg-success">
-											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Sección 1</h5>
+											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Autor</h5>
 											<a class="collapse-link pull-right" style="color: white;">
 												<i class="fa fa-chevron-up"></i>
 											</a>
@@ -1125,7 +1129,7 @@ function verAutorizacion() {
 									</div> <!-- ibox -->
 									<div class="ibox">
 										<div class="ibox-title bg-success">
-											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Sección 2</h5>
+											<h5 class="collapse-link"><i class="fa fa-info-circle"></i> Autorizador</h5>
 											<a class="collapse-link pull-right" style="color: white;">
 												<i class="fa fa-chevron-down"></i>
 											</a>
@@ -1183,7 +1187,7 @@ function verAutorizacion() {
 											<br><br><br><br>
 										</div> <!-- ibox-content -->
 									</div> <!-- ibox -->
-								</div>
+								</div> <!-- modal-body -->
 
 								<div class="modal-footer">
 									<?php if ($edit == 0) {?>
