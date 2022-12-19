@@ -165,13 +165,27 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalAdd"))) {
             });
 		});
 		</script>";
-}
+} // useless
+
 if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
     echo "<script>
 		$(document).ready(function() {
 			Swal.fire({
                 title: '¡Listo!',
-                text: 'La Solicitud de salida ha sido actualizada exitosamente.',
+                text: 'La Solicitud de salida Borrador ha sido actualizada exitosamente.',
+                icon: 'success'
+            });
+		});
+		</script>";
+}
+
+// SMM, 16/12/2022
+if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
+    echo "<script>
+		$(document).ready(function() {
+			Swal.fire({
+                title: '¡Listo!',
+                text: 'El Documento Definitivo se ha creado exitosamente.',
                 icon: 'success'
             });
 		});
@@ -285,7 +299,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 								</select>
 							</div>
 							<label class="col-lg-1 control-label">Serie</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Series" class="form-control" id="Series">
 										<option value="">(Todos)</option>
 								  <?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
@@ -431,7 +445,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 						<th>Comentarios</th> <!-- SMM, 25/11/2022 -->
 						<th>Descontable</th>
 						<th>Documento destino</th>
-						
+
 						<th>Usuario Creación/Autor</th>
 						<th>Usuario Actualización</th>
 						<th>Estado</th>
@@ -466,13 +480,13 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 							<td><?php echo SubComent($row['Comentarios']); ?></td> <!-- SMM, 25/11/2022 -->
 							<td><?php echo $row['Descontable']; ?></td>
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="traslado_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
-							
-							<td><?php echo $row['UsuarioCreacion']; ?></td>
+
+							<td><?php echo $row['UsuarioCreacion']; ?></td> <!-- Autor -->
 							<td><?php echo $row['UsuarioActualizacion']; ?></td>
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
 
 							<td> <!-- SMM, 14/12/2022 -->
-								<span <?php if ($row['AuthPortal'] == 'Y') {echo "class='label label-info'";} elseif ($row['AuthPortal'] == 'P') {echo "class='label label-warning'";} else {echo "class='label label-secondary'";}?>>
+								<span <?php if ($row['AuthPortal'] == 'Y') {echo "class='label label-info'";} elseif ($row['AuthPortal'] == 'P') {echo "class='label label-warning'";} elseif ($row['AuthPortal'] == 'R') {echo "class='label label-danger'";} else {echo "class='label label-secondary'";}?>>
 									<?php echo $row['DeAuthPortal'] ?? "N/A"; ?>
 								</span>
 							</td>
@@ -487,7 +501,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_SolSalida']); ?>&ObType=<?php echo base64_encode('1250000001'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 							</td>
 						</tr>
-						<?php } ?>
+						<?php }?>
 					<?php }?>
                     </tbody>
                 </table>

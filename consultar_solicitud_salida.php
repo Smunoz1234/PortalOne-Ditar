@@ -110,7 +110,7 @@ $SQL = sqlsrv_query($conexion, $Cons);
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Consultar solicitud de salida | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Consultar solicitud de traslado | <?php echo NOMBRE_PORTAL; ?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <?php
@@ -137,6 +137,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 		</script>";
 }
 ?>
+
 <script type="text/javascript">
 	$(document).ready(function() {
 		$("#NombreCliente").change(function(){
@@ -199,7 +200,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Consultar solicitud de salida</h2>
+                    <h2>Consultar solicitud de traslado</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -211,7 +212,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
                             <a href="#">Consultas</a>
                         </li>
                         <li class="active">
-                            <strong>Consultar solicitud de salida</strong>
+                            <strong>Consultar solicitud de traslado</strong>
                         </li>
                     </ol>
                 </div>
@@ -244,7 +245,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 								</select>
 							</div>
 							<label class="col-lg-1 control-label">Serie</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Series" class="form-control" id="Series">
 										<option value="">(Todos)</option>
 								  <?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
@@ -483,7 +484,7 @@ if ($sw == 1) {
 					}
 				},
                 buttons: []
-
+				, order: [[ 0, "desc" ]] // SMM, 15/12/2022
             });
 
         });

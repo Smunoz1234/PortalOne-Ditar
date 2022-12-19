@@ -22,6 +22,13 @@ $AlmacenDestino = "";
 $CardCode = "";
 $type = 1;
 $Estado = 1; //Abierto
+
+// Cambiar bandera de autorización, 10/12/2022
+$bandera_autorizacion = false;
+if (isset($_GET['autoriza']) && ($_GET['autoriza'] == "1")) {
+    $bandera_autorizacion = false;
+}
+
 if (isset($_GET['id']) && ($_GET['id'] != "")) {
     if ($_GET['type'] == 1) {
         $type = 1;
@@ -115,6 +122,15 @@ $sMillares = $row_DatosBase["CaracterSeparadorMillares"] ?? ",";
 	.table > tbody > tr > td{
 		padding: 1px !important;
 		vertical-align: middle;
+	}
+
+	/**
+	* Stiven Muñoz Murillo
+	* 18/12/2022
+	 */
+	.select2-selection {
+		background-color: #eee !important;
+		opacity: 1;
 	}
 </style>
 
@@ -388,7 +404,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 			<tr>
 				<!-- SMM, 31/08/2022 -->
 				<th class="text-center form-inline w-150">
-					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div>
+					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" disabled onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div>
 					<button type="button" id="btnBorrarLineas" title="Borrar lineas" class="btn btn-danger btn-xs" disabled onClick="BorrarLinea();"><i class="fa fa-trash"></i></button>
 					<button type="button" id="btnDuplicarLineas" title="Duplicar lineas" class="btn btn-success btn-xs" disabled onClick="DuplicarLinea();"><i class="fa fa-copy"></i></button>
 				</th>
@@ -442,7 +458,7 @@ if ($sw == 1) {
 		<tr>
 			<!-- SMM, 31/08/2022 -->
 			<td class="text-center form-inline w-150">
-				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($row['LineStatus'] == "C") && ($type == 1)) {echo "disabled='disabled'";}?>><label></label></div>
+				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" disabled onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($row['LineStatus'] == "C") && ($type == 1) || $bandera_autorizacion) {echo "disabled='disabled'";}?>><label></label></div>
 				<button type="button" class="btn btn-success btn-xs" onClick="ConsultarArticulo('<?php echo base64_encode($row['ItemCode']); ?>');" title="Consultar Articulo"><i class="fa fa-search"></i></button>
 			</td>
 			<!-- Hasta aquí, 31/08/2022 -->
@@ -456,7 +472,7 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="CantInicial<?php echo $i; ?>" name="CantInicial[]" class="form-control" value="<?php echo number_format($row['CantInicial'], 2); ?>" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
 			<td> <!-- SMM, 28/11/2022 -->
-				<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control select2" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);ActStockAlmacen('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C') {echo "disabled='disabled'";}?>>
+				<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control select2" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);ActStockAlmacen('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C') {echo "disabled='disabled'";} ?>>
 				  <option value="">Seleccione...</option>
 				  <?php while ($row_Almacen = sqlsrv_fetch_array($SQL_Almacen)) {?>
 						<option value="<?php echo $row_Almacen['WhsCode']; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($row_Almacen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName']; ?></option>
@@ -671,6 +687,11 @@ function CalcularTotal(line, totalizar=true) {
 		};
 		<?php if ($sw == 1 && $Estado == 1 && PermitirFuncion(1201)) {?>
 		$("#ItemCodeNew").easyAutocomplete(options);
+	 	<?php }?>
+
+		// SMM, 17/12/2022
+		<?php if (true) {?>
+			$('select option:not(:selected)').attr('disabled', true);
 	 	<?php }?>
 	});
 </script>

@@ -214,6 +214,17 @@ if (isset($_GET['type']) && $_GET['type'] != "") {
                 echo "*Ok*";
             }
         } // SMM, 23/11/2022
+
+        // Salida inventario
+        elseif ($_GET['objtype'] == "60") {
+            //Limpiar carrito
+            $Cons = "DELETE FROM tbl_SalidaInventarioDetalleCarrito WHERE CardCode='" . $_GET['cardcode'] . "' And Usuario='" . $_SESSION['CodUser'] . "'";
+            $SQL_Cons = sqlsrv_query($conexion, $Cons);
+
+            if ($SQL_Cons) {
+                echo "*Ok*";
+            }
+        } // SMM, 06/12/2022
     } elseif ($_GET['type'] == 8) { //Eliminar una linea del carrito en la Entrega de venta
         if ($_GET['edit'] == 1) {
             $linenum = $_GET['linenum'];

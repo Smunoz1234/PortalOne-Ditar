@@ -7,9 +7,10 @@ $mensajeMotivo = ""; // Comentario motivo, mensaje de salida del procedimiento a
 // Bandera que indica si el documento se autoriza desde SAP.
 $autorizaSAP = ""; // SMM, 15/12/2022
 
-// Bandera de pruebas que me permite comportame como Autorizador.
+// Bandera de pruebas que me permite comportame como Autorizador en lugar de Autor.
 // Nota: Si un usuario es Autorizador y Autor se le da prioridad al hecho de ser Autor.
-$serAutorizador = false; // SMM, 18/12/2022
+// Nota: Debo tener el perfil del Autor asignado en el gestor de usuarios para ser Autorizador. SMM, 19/12/2022
+$serAutorizador = true; // SMM, 18/12/2022
 
 $msg_error = ""; //Mensaje del error
 $IdSolSalida = 0;
@@ -496,6 +497,16 @@ if (isset($row['IdMotivoAutorizacion']) && ($row['IdMotivoAutorizacion'] != "") 
     $SQL_Motivos = Seleccionar("uvw_tbl_Autorizaciones_Motivos", "*", "IdMotivoAutorizacion = '$IdMotivo'");
     $row_MotivoAutorizacion = sqlsrv_fetch_array($SQL_Motivos);
     $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'] ?? "";
+}
+
+// Verificar si el Autorizador tiene asignado el perfil del Autor. SMM, 19/12/2022
+$autorAsignado = false;
+if (isset($row['ID_PerfilUsuario']) && ($row['ID_PerfilUsuario'] != "")) {
+    $Where_PerfilesAutorizador = "ID_Usuario='" . $_SESSION['CodUser'] . "' AND IdPerfil='" . $row['ID_PerfilUsuario'] . "'";
+    $SQL_PerfilesAutorizador = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
+
+    // Valida si el perfil del autor esta en la respuesta.
+    $autorAsignado = sqlsrv_has_rows($SQL_PerfilesAutorizador);
 }
 
 // Stiven Muñoz Murillo, 29/08/2022
@@ -1620,7 +1631,8 @@ if ($edit == 1 || $sw_error == 1) {
 
 							<!-- SMM, 18/12/2022 -->
 							<?php if ((strtoupper($_SESSION["User"]) != strtoupper($row['Usuario'])) || $serAutorizador) {?>
-								<button class="btn btn-warning" type="submit" form="CrearSolicitudSalida" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Solicitud de Traslado Borrador</button>
+								<!-- Modificado para incluir la bandera de asignación. SMM, 19/12/2022 -->
+								<button class="btn btn-warning" type="submit" form="CrearSolicitudSalida" id="Actualizar" <?php if (!$autorAsignado) {echo "disabled";}?>><i class="fa fa-refresh"></i> Actualizar Solicitud de Traslado Borrador</button>
 							<?php } else {?>
 								<?php if ($row["AuthPortal"] == "Y") {?>
 									<button class="btn btn-primary" type="submit" form="CrearSolicitudSalida" id="Actualizar"><i class="fa fa-check"></i> Crear Solicitud de Traslado Definitiva</button>
@@ -1863,8 +1875,8 @@ if (isset($_GET['return'])) {
 		<?php }?>
 
 		// SMM, 18/12/2022
-		<?php if((strtoupper($_SESSION["User"]) == strtoupper($row['Usuario'])) && (!$serAutorizador)) {?>
-			$('#Autorizacion option:not(:selected)').attr('disabled',true);	
+		<?php if ((strtoupper($_SESSION["User"]) == strtoupper($row['Usuario'])) && (!$serAutorizador)) {?>
+			$('#Autorizacion option:not(:selected)').attr('disabled',true);
 		<?php }?>
 	});
 </script>

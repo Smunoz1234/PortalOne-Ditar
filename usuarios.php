@@ -237,6 +237,36 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                 }
             }
 
+
+			// Perfiles asignados. SMM, 19/05/2022
+			$ParamDeletePerfilesAsignados = array(
+				"'" . $ID . "'",
+				"NULL",
+				"2",
+			);
+			$SQL_DeletePerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamDeletePerfilesAsignados, $_POST['P']);
+
+			// Insertamos los perfiles asignados.
+			if ($SQL_DeletePerfilesAsignados) {
+				$i = 0;
+				$CuentaPerfilesAsignados = count($_POST['PerfilAutor']);
+				while ($i < $CuentaPerfilesAsignados) {
+					if ($_POST['PerfilAutor'][$i] != "") {
+						$ParamPerfilesAsignados = array(
+							"'" . $ID . "'",
+							"'" . $_POST['PerfilAutor'][$i] . "'",
+							"1",
+						);
+						$SQL_PerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamPerfilesAsignados, $_POST['P']);
+						if (!$SQL_GruposEmpleados) {
+							$sw_error = 1;
+							$msg_error = "No se pudo insertar el Perfil de Autores";
+						}
+					}
+					$i++;
+				}
+			} // Hasta aquí, 19/12/2022
+
             //Clientes
             if (isset($_POST['Cliente'])) {
                 $i = 0;
@@ -378,6 +408,13 @@ if ($edit == 1) { //Editar usuario
     while ($row_GruposUsuario = sqlsrv_fetch_array($SQL_GruposUsuario)) {
         $ids_grupos[] = $row_GruposUsuario['IdCargo'];
     }
+
+	// Perfiles asignados. SMM, 19/12/2022
+	$SQL_PerfilesAsignados = Seleccionar("uvw_tbl_UsuariosPerfilesAsignados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DePerfil');
+	$ids_perfiles = array();
+    while ($row_PerfilesAsignados = sqlsrv_fetch_array($SQL_PerfilesAsignados)) {
+        $ids_perfiles[] = $row_PerfilesAsignados['IdPerfil'];
+    }
 }
 
 //Estados
@@ -385,6 +422,9 @@ $SQL_Estados = Seleccionar('uvw_tbl_Estados', '*');
 
 //Perfiles
 $SQL_Perfiles = Seleccionar('uvw_tbl_PerfilesUsuarios', '*', '', 'PerfilUsuario');
+
+// Perfiles autorizaciones. SMM, 19/12/2022
+$SQL_Perfiles_Autorizaciones = Seleccionar('uvw_tbl_PerfilesUsuarios', '*', '', 'PerfilUsuario');
 
 //Proveedores
 $SQL_Proveedores = Seleccionar('uvw_Sap_tbl_Proveedores', 'CodigoCliente, NombreCliente', '', 'NombreCliente');
@@ -1007,10 +1047,11 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
 								 </div>
 								</div>
 							</div>
+
 							<!-- Acordeón de empleados asignados -->
 							<div class="ibox">
 								<div class="ibox-title bg-success">
-									<h5><i class="fa fa-briefcase"></i> Empleados asignados</h5>
+									<h5><i class="fa fa-briefcase"></i> Empleados asignados (para programación)</h5>
 									 <a class="collapse-link pull-right">
 										<i class="fa fa-chevron-up"></i>
 									</a>
@@ -1032,6 +1073,32 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
 								</div>
 							</div>
 							<!-- SMM, 14/05/2022 -->
+
+							<!-- Acordeón de perfiles asignados -->
+							<div class="ibox">
+								<div class="ibox-title bg-success">
+									<h5><i class="fa fa-briefcase"></i> Perfiles de autores para autorizaciones de documentos</h5>
+									 <a class="collapse-link pull-right">
+										<i class="fa fa-chevron-up"></i>
+									</a>
+								</div>
+								<div class="ibox-content">
+								  <div class="form-group">
+									 <label class="col-lg-1 control-label">Perfiles asignados</label>
+									 <div class="col-lg-4">
+										 <select data-placeholder="Digite para buscar..." name="PerfilAutor[]" class="form-control select2" id="PerfilAutor" multiple>
+										  <?php while ($row_Perfil_Autor = sqlsrv_fetch_array($SQL_Perfiles_Autorizaciones)) {?>
+												<option value="<?php echo $row_Perfil_Autor['ID_PerfilUsuario']; ?>"
+												<?php if (in_array($row_Perfil_Autor['ID_PerfilUsuario'], $ids_perfiles)) {echo "selected=\"selected\"";}?>>
+													<?php echo $row_Perfil_Autor['PerfilUsuario']; ?>
+												</option>
+										  <?php }?>
+										</select>
+									 </div>
+								 </div>
+								</div>
+							</div>
+							<!-- SMM, 19/12/2022 -->
 						</div>
 						<div id="tab-2" class="tab-pane">
 							<div id="dv_clientes" class="panel-body">
@@ -1301,13 +1368,13 @@ function ConsultarTab(type){
 	else if(type == 4){
 		if(tab_4 == 0) {
 			$('.ibox-content').toggleClass('sk-loading',true);
-			
+
 			$.ajax({
 				type: "POST",
 				url: "us_grupos_articulos.php?id=<?php if ($edit == 1) {echo base64_encode($row['ID_Usuario']);}?>",
 				success: function(response){
 					$('#dv_grupos_articulos').html(response).fadeIn();
-					
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 					// tab_4 = 1;
 					tab_4 = 0; // Recargar siempre

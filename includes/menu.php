@@ -305,6 +305,12 @@ $Num_Menu = sqlsrv_num_rows($SQL_Menu);
 								<?php if (PermitirFuncion(1206)) {?><li><a class="alnk" href="consultar_salida_inventario.php">Consultar salida de traslado</a></li><?php }?>
 							</ul>
 						</li>
+						<li>
+							<a href="#">Consultas borradores <span class="fa arrow"></span></a>
+							<ul class='nav nav-third-level'>
+								<?php if (true) {?><li><a class="alnk" href="consultar_solicitud_salida_borrador.php">Consultar solicitud de traslado borrador</a></li><?php }?>
+							</ul>
+						</li>
 						<?php if (PermitirFuncion(1207)) {?>
 						<li>
                    			<a href="#">Informes <span class="fa arrow"></span></a>

@@ -377,7 +377,7 @@ else if(doctype==9){//Salida de inventario crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=9&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>");
+	  xhttp.send("P=35&doctype=9&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
   }
 else if(doctype==10){//Salida de inventario editar
 	  var xhttp;
@@ -397,7 +397,7 @@ else if(doctype==10){//Salida de inventario editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=10&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SalidaInv; ?>&evento=<?php echo $ID_Evento; ?>");
+	  xhttp.send("P=35&doctype=10&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SalidaInv; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
   }
 else if(doctype==11){//Traslado de inventario crear
 	  var xhttp;
@@ -835,6 +835,7 @@ $rawdata = array();
                     } else {
                         // La posición $j=7 debe hacer referencia al almacen, si esto cambia se debe cambiar aquí.
                         // print_r($rawdata);
+                        // Reemplazar el 7 por 8 en Ditar. Debido a que en Ditar se incluyo el campo ItemGroupName.
                         echo "<td><a href=\"#\" onClick=\"showHint('" . $rawdata[$i][$j] . "','" . $rawdata[$i][8] . "');\">" . utf8_encode($rawdata[$i][$j]) . "</a></td>";
                     }
                 } else {
@@ -877,6 +878,7 @@ $rawdata = array();
 </script>
 </body>
 </html>
+
 <?php
 sqlsrv_close($conexion);
 }?>
