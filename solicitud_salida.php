@@ -1142,10 +1142,10 @@ function verAutorizacion() {
 												</div>
 												<div class="row">
 													<div class="col-lg-6 input-group date">
-														<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly name="FechaAutorizacion" type="text" autocomplete="off" class="form-control" id="FechaAutorizacion" value="<?php if (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');}?>" placeholder="YYYY-MM-DD">
+														<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly name="FechaAutorizacion" type="text" autocomplete="off" class="form-control" id="FechaAutorizacion" value="<?php if (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');} elseif (($row['AuthPortal']) == "Y") {echo $row['FechaAutorizacion_PortalOne']->format('Y-m-d');}?>" placeholder="YYYY-MM-DD">
 													</div>
 													<div class="col-lg-6 input-group clockpicker" data-autoclose="true">
-														<input readonly name="HoraAutorizacion" id="HoraAutorizacion" type="text" autocomplete="off" class="form-control" value="<?php if (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];}?>" placeholder="hh:mm">
+														<input readonly name="HoraAutorizacion" id="HoraAutorizacion" type="text" autocomplete="off" class="form-control" value="<?php if (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];} elseif (($row['AuthPortal']) == "Y") {echo $row['HoraAutorizacion_PortalOne']->format('H:i');}?>" placeholder="hh:mm">
 														<span class="input-group-addon">
 															<span class="fa fa-clock-o"></span>
 														</span>
@@ -1161,7 +1161,7 @@ function verAutorizacion() {
 														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly
 														value="<?php echo $row_Autorizaciones['EstadoAutorizacion']; ?>" style="font-weight: bold; color: white; background-color: <?php echo $row_Autorizaciones['ColorEstadoAutorizacion']; ?>;">
 													<?php } else {?>
-														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly>
+														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly value="<?php if ($row['AuthPortal'] == "Y") {echo "AUTORIZADO";}?>">
 													<?php }?>
 												</div>
 											</div>
@@ -1173,7 +1173,7 @@ function verAutorizacion() {
 														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly
 														value="<?php echo $row_Autorizaciones['NombreUsuarioAutorizacion_SAPB1']; ?>">
 													<?php } else {?>
-														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly>
+														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly value="<?php if ($row['AuthPortal'] == "Y") {echo $row['UsuarioAutorizacion_PortalOne'];}?>">
 													<?php }?>
 												</div>
 											</div>
@@ -1181,7 +1181,7 @@ function verAutorizacion() {
 											<div class="form-group">
 												<label class="col-lg-2">Comentarios autorizador</label>
 												<div class="col-lg-10">
-													<textarea readonly type="text" maxlength="200" rows="4" class="form-control" name="ComentariosAutorizador" id="ComentariosAutorizador"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];}?></textarea>
+													<textarea readonly type="text" maxlength="200" rows="4" class="form-control" name="ComentariosAutorizador" id="ComentariosAutorizador"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];} elseif ($row['AuthPortal'] == "Y") {echo $row['ComentarioAutorizacion_PortalOne'];}?></textarea>
 												</div>
 											</div>
 											<br><br><br><br>

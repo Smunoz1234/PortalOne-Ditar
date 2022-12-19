@@ -7,8 +7,9 @@ $mensajeMotivo = ""; // Comentario motivo, mensaje de salida del procedimiento a
 // Bandera que indica si el documento se autoriza desde SAP.
 $autorizaSAP = ""; // SMM, 15/12/2022
 
-// Bandera de pruebas que me permite comportame como Autor.
-$serAutor = true; // SMM, 17/12/2022
+// Bandera de pruebas que me permite comportame como Autorizador.
+// Nota: Si un usuario es Autorizador y Autor se le da prioridad al hecho de ser Autor.
+$serAutorizador = false; // SMM, 18/12/2022
 
 $msg_error = ""; //Mensaje del error
 $IdSolSalida = 0;
@@ -326,9 +327,15 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
                         'id_evento' => intval($IdEvento),
                     );
 
-                    // SMM, 16/12/2022
-                    $end_point = ($_POST['Autorizacion'] != "Y") ? "Borrador" : "CrearBorrador_A_Definitivo";
+                    // SMM, 18/12/2022
+                    $end_point = "Borrador";
+                    $msg_ok = "OK_SolSalUpd";
+                    if ((strtoupper($_SESSION["User"]) == strtoupper($_POST['Usuario'])) && (!$serAutorizador)) {
+                        $end_point = "CrearBorrador_A_Definitivo";
+                        $msg_ok = "OK_DefinitivoAdd";
+                    }
 
+                    // SMM, 16/12/2022
                     $Metodo = "SolicitudTrasladosInventarios/$end_point";
                     $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
 
@@ -347,8 +354,6 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
                         } else { //Actualizando solicitud
 
                             // SMM, 16/12/2022
-                            $msg_ok = ($_POST['Autorizacion'] != "Y") ? "OK_SolSalUpd" : "OK_DefinitivoAdd";
-
                             header('Location:' . base64_decode($_POST['return']) . '&a=' . base64_encode($msg_ok));
                         }
                         // Fin, redirección documento autorizado.
@@ -550,8 +555,12 @@ if (isset($sw_error) && ($sw_error == 1)) {
 
 	/**
 	* Stiven Muñoz Murillo
-	* 10/12/2022
+	* 18/12/2022
 	 */
+	.select2-selection {
+		background-color: #eee !important;
+		opacity: 1;
+	}
 	.bootstrap-maxlength {
 		background-color: black;
 		z-index: 9999999;
@@ -1135,10 +1144,10 @@ function verAutorizacion() {
 												</div>
 												<div class="row">
 													<div class="col-lg-6 input-group date">
-														<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly form="CrearSolicitudSalida" name="FechaAutorizacionPO" type="text" autocomplete="off" class="form-control" id="FechaAutorizacionPO" value="<?php if ($debug_Condiciones) {echo date('Y-m-d');} elseif (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');}?>" placeholder="YYYY-MM-DD">
+														<span class="input-group-addon"><i class="fa fa-calendar"></i></span><input readonly form="CrearSolicitudSalida" name="FechaAutorizacionPO" type="text" autocomplete="off" class="form-control" id="FechaAutorizacionPO" value="<?php if (isset($row_Autorizaciones['FechaAutorizacion_SAPB1']) && ($row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d') != "1900-01-01")) {echo $row_Autorizaciones['FechaAutorizacion_SAPB1']->format('Y-m-d');} elseif (($row['AuthPortal']) != "P") {echo $row['FechaAutorizacion_PortalOne']->format('Y-m-d');} else {echo date('Y-m-d');}?>" placeholder="YYYY-MM-DD">
 													</div>
 													<div class="col-lg-6 input-group clockpicker" data-autoclose="true">
-														<input readonly name="HoraAutorizacionPO" form="CrearSolicitudSalida" id="HoraAutorizacionPO" type="text" autocomplete="off" class="form-control" value="<?php if ($debug_Condiciones) {echo date('H:i');} elseif (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];}?>" placeholder="hh:mm">
+														<input readonly name="HoraAutorizacionPO" form="CrearSolicitudSalida" id="HoraAutorizacionPO" type="text" autocomplete="off" class="form-control" value="<?php if (isset($row_Autorizaciones['HoraAutorizacion_SAPB1'])) {echo $row_Autorizaciones['HoraAutorizacion_SAPB1'];} elseif (($row['AuthPortal']) != "P") {echo $row['HoraAutorizacion_PortalOne']->format('H:i');} else {echo date('H:i');}?>" placeholder="hh:mm">
 														<span class="input-group-addon">
 															<span class="fa fa-clock-o"></span>
 														</span>
@@ -1154,7 +1163,7 @@ function verAutorizacion() {
 														<input type="text" class="form-control" name="IdEstadoAutorizacion" id="IdEstadoAutorizacion" readonly
 														value="<?php echo $row_Autorizaciones['EstadoAutorizacion']; ?>" style="font-weight: bold; color: white; background-color: <?php echo $row_Autorizaciones['ColorEstadoAutorizacion']; ?>;">
 													<?php } else {?>
-														<select class="form-control" name="EstadoAutorizacionPO" id="EstadoAutorizacionPO" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+														<select class="form-control" name="EstadoAutorizacionPO" id="EstadoAutorizacionPO" <?php if ((strtoupper($_SESSION["User"]) == strtoupper($row['Usuario'])) && (!$serAutorizador)) {echo "disabled";}?>>
 															<!-- El contenido se agrega por JS desde el componente "#Autorizacion", y hace cambiar dicho componente "onchange".  -->
 														</select>
 													<?php }?>
@@ -1168,7 +1177,7 @@ function verAutorizacion() {
 														<input type="text" class="form-control" name="IdUsuarioAutorizacion" id="IdUsuarioAutorizacion" readonly
 														value="<?php echo $row_Autorizaciones['NombreUsuarioAutorizacion_SAPB1']; ?>">
 													<?php } else {?>
-														<input type="text" class="form-control" form="CrearSolicitudSalida" name="UsuarioAutorizacionPO" id="UsuarioAutorizacionPO" value="<?php echo $_SESSION["User"]; ?>" readonly>
+														<input type="text" class="form-control" form="CrearSolicitudSalida" name="UsuarioAutorizacionPO" id="UsuarioAutorizacionPO" value="<?php echo ($row["AuthPortal"] == "P") ? $_SESSION["User"] : $row["UsuarioAutorizacion_PortalOne"]; ?>" readonly>
 													<?php }?>
 												</div>
 											</div>
@@ -1176,7 +1185,7 @@ function verAutorizacion() {
 											<div class="form-group">
 												<label class="col-lg-2">Comentarios autorizador</label>
 												<div class="col-lg-10">
-													<textarea <?php if (!$debug_Condiciones || ($autorizaSAP == "Y")) {echo "readonly";}?> type="text" maxlength="200" rows="4" class="form-control" form="CrearSolicitudSalida" name="ComentariosAutorizacionPO" id="ComentariosAutorizacionPO"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];}?></textarea>
+													<textarea <?php if ($row["AuthPortal"] != "P") {echo "readonly";}?> type="text" maxlength="200" rows="4" class="form-control" form="CrearSolicitudSalida" name="ComentariosAutorizacionPO" id="ComentariosAutorizacionPO"><?php if (isset($row_Autorizaciones['ComentariosAutorizador_SAPB1'])) {echo $row_Autorizaciones['ComentariosAutorizador_SAPB1'];} elseif ($row["AuthPortal"] != "P") {echo $row["ComentarioAutorizacion_PortalOne"];}?></textarea>
 												</div>
 											</div>
 											<br><br><br><br>
@@ -1465,9 +1474,9 @@ if ($edit == 1 || $sw_error == 1) {
 					<div class="col-lg-3">
                     	<select name="Autorizacion" class="form-control" id="Autorizacion" readonly>
                           <?php while ($row_EstadoAuth = sqlsrv_fetch_array($SQL_EstadoAuth)) {?>
-								<option value="<?php echo $row_EstadoAuth['IdAuth']; ?>"
+								<option value="<?php echo $row_EstadoAuth['IdAuth']; ?>" <?php if ($row_EstadoAuth['IdAuth'] == "N") {echo "disabled";}?>
 								<?php if (($edit == 1 || $sw_error == 1) && (isset($row['AuthPortal'])) && (strcmp($row_EstadoAuth['IdAuth'], $row['AuthPortal']) == 0)) {echo "selected=\"selected\"";} elseif (isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($row_Autorizaciones['IdEstadoAutorizacion'] == 'Y') && ($row_EstadoAuth['IdAuth'] == 'Y')) {echo "selected=\"selected\"";} elseif (isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($row_Autorizaciones['IdEstadoAutorizacion'] == 'W') && ($row_EstadoAuth['IdAuth'] == 'P')) {echo "selected=\"selected\"";} elseif (($edit == 0 && $sw_error == 0) && ($row_EstadoAuth['IdAuth'] == 'N')) {echo "selected=\"selected\"";}?>>
-									<?php echo $row_EstadoAuth['DeAuth']; ?>
+									<?php echo ($row_EstadoAuth['IdAuth'] == "N") ? "Seleccione..." : $row_EstadoAuth['DeAuth']; ?>
 								</option>
 						  <?php }?>
 						</select>
@@ -1604,13 +1613,24 @@ if ($edit == 1 || $sw_error == 1) {
 				</div>
 				<div class="form-group">
 					<div class="col-lg-9">
+
 						<?php if ($edit == 0 && PermitirFuncion(1201)) {?>
 							<button class="btn btn-primary" type="submit" form="CrearSolicitudSalida" id="Crear"><i class="fa fa-check"></i> Crear Solicitud de salida</button>
 						<?php } elseif ($row['Cod_Estado'] == "O" && PermitirFuncion(1201)) {?>
 
-							<!-- SMM, 10/12/2022 -->
-							<button class="btn btn-warning" type="submit" form="CrearSolicitudSalida" id="Actualizar">Actualizar Solicitud de Traslado Borrador</button>
+							<!-- SMM, 18/12/2022 -->
+							<?php if ((strtoupper($_SESSION["User"]) != strtoupper($row['Usuario'])) || $serAutorizador) {?>
+								<button class="btn btn-warning" type="submit" form="CrearSolicitudSalida" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Solicitud de Traslado Borrador</button>
+							<?php } else {?>
+								<?php if ($row["AuthPortal"] == "Y") {?>
+									<button class="btn btn-primary" type="submit" form="CrearSolicitudSalida" id="Actualizar"><i class="fa fa-check"></i> Crear Solicitud de Traslado Definitiva</button>
+								<?php }?>
+							<?php }?>
+
+							<!-- Usuario de creación en el POST -->
+							<input type="hidden" form="CrearSolicitudSalida" name="Usuario" id="Usuario" value="<?php echo $row['Usuario']; ?>">
 						<?php }?>
+
 						<?php
 $EliminaMsg = array("&a=" . base64_encode("OK_SolSalAdd"), "&a=" . base64_encode("OK_SolSalUpd")); //Eliminar mensajes
 if (isset($_GET['return'])) {
@@ -1738,7 +1758,7 @@ if (isset($_GET['return'])) {
 			} else {
 				Swal.fire({
 					"title": "¡Listo!",
-					"text": "Puede continuar con la creación del documento.",
+					"text": "Puede continuar con la actualización del documento.",
 					"icon": "success"
 				});
 
@@ -1749,7 +1769,14 @@ if (isset($_GET['return'])) {
 					// Corregir valores nulos en el combo de autorización.
 					$('#Autorizacion option:selected').attr('disabled', false);
 					$('#Autorizacion option:not(:selected)').attr('disabled', true);
+				} else if($("#Autorizacion").val() == "P") {
+					Swal.fire({
+						"title": "¡Advertencia!",
+						"text": "Debería cambiar el estado de la autorización por uno diferente.",
+						"icon": "warning"
+					});
 				}
+
 				$('#modalAUT').modal('hide');
 			}
 		});
@@ -1803,11 +1830,6 @@ if (isset($_GET['return'])) {
 			$('#TipoEntrega').trigger('change');
 	 	 <?php }?>
 
-		 <?php
-if (!PermitirFuncion(403)) {?>
-		 $('#Autorizacion option:not(:selected)').attr('disabled',true);
-	 	 <?php }?>
-
 		 var options = {
 			  url: function(phrase) {
 				  return "ajx_buscar_datos_json.php?type=7&id="+phrase;
@@ -1832,12 +1854,17 @@ if (!PermitirFuncion(403)) {?>
 	 	<?php }?>
 
 		// SMM, 17/12/2022
-		<?php if ($edit == 1) {?>
+		<?php if (true) {?>
 			$('#SucursalDestino option:not(:selected)').attr('disabled', true);
 			$('#SucursalFacturacion option:not(:selected)').attr('disabled', true);
 			$('.Dim option:not(:selected)').attr('disabled', true);
 			$('#PrjCode option:not(:selected)').attr('disabled', true);
 			$('#Empleado option:not(:selected)').attr('disabled', true);
+		<?php }?>
+
+		// SMM, 18/12/2022
+		<?php if((strtoupper($_SESSION["User"]) == strtoupper($row['Usuario'])) && (!$serAutorizador)) {?>
+			$('#Autorizacion option:not(:selected)').attr('disabled',true);	
 		<?php }?>
 	});
 </script>
