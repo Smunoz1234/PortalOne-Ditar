@@ -10,7 +10,7 @@ $autorizaSAP = ""; // SMM, 15/12/2022
 // Bandera de pruebas que me permite comportame como Autorizador en lugar de Autor.
 // Nota: Si un usuario es Autorizador y Autor se le da prioridad al hecho de ser Autor.
 // Nota: Debo tener el perfil del Autor asignado en el gestor de usuarios para ser Autorizador. SMM, 19/12/2022
-$serAutorizador = true; // SMM, 18/12/2022
+$serAutorizador = false; // SMM, 18/12/2022
 
 $msg_error = ""; //Mensaje del error
 $IdSolSalida = 0;
