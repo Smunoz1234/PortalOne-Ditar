@@ -1464,7 +1464,7 @@ if ($edit == 1 || $sw_error == 1) {
 					<!-- SMM, 30/11/2022 -->
 					<label class="col-lg-1 control-label">
 						Autorización
-						<?php if ((isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($edit == 1)) || ($success == 0) || ($sw_error == 1) || $debug_Condiciones) {?>
+						<?php if ((isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($edit == 1)) || ($success == 0) || ($sw_error == 1) || $debug_Condiciones || (isset($row['AuthPortal']) && ($row['AuthPortal'] != "N"))) {?>
 							<i onClick="verAutorizacion();" title="Ver Autorización" style="cursor: pointer" class="btn-xs btn-success fa fa-eye"></i>
 						<?php }?>
 					</label>
