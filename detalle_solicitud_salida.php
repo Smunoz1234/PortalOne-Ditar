@@ -15,6 +15,9 @@ while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
 }
 // Hasta aquí, SMM 31/08/2022
 
+// SMM, 21/12/2022
+$BloquearDocumento = $_GET['bloquear'] ?? false;
+
 $sw = 0;
 //$Proyecto="";
 $Almacen = "";
@@ -116,6 +119,17 @@ $sMillares = $row_DatosBase["CaracterSeparadorMillares"] ?? ",";
 		padding: 1px !important;
 		vertical-align: middle;
 	}
+
+	/**
+	* Stiven Muñoz Murillo
+	* 21/12/2022
+	 */
+	<?php if ($BloquearDocumento) {?>
+		.select2-selection {
+			background-color: #eee !important;
+			opacity: 1;
+		}
+	<?php }?>
 </style>
 
 <script>
@@ -439,7 +453,7 @@ if ($sw == 1) {
         sqlsrv_fetch($SQL_Proyecto, SQLSRV_SCROLL_ABSOLUTE, -1);
         ?>
 
-		<tr>
+		<tr class="trContenido">
 			<!-- SMM, 31/08/2022 -->
 			<td class="text-center form-inline w-150">
 				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($row['LineStatus'] == "C") && ($type == 1)) {echo "disabled='disabled'";}?>><label></label></div>
@@ -613,7 +627,16 @@ function CalcularTotal(line, totalizar=true) {
 </script>
 
 <script>
-	 $(document).ready(function(){
+	$(document).ready(function(){
+		// SMM, 21/12/2022
+		<?php if ($BloquearDocumento) {?>
+			$("select").attr("readonly", true);
+			$("textarea").prop("readonly", true);
+
+			$("input[type=checkbox]").prop("disabled", true);
+			$(".trContenido input").prop("readonly", true);
+		<?php }?>
+
 		 $(".alkin").on('click', function(){
 				 $('.ibox-content').toggleClass('sk-loading');
 			});
