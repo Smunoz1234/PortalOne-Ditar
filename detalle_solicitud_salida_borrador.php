@@ -15,6 +15,9 @@ while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
 }
 // Hasta aquí, SMM 31/08/2022
 
+// SMM, 21/12/2022
+$BloquearDocumento = $_GET['bloquear'] ?? false;
+
 $sw = 0;
 //$Proyecto="";
 $Almacen = "";
@@ -22,12 +25,6 @@ $AlmacenDestino = "";
 $CardCode = "";
 $type = 1;
 $Estado = 1; //Abierto
-
-// Cambiar bandera de autorización, 10/12/2022
-$bandera_autorizacion = false;
-if (isset($_GET['autoriza']) && ($_GET['autoriza'] == "1")) {
-    $bandera_autorizacion = false;
-}
 
 if (isset($_GET['id']) && ($_GET['id'] != "")) {
     if ($_GET['type'] == 1) {
@@ -126,12 +123,14 @@ $sMillares = $row_DatosBase["CaracterSeparadorMillares"] ?? ",";
 
 	/**
 	* Stiven Muñoz Murillo
-	* 18/12/2022
+	* 21/12/2022
 	 */
-	.select2-selection {
-		background-color: #eee !important;
-		opacity: 1;
-	}
+	<?php if ($BloquearDocumento) {?>
+		.select2-selection {
+			background-color: #eee !important;
+			opacity: 1;
+		}
+	<?php }?>
 </style>
 
 <script>
@@ -165,11 +164,13 @@ function BorrarLinea(){
 	if(confirm(String.fromCharCode(191)+'Est'+String.fromCharCode(225)+' seguro que desea eliminar este item? Este proceso no se puede revertir.')){
 		$.ajax({
 			type: "GET",
+
 			<?php if ($type == 1) {?>
-			url: "includes/procedimientos.php?type=9&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
+			url: "includes/procedimientos.php?type=9&borrador=1&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
 			<?php } else {?>
-			url: "includes/procedimientos.php?type=9&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
-			<?php }?>
+			url: "includes/procedimientos.php?type=9&borrador=1&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
+			<?php }?> // Se agrego la bandera "borrador". SMM, 22/12/2022
+
 			success: function(response){
 				window.location.href="detalle_solicitud_salida_borrador.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
 				console.log(response);
@@ -185,11 +186,13 @@ function DuplicarLinea(){
 	if(confirm(String.fromCharCode(191)+'Est'+String.fromCharCode(225)+' seguro que desea duplicar estos registros?')){
 		$.ajax({
 			type: "GET",
+			
 			<?php if ($type == 1) {?>
-			url: "includes/procedimientos.php?type=60&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
+			url: "includes/procedimientos.php?type=60&borrador=1&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
 			<?php } else {?>
-			url: "includes/procedimientos.php?type=60&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
-			<?php }?>
+			url: "includes/procedimientos.php?type=60&borrador=1&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
+			<?php }?> // Se agrego la bandera "borrador". SMM, 22/12/2022
+			
 			success: function(response){
 				window.location.href="detalle_solicitud_salida_borrador.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
 			},
@@ -381,11 +384,13 @@ function Totalizar(num, totalizar=true) {
 function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 	$.ajax({
 		type: "GET",
+		
 		<?php if ($type == 1) {?>
-		url: "registro.php?P=36&doctype=4&type=1&name="+name+"&value="+Base64.encode(document.getElementById(name+id).value)+"&line="+line+"&cardcode=<?php echo $CardCode; ?>&whscode=<?php echo $Almacen; ?>",
+		url: "registro.php?P=36&borrador=1&doctype=4&type=1&name="+name+"&value="+Base64.encode(document.getElementById(name+id).value)+"&line="+line+"&cardcode=<?php echo $CardCode; ?>&whscode=<?php echo $Almacen; ?>",
 		<?php } else {?>
-		url: "registro.php?P=36&doctype=4&type=2&name="+name+"&value="+Base64.encode(document.getElementById(name+id).value)+"&line="+line+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
-		<?php }?>
+		url: "registro.php?P=36&borrador=1&doctype=4&type=2&name="+name+"&value="+Base64.encode(document.getElementById(name+id).value)+"&line="+line+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
+		<?php }?> // Se agrego la bandera "borrador". SMM, 22/12/2022
+		
 		success: function(response){
 			if(response!="Error"){
 				window.parent.document.getElementById('TimeAct').innerHTML="<strong>Actualizado:</strong> "+response;
@@ -404,7 +409,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 			<tr>
 				<!-- SMM, 31/08/2022 -->
 				<th class="text-center form-inline w-150">
-					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" disabled onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div>
+					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos"><label></label></div>
 					<button type="button" id="btnBorrarLineas" title="Borrar lineas" class="btn btn-danger btn-xs" disabled onClick="BorrarLinea();"><i class="fa fa-trash"></i></button>
 					<button type="button" id="btnDuplicarLineas" title="Duplicar lineas" class="btn btn-success btn-xs" disabled onClick="DuplicarLinea();"><i class="fa fa-copy"></i></button>
 				</th>
@@ -458,16 +463,16 @@ if ($sw == 1) {
 		<tr>
 			<!-- SMM, 31/08/2022 -->
 			<td class="text-center form-inline w-150">
-				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" disabled onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($row['LineStatus'] == "C") && ($type == 1) || $bandera_autorizacion) {echo "disabled='disabled'";}?>><label></label></div>
+				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($row['LineStatus'] == "C") && ($type == 1)) {echo "disabled='disabled'";}?>><label></label></div>
 				<button type="button" class="btn btn-success btn-xs" onClick="ConsultarArticulo('<?php echo base64_encode($row['ItemCode']); ?>');" title="Consultar Articulo"><i class="fa fa-search"></i></button>
 			</td>
 			<!-- Hasta aquí, 31/08/2022 -->
 
 			<td><input size="20" type="text" id="ItemCode<?php echo $i; ?>" name="ItemCode[]" class="form-control" readonly value="<?php echo $row['ItemCode']; ?>"><input type="hidden" name="LineNum[]" id="LineNum<?php echo $i; ?>" value="<?php echo $row['LineNum']; ?>"></td>
-			<td><input size="50" type="text" id="ItemName<?php echo $i; ?>" name="ItemName[]" class="form-control" value="<?php echo $row['ItemName']; ?>" maxlength="100" onChange="ActualizarDatos('ItemName',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || $Estado == 2 || (!PermitirFuncion(1201))) {echo "readonly";}?>></td>
+			<td><input size="50" type="text" id="ItemName<?php echo $i; ?>" name="ItemName[]" class="form-control" value="<?php echo $row['ItemName']; ?>" maxlength="100" onChange="ActualizarDatos('ItemName',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || ($Estado == 2 && $BloquearDocumento)) {echo "readonly";}?>></td>
 			<td><input size="15" type="text" id="UnitMsr<?php echo $i; ?>" name="UnitMsr[]" class="form-control" readonly value="<?php echo $row['UnitMsr']; ?>"></td>
 
-			<td><input size="15" type="text" id="Quantity<?php echo $i; ?>" name="Quantity[]" class="form-control" value="<?php echo number_format($row['Quantity'], 2); ?>" onChange="ActualizarDatos('Quantity',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onBlur="CalcularTotal(<?php echo $i; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || $Estado == 2 || (!PermitirFuncion(1201))) {echo "readonly";}?>></td>
+			<td><input size="15" type="text" id="Quantity<?php echo $i; ?>" name="Quantity[]" class="form-control" value="<?php echo number_format($row['Quantity'], 2); ?>" onChange="ActualizarDatos('Quantity',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onBlur="CalcularTotal(<?php echo $i; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || ($Estado == 2 && $BloquearDocumento)) {echo "readonly";}?>></td>
 
 			<td><input size="15" type="text" id="CantInicial<?php echo $i; ?>" name="CantInicial[]" class="form-control" value="<?php echo number_format($row['CantInicial'], 2); ?>" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
@@ -519,7 +524,7 @@ if ($sw == 1) {
 				</select>
 			</td>
 
-			<td><input size="50" type="text" id="FreeTxt<?php echo $i; ?>" name="FreeTxt[]" class="form-control" value="<?php echo $row['FreeTxt']; ?>" onChange="ActualizarDatos('FreeTxt',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" maxlength="100" <?php if ($row['LineStatus'] == 'C' || $Estado == 2 || (!PermitirFuncion(1201))) {echo "readonly";}?>></td>
+			<td><input size="50" type="text" id="FreeTxt<?php echo $i; ?>" name="FreeTxt[]" class="form-control" value="<?php echo $row['FreeTxt']; ?>" onChange="ActualizarDatos('FreeTxt',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" maxlength="100" <?php if ($row['LineStatus'] == 'C' || ($Estado == 2 && $BloquearDocumento)) {echo "readonly";}?>></td>
 			<td><input size="15" type="text" id="Price<?php echo $i; ?>" name="Price[]" class="form-control" value="<?php echo number_format($row['Price'], 2); ?>" onChange="ActualizarDatos('Price',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onBlur="CalcularTotal(<?php echo $i; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
 			<td>
@@ -543,7 +548,7 @@ if ($sw == 1) {
     echo "<script> Totalizar(" . ($i - 1) . ", false); </script>";
 }
 ?>
-		<?php if ($Estado == 1) {?>
+		<?php if (($Estado == 1) || ($Estado == 2 && !$BloquearDocumento)) {?>
 		<tr>
 			<td>&nbsp;</td>
 			<td><input size="20" type="text" id="ItemCodeNew" name="ItemCodeNew" class="form-control"></td>
@@ -629,7 +634,14 @@ function CalcularTotal(line, totalizar=true) {
 </script>
 
 <script>
-	 $(document).ready(function(){
+	$(document).ready(function(){
+		// SMM, 21/12/2022
+		<?php if ($BloquearDocumento) {?>
+			// $("select").attr("readonly", true);
+			$("input[type=checkbox]").prop("disabled", true);
+			$('select option:not(:selected)').attr('disabled', true);
+		<?php }?>
+
 		 $(".alkin").on('click', function(){
 				 $('.ibox-content').toggleClass('sk-loading');
 			});
@@ -687,11 +699,6 @@ function CalcularTotal(line, totalizar=true) {
 		};
 		<?php if ($sw == 1 && $Estado == 1 && PermitirFuncion(1201)) {?>
 		$("#ItemCodeNew").easyAutocomplete(options);
-	 	<?php }?>
-
-		// SMM, 17/12/2022
-		<?php if (true) {?>
-			$('select option:not(:selected)').attr('disabled', true);
 	 	<?php }?>
 	});
 </script>
