@@ -517,6 +517,27 @@ if (isset($row['AuthPortal']) && ($row['AuthPortal'] == "Y") && (!PermitirFuncio
     $BloquearDocumento = true;
 }
 
+// SMM, 20/01/2023
+if($edit == 0) {
+	$ClienteDefault = "";
+	$NombreClienteDefault = "";
+	$SucursalDestinoDefault = "";
+	$SucursalFacturacionDefault = "";
+
+	
+
+	if (ObtenerVariable("NITClienteDefault") != "") {
+		$ClienteDefault = ObtenerVariable("NITClienteDefault");
+
+		$SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
+		$row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
+
+		$NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
+		$SucursalDestinoDefault = "DITAR S.A";
+		$SucursalFacturacionDefault = "DITAR S.A.";
+	}
+}
+
 // Stiven Muñoz Murillo, 29/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
 $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'Not Found'";
@@ -691,6 +712,11 @@ function verAutorizacion() {
 				url: "ajx_cbo_select.php?type=3&tdir=S&id="+carcode,
 				success: function(response){
 					$('#SucursalDestino').html(response).fadeIn();
+					
+					<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+						$("#SucursalDestino").val("<?php echo $SucursalDestinoDefault; ?>");
+					<?php }?>
+
 					$('#SucursalDestino').trigger('change');
 				},
 				error: function(error) {
@@ -704,6 +730,11 @@ function verAutorizacion() {
 				url: "ajx_cbo_select.php?type=3&tdir=B&id="+carcode,
 				success: function(response){
 					$('#SucursalFacturacion').html(response).fadeIn();
+
+					<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+						$("#SucursalFacturacion").val("<?php echo $SucursalFacturacionDefault; ?>");
+					<?php }?>
+
 					$('#SucursalFacturacion').trigger('change');
 				},
 				error: function(error) {
@@ -1351,22 +1382,21 @@ function verAutorizacion() {
 					<div class="form-group">
 						<label class="col-lg-1 control-label"><i onClick="ConsultarDatosCliente();" title="Consultar cliente" style="cursor: pointer" class="btn-xs btn-success fa fa-search"></i> Cliente</label>
 						<div class="col-lg-9">
-							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];}?>">
+							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif (($edit == 0) && ($ClienteDefault != "")) {echo $ClienteDefault;}?>">
 
-							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];}?>" <?php if ($edit == 1) {echo "readonly";}?>>
+							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif (($edit == 0) && ($ClienteDefault != "")) {echo $NombreClienteDefault;}?>" <?php if ($edit == 1) {echo "readonly";}?>>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-1 control-label">Contacto <span class="text-danger">*</span></label>
 						<div class="col-lg-5">
 							<select name="ContactoCliente" class="form-control" id="ContactoCliente" required <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
-									<option value="">Seleccione...</option>
-							<?php
-if ($edit == 1 || $sw_error == 1) {
-    while ($row_ContactoCliente = sqlsrv_fetch_array($SQL_ContactoCliente)) {?>
+								<option value="">Seleccione...</option>
+								<?php if ($edit == 1 || $sw_error == 1) {?>
+									<?php while ($row_ContactoCliente = sqlsrv_fetch_array($SQL_ContactoCliente)) {?>
 										<option value="<?php echo $row_ContactoCliente['CodigoContacto']; ?>" <?php if ((isset($row['CodigoContacto'])) && (strcmp($row_ContactoCliente['CodigoContacto'], $row['CodigoContacto']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_ContactoCliente['ID_Contacto']; ?></option>
-						  	<?php }
-}?>
+									<?php }?>
+								<?php }?>
 							</select>
 						</div>
 					</div>
@@ -1807,6 +1837,11 @@ if (isset($_GET['return'])) {
 <!-- InstanceBeginEditable name="EditRegion4" -->
 <script>
 	$(document).ready(function(){
+		// SMM, 20/01/2023
+		<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+			$("#CardCode").change();
+		<?php }?>
+
 		// SMM, 21/12/2022
 		<?php if ($BloquearDocumento) {?>
 			$("input").prop("readonly", true);

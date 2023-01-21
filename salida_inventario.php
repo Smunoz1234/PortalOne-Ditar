@@ -152,6 +152,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             "'" . $_SESSION['CodUser'] . "'",
             "'" . $_SESSION['CodUser'] . "'",
             "$Type",
+
+			// SMM, 23/12/2022
+			"'" . $_POST['ConceptoSalida'] . "'",
         );
 
         // Enviar el valor de la dimensiones dinámicamente al SP.
@@ -394,6 +397,30 @@ $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 // Proyectos, SMM 05/12/2022
 $SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
 
+// Conceptos de salida de inventario, SMM 23/12/2022
+$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', "Estado = 'Y'", 'id_concepto_salida');
+
+// SMM, 20/01/2023
+if($edit == 0) {
+	$ClienteDefault = "";
+	$NombreClienteDefault = "";
+	$SucursalDestinoDefault = "";
+	$SucursalFacturacionDefault = "";
+
+	
+
+	if (ObtenerVariable("NITClienteDefault") != "") {
+		$ClienteDefault = ObtenerVariable("NITClienteDefault");
+
+		$SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
+		$row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
+
+		$NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
+		$SucursalDestinoDefault = "DITAR S.A";
+		$SucursalFacturacionDefault = "DITAR S.A.";
+	}
+}
+
 // Stiven Muñoz Murillo, 31/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
 $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'Not Found'";
@@ -526,6 +553,11 @@ function ConsultarDatosCliente(){
 				url: "ajx_cbo_select.php?type=3&tdir=S&id="+carcode,
 				success: function(response){
 					$('#SucursalDestino').html(response).fadeIn();
+
+					<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+						$("#SucursalDestino").val("<?php echo $SucursalDestinoDefault; ?>");
+					<?php }?>
+
 					$('#SucursalDestino').trigger('change');
 				},
 				error: function(error) {
@@ -540,6 +572,11 @@ function ConsultarDatosCliente(){
 				url: "ajx_cbo_select.php?type=3&tdir=B&id="+carcode,
 				success: function(response){
 					$('#SucursalFacturacion').html(response).fadeIn();
+
+					<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+						$("#SucursalFacturacion").val("<?php echo $SucursalFacturacionDefault; ?>");
+					<?php }?>
+
 					$('#SucursalFacturacion').trigger('change');
 				},
 				error: function(error) {
@@ -878,6 +915,53 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 			<!-- SMM, 31/08/2022 -->
 			<?php include_once 'md_consultar_llamadas_servicios.php';?>
 
+		<!-- Campos de auditoria de documento. SMM, 23/12/2022 -->
+		<?php if ($edit == 1) {?>
+			<div class="row">
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Creada por</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php if (isset($row['Usuario']) && ($row['Usuario'] != "")) {echo $row['Usuario'];} else {echo "&nbsp;";}?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Fecha creación</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php echo (isset($row['FechaRegistro']) && ($row['FechaRegistro'] != "")) ? $row['FechaRegistro']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Actualizado por</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php if (isset($row['UsuarioActualizacion']) && ($row['UsuarioActualizacion'] != "")) {echo $row['UsuarioActualizacion'];} else {echo "&nbsp;";}?></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3">
+					<div class="ibox ">
+						<div class="ibox-title">
+							<h5><span class="font-normal">Fecha actualización</span></h5>
+						</div>
+						<div class="ibox-content">
+							<h3 class="no-margins"><?php echo (isset($row['FechaActualizacion']) && ($row['FechaActualizacion'] != "")) ? $row['FechaActualizacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+						</div>
+					</div>
+				</div>
+			</div>
+		<?php }?>
+		<!-- Hasta aquí. SMM, 23/12/2022 -->
+
 		 <?php if ($edit == 1) {?>
 		 <div class="row">
 			<div class="col-lg-12">
@@ -913,9 +997,9 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 					<div class="form-group">
 						<label class="col-lg-1 control-label"><i onClick="ConsultarDatosCliente();" title="Consultar cliente" style="cursor: pointer" class="btn-xs btn-success fa fa-search"></i> Cliente</label>
 						<div class="col-lg-9">
-							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif ($dt_TI == 1) {echo $row_Cliente['CodigoCliente'];}?>">
+							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif ($dt_TI == 1) {echo $row_Cliente['CodigoCliente'];} elseif (($edit == 0) && ($ClienteDefault != "")) {echo $ClienteDefault;}?>">
 
-							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_TI == 1) {echo $row_Cliente['NombreCliente'];}?>" <?php if (((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1)) || ($dt_TI == 1) || ($edit == 1)) {echo "readonly";}?>>
+							<input autocomplete="off" name="CardName" type="text" required="required" class="form-control" id="CardName" placeholder="Digite para buscar..." value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['NombreCliente'];} elseif ($dt_TI == 1) {echo $row_Cliente['NombreCliente'];} elseif (($edit == 0) && ($ClienteDefault != "")) {echo $NombreClienteDefault;}?>" <?php if (((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1)) || ($dt_TI == 1) || ($edit == 1)) {echo "readonly";}?>>
 						</div>
 					</div>
 					<div class="form-group">
@@ -1100,6 +1184,18 @@ if ($edit == 1 || $sw_error == 1) {
 					</div>
 					<!-- Fin, Proyecto -->
 
+					<!-- SMM, 23/12/2022 -->
+					<label class="col-lg-1 control-label">Concepto Salida</label>
+					<div class="col-lg-3">
+						<select name="ConceptoSalida" class="form-control select2" id="ConceptoSalida" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C') || ($dt_TI == 1)) {echo "disabled='disabled'";}?>>
+								<option value="">Seleccione...</option>
+								<?php while ($row_ConceptoSalida = sqlsrv_fetch_array($SQL_ConceptoSalida)) {?>
+									<option value="<?php echo $row_ConceptoSalida['id_concepto_salida']; ?>" <?php if ((isset($row['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], $row['row_ConceptoSalida']) == 0)) {echo "selected";} elseif ((isset($_GET['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], base64_decode($_GET['ConceptoSalida'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_ConceptoSalida['id_concepto_salida'] . "-" . $row_ConceptoSalida['concepto_salida']; ?></option>
+								<?php }?>
+						</select>
+					</div>
+					<!-- Hasta aquí, 23/12/2022 -->
+
 					<label class="col-lg-1 control-label">Tipo entrega</label>
 					<div class="col-lg-3">
                     	<select name="TipoEntrega" class="form-control" id="TipoEntrega" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1)) {echo "disabled='disabled'";}?>>
@@ -1240,8 +1336,10 @@ if ($edit == 1 || $sw_error == 1) {
 					<div class="col-lg-9">
 						<?php if ($edit == 0 && PermitirFuncion(1205)) {?>
 							<button class="btn btn-primary" type="submit" form="CrearSalidaInventario" id="Crear"><i class="fa fa-check"></i> Crear Salida de traslado</button>
-						<?php } elseif ($row['Cod_Estado'] == "O" && PermitirFuncion(1205)) {?>
+						<?php } elseif (isset($row['Cod_Estado']) && $row['Cod_Estado'] == "O" && PermitirFuncion(1205)) {?>
 							<button class="btn btn-warning" type="submit" form="CrearSalidaInventario" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Salida de traslado</button>
+						<?php } elseif(!PermitirFuncion(1205)) {?>
+							<!-- p>No tiene permiso, 1205</p -->
 						<?php }?>
 						<?php
 $EliminaMsg = array("&a=" . base64_encode("OK_SalInvAdd"), "&a=" . base64_encode("OK_SalInvUpd")); //Eliminar mensajes
@@ -1293,8 +1391,13 @@ if (isset($_GET['return'])) {
 <?php include_once "includes/pie.php";?>
 <!-- InstanceBeginEditable name="EditRegion4" -->
 <script>
-	 $(document).ready(function(){
-		 $("#CrearSalidaInventario").validate({
+	$(document).ready(function(){
+		// SMM, 20/01/2023
+		<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
+			$("#CardCode").change();
+		<?php }?>
+		 
+		$("#CrearSalidaInventario").validate({
 			 submitHandler: function(form){
 				if(Validar()){
 					Swal.fire({
