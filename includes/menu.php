@@ -305,12 +305,16 @@ $Num_Menu = sqlsrv_num_rows($SQL_Menu);
 								<?php if (PermitirFuncion(1206)) {?><li><a class="alnk" href="consultar_salida_inventario.php">Consultar salida de traslado</a></li><?php }?>
 							</ul>
 						</li>
+						
+						<?php if (PermitirFuncion([1210])) {?>
 						<li>
 							<a href="#">Consultas borradores <span class="fa arrow"></span></a>
 							<ul class='nav nav-third-level'>
-								<?php if (true) {?><li><a class="alnk" href="consultar_solicitud_salida_borrador.php">Consultar solicitud de traslado borrador</a></li><?php }?>
+								<?php if (PermitirFuncion(1210)) {?><li><a class="alnk" href="consultar_solicitud_salida_borrador.php">Consultar solicitud de traslado borrador</a></li><?php }?>
 							</ul>
 						</li>
+						<?php }?>
+
 						<?php if (PermitirFuncion(1207)) {?>
 						<li>
                    			<a href="#">Informes <span class="fa arrow"></span></a>
@@ -433,6 +437,7 @@ $Num_Menu = sqlsrv_num_rows($SQL_Menu);
 								<?php if (PermitirFuncion(218)) {?><li><a class="alnk" href="parametros_dosificaciones.php">Parámetros dosificaciones</a></li><?php }?>
 								<?php if (PermitirFuncion(219)) {?><li><a class="alnk" href="parametros_formatos_impresion.php">Parámetros formatos de impresión</a></li><?php }?>
 								<?php if (true) {?><li><a class="alnk" href="parametros_autorizaciones_documentos.php">Parámetros autorizaciones documentos</a></li><?php }?>
+								<?php if (true) {?><li><a class="alnk" href="parametros_conceptos_salida.php">Parámetros de Conceptos de salida de inventario</a></li><?php }?>
 							</ul>
 						</li>
 						<?php }?>

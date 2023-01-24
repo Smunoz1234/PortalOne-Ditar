@@ -10,14 +10,14 @@ $id = isset($_POST['id']) ? $_POST['id'] : "";
 
 // Subconsultas, SMM 07/08/2022
 $SQL_Entidad = Seleccionar('tbl_TipoEntidadSN', '*');
-$SQL_Municipio = Seleccionar('uvw_tbl_Municipios', '*');
+$SQL_CuentasContables = Seleccionar('uvw_Sap_tbl_PUC_Conceptos_Salidas', '*');
 
 if ($edit == 1 && $id != "") {
     $Title = "Editar registro";
     $Metodo = 2;
 
-    if ($doc == "Retencion") {
-        $SQL = Seleccionar('tbl_MunicipiosRetenciones', '*', "id='" . $id . "'");
+    if ($doc == "Concepto") {
+        $SQL = Seleccionar('tbl_SalidaInventario_Conceptos', '*', "id_concepto_salida='" . $id . "'");
         $row = sqlsrv_fetch_array($SQL);
     }
 }
@@ -60,7 +60,7 @@ if ($edit == 1 && $id != "") {
 	}
 </style>
 
-<form id="frm_NewParam" method="post" action="parametros_asistente_socios_negocio.php" enctype="multipart/form-data">
+<form id="frm_NewParam" method="post" action="parametros_conceptos_salida.php" enctype="multipart/form-data">
 <div class="modal-header">
 	<h4 class="modal-title">
 		<?php echo $Title; ?>
@@ -70,39 +70,36 @@ if ($edit == 1 && $id != "") {
 	<div class="form-group">
 		<div class="ibox-content">
 			<?php include "includes/spinner.php";?>
-			<?php if ($doc == "Retencion") {?>
+			<?php if ($doc == "Concepto") {?>
 				<div class="form-group">
 					<div class="col-md-6">
-						<label class="control-label">ID Retencion <span class="text-danger">*</span></label>
-						<input type="text" class="form-control" name="id_retencion" id="id_retencion" required autocomplete="off" value="<?php if ($edit == 1) {echo $row['id_retencion'];}?>">
+						<label class="control-label">ID Concepto Salida <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" name="id_concepto_salida" id="id_concepto_salida" required autocomplete="off" value="<?php if ($edit == 1) {echo $row['id_concepto_salida'];}?>" <?php if ($edit == 1) {echo "readonly";}?>>
 					</div>
+
 					<div class="col-md-6">
-						<label class="control-label">Tipo Entidad <span class="text-danger">*</span></label>
-						<select name="id_tipo_entidad" class="form-control select2" id="id_tipo_entidad" required>
-							<option value="">Seleccione...</option>
-							<?php while ($row_Entidad = sqlsrv_fetch_array($SQL_Entidad)) {?>
-								<option value="<?php echo $row_Entidad['ID_TipoEntidad']; ?>" <?php if ((isset($row['id_tipo_entidad'])) && (strcmp($row_Entidad['ID_TipoEntidad'], $row['id_tipo_entidad']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Entidad['NombreEntidad']; ?></option>
-							<?php }?>
-						</select>
+						<label class="control-label">Concepto Salida <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" name="concepto_salida" id="concepto_salida" required autocomplete="off" value="<?php if ($edit == 1) {echo $row['concepto_salida'];}?>">
 					</div>
 				</div>
 
 				<br><br><br><br>
 				<div class="form-group">
 					<div class="col-md-6">
-						<label class="control-label">Municipio <span class="text-danger">*</span></label>
-						<select name="id_municipio" class="form-control select2" id="id_municipio" required>
+						<label class="control-label">Cuenta Contable <span class="text-danger">*</span></label>
+						<select name="cuenta_contable" class="form-control select2" id="cuenta_contable" required>
 							<option value="">Seleccione...</option>
-							<?php while ($row_Municipio = sqlsrv_fetch_array($SQL_Municipio)) {?>
-								<option value="<?php echo $row_Municipio['Codigo']; ?>" <?php if ((isset($row['id_municipio'])) && (strcmp($row_Municipio['Codigo'], $row['id_municipio']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Municipio['Ciudad']; ?></option>
+							<?php while ($row_CuentaContable = sqlsrv_fetch_array($SQL_CuentasContables)) {?>
+								<option value="<?php echo $row_CuentaContable['IdCuenta'] . "-" . $row_CuentaContable['Cuenta']; ?>" <?php if ((isset($row['cuenta_contable'])) && (strcmp($row_CuentaContable['IdCuenta'], $row['id_cuenta_contable']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_CuentaContable['Cuenta']." (".$row_CuentaContable['IdCuenta'].")"; ?></option>
 							<?php }?>
 						</select>
 					</div>
+
 					<div class="col-md-6">
 						<label class="control-label">Estado <span class="text-danger">*</span></label>
 						<select class="form-control" id="estado" name="estado">
-							<option value="Y" <?php if (($edit == 1) && ($row['estado'] == "Y")) {echo "selected=\"selected\"";}?>>ACTIVO</option>
-							<option value="N" <?php if (($edit == 1) && ($row['estado'] == "N")) {echo "selected=\"selected\"";}?>>INACTIVO</option>
+							<option value="Y" <?php if (($edit == 1) && ($row['estado'] == "Y")) {echo "selected";}?>>ACTIVO</option>
+							<option value="N" <?php if (($edit == 1) && ($row['estado'] == "N")) {echo "selected";}?>>INACTIVO</option>
 						</select>
 					</div>
 				</div>
@@ -119,18 +116,28 @@ if ($edit == 1 && $id != "") {
 	<input type="hidden" id="ID_Actual" name="ID_Actual" value="<?php echo $id; ?>" />
 	<input type="hidden" id="Metodo" name="Metodo" value="<?php echo $Metodo; ?>" />
 	<input type="hidden" id="frmType" name="frmType" value="1" />
+
+	<!-- SMM, 12/01/2023 -->
+	<input type="hidden" name="id_cc" id="id_cc" value="<?php if ($edit == 1) {echo $row['id_cuenta_contable'];}?>">
+	<input type="hidden" name="cc" id="cc" value="<?php if ($edit == 1) {echo $row['cuenta_contable'];}?>">
 </form>
+
 <script>
 $(document).ready(function(){
-	// SMM, 19/08/2022
-	$('.panel-collapse').on('show.bs.collapse', function () {
-    $(this).siblings('.panel-heading').addClass('active');
-  });
+	// SMM, 22/12/2022
+	$("#cuenta_contable").on("change", function() {
+		let cuenta_contable = $(this).val().split("-");
+		$("#id_cc").val(cuenta_contable[0]);
+		$("#cc").val(cuenta_contable[1]);
+	});
+	// Hasta aquí, 22/12/2022
 
-  $('.panel-collapse').on('hide.bs.collapse', function () {
-    $(this).siblings('.panel-heading').removeClass('active');
-  });
-  // Hasta aquí, 19/08/2022
+	$('.panel-collapse').on('show.bs.collapse', function () {
+    	$(this).siblings('.panel-heading').addClass('active');
+  	});
+  	$('.panel-collapse').on('hide.bs.collapse', function () {
+    	$(this).siblings('.panel-heading').removeClass('active');
+  	});
 
 	$("#frm_NewParam").validate({
 		submitHandler: function(form){
@@ -149,8 +156,8 @@ $(document).ready(function(){
 				}
 			});
 			}else{
-			$('.ibox-content').toggleClass('sk-loading',true);
-			form.submit();
+				$('.ibox-content').toggleClass('sk-loading',true);
+				form.submit();
 			}
 	}
 	 });
@@ -159,91 +166,4 @@ $(document).ready(function(){
 	// SMM, 26/07/2022
 	$(".select2").select2();
  });
-</script>
-
-<script>
-function Eliminar(doc,id){
-	var result=true;
-
-	Swal.fire({
-		title: "¿Está seguro que desea eliminar este registro?",
-		icon: "question",
-		showCancelButton: true,
-		confirmButtonText: "Si, confirmo",
-		cancelButtonText: "No"
-	}).then((result) => {
-		if (result.isConfirmed) {
-			$('.ibox-content').toggleClass('sk-loading',true);
-			$.ajax({
-				url:"ajx_buscar_datos_json.php",
-				data:{type:34,
-					  item:doc,
-					  id:id
-					 },
-				dataType:'json',
-				async: false,
-				success: function(data){
-					if(data.Estado=='0'){
-						result=false;
-						Swal.fire({
-							title: data.Title,
-							text: data.Mensaje,
-							icon: data.Icon,
-						});
-						$('.ibox-content').toggleClass('sk-loading',false);
-					}else{
-						document.getElementById("Metodo").value="3";
-						$("#frm_NewParam").submit();
-					}
-				}
-			});
-		}
-	});
-
-	return result;
-}
-
-// SMM, 27/07/2022
-// doc(useless) -> nombre del formulario
-// id(useless) -> identificador del la fila
-function Validar(doc, id){
-	Swal.fire({
-		title: "¿Está seguro que desea ejecutar la consulta?",
-		icon: "question",
-		showCancelButton: true,
-		confirmButtonText: "Si, confirmo",
-		cancelButtonText: "No"
-	}).then((result) => {
-		if (result.isConfirmed) {
-			// Cargando...
-			$('.ibox-content').toggleClass('sk-loading', true);
-
-			$.ajax({
-				url:"ajx_ejecutar_query.php",
-				data: {
-					type: 1,
-					query: $("#Condiciones").val()
-				},
-				dataType:'json',
-				async: false,
-				success: function(data) {
-					console.log(data);
-
-					$("#CondicionesContainer").css("display", "block");
-					$("#Validacion").val(JSON.stringify(data, null, '\t'));
-
-					// Raw Response.
-					$("#Raw").prop("href", `ajx_ejecutar_query.php?type=1&query=${$("#Condiciones").val()}`);
-
-					// Carga terminada.
-					$('.ibox-content').toggleClass('sk-loading', false);
-				},
-				error: function(error) {
-					console.error("Error en Línea 322");
-					$('.ibox-content').toggleClass('sk-loading', false);
-				}
-			});
-		}
-	});
-}
 </script>

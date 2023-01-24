@@ -66,6 +66,33 @@ if (isset($_GET['AutorizacionSAP']) && $_GET['AutorizacionSAP'] != "") {
 }
 // Hasta aquí, 10/12/2022
 
+// Filtrar por perfil. SMM, 23/12/2022
+$Where_PerfilesAutorizador = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Perfiles = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
+
+if (isset($_GET['PerfilAutor'])) {
+	if($_GET['PerfilAutor'] != "") {
+		$Filtro .= " AND ID_PerfilUsuario_Creacion = '" . $_GET['PerfilAutor'] . "'";
+	} else { 
+		// Todos los perfiles asignados
+		$Filtro .= "AND ID_PerfilUsuario_Creacion IN (";
+		$Perfiles = array();
+		while ($Perfil = sqlsrv_fetch_array($SQL_Perfiles)) {
+			$Perfiles[] = $Perfil['IdPerfil'];
+		}
+		
+		$Perfiles[] = $_SESSION['Perfil']; // Agrego el perfil del usuario
+
+		$Filtro .= implode(",", $Perfiles);
+		$Filtro .= ")";
+		// SMM, 20/01/2023
+
+		// Volver a llenar la consulta SQL.
+		$SQL_Perfiles = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
+	}
+} 
+// Hasta aquí, 23/12/2022
+
 if (isset($_GET['Cliente']) && $_GET['Cliente'] != "") {
     $Filtro .= " and CardCode='" . $_GET['Cliente'] . "'";
 }
@@ -284,9 +311,9 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 							<label class="col-lg-1 control-label">Fechas</label>
 							<div class="col-lg-3">
 								<div class="input-daterange input-group" id="datepicker">
-									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
+									<input name="FechaInicial" type="text" autocomplete="off" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
 									<span class="input-group-addon">hasta</span>
-									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
+									<input name="FechaFinal" type="text" autocomplete="off" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
 								</div>
 							</div>
 							<label class="col-lg-1 control-label">Estado</label>
@@ -402,7 +429,21 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 							</div>
 							<!-- Hasta aquí, 10/12/2022 -->
 
-							<div class="col-lg-4">
+							<!-- SMM, 23/12/2022 -->
+							<label class="col-lg-1 control-label">Perfil Autor</label>
+							<div class="col-lg-3">
+								<select name="PerfilAutor" class="form-control" id="PerfilAutor">
+										<option value="">(Todos)</option>
+								   <?php while ($row_Perfil = sqlsrv_fetch_array($SQL_Perfiles)) {?>
+										<option value="<?php echo $row_Perfil['IdPerfil']; ?>" <?php if (isset($_GET['PerfilAutor']) && (strcmp($row_Perfil['IdPerfil'], $_GET['PerfilAutor']) == 0)) {echo "selected";}?>><?php echo $row_Perfil['DePerfil']; ?></option>
+								  <?php }?>
+								</select>
+							</div>
+							<!-- Hasta aquí, 23/12/2022 -->
+						</div>
+
+						<div class="form-group">
+							<div class="col-lg-12">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>
@@ -447,7 +488,10 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 						<th>Documento destino</th>
 
 						<th>Usuario Creación/Autor</th>
+						<th>Perfil Autor</th> <!-- SMM, 23/12/2022 -->
+
 						<th>Usuario Actualización</th>
+
 						<th>Estado</th>
 
 						<th>Estado Autorización Portal One</th> <!-- SMM, 14/12/2022 -->
@@ -482,6 +526,8 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="traslado_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
 
 							<td><?php echo $row['UsuarioCreacion']; ?></td> <!-- Autor -->
+							<td><?php echo $row['PerfilUsuario_Creacion'] ?? ""; ?></td> <!-- Autor -->
+
 							<td><?php echo $row['UsuarioActualizacion']; ?></td>
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
 

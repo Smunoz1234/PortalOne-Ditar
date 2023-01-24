@@ -258,9 +258,38 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
 							"1",
 						);
 						$SQL_PerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamPerfilesAsignados, $_POST['P']);
-						if (!$SQL_GruposEmpleados) {
+						if (!$SQL_PerfilesAsignados) {
 							$sw_error = 1;
 							$msg_error = "No se pudo insertar el Perfil de Autores";
+						}
+					}
+					$i++;
+				}
+			} // Hasta aquí, 19/12/2022
+
+			// Conceptos de Salida. SMM, 19/05/2022
+			$ParamDeleteConceptos = array(
+				"'" . $ID . "'",
+				"NULL",
+				"2",
+			);
+			$SQL_DeleteConceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamDeleteConceptos, $_POST['P']);
+
+			// Insertamos los Conceptos de Salida.
+			if ($SQL_DeleteConceptos) {
+				$i = 0;
+				$CuentaConceptos = count($_POST['Concepto']);
+				while ($i < $CuentaConceptos) {
+					if ($_POST['Concepto'][$i] != "") {
+						$ParamConceptos = array(
+							"'" . $ID . "'",
+							"'" . $_POST['Concepto'][$i] . "'",
+							"1",
+						);
+						$SQL_Conceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamConceptos, $_POST['P']);
+						if (!$SQL_Conceptos) {
+							$sw_error = 1;
+							$msg_error = "No se pudo insertar el Concepto";
 						}
 					}
 					$i++;
@@ -375,6 +404,12 @@ if (isset($_POST['MM_Insert']) && ($_POST['MM_Insert'] != "")) {
     }
 }
 
+// Se deben dejar por fuera.
+$ids_grupos = array();
+$ids_perfiles = array();
+$ids_conceptos = array();
+// Para evitar errores en el crear.
+
 if ($edit == 1) { //Editar usuario
 
     //Articulo
@@ -404,17 +439,24 @@ if ($edit == 1) { //Editar usuario
     // Empleados asignados, SMM 16/05/2022
     $SQL_GruposUsuario = Seleccionar("uvw_tbl_UsuariosGruposEmpleados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DeCargo');
 
-    $ids_grupos = array();
+    
     while ($row_GruposUsuario = sqlsrv_fetch_array($SQL_GruposUsuario)) {
         $ids_grupos[] = $row_GruposUsuario['IdCargo'];
     }
 
 	// Perfiles asignados. SMM, 19/12/2022
 	$SQL_PerfilesAsignados = Seleccionar("uvw_tbl_UsuariosPerfilesAsignados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DePerfil');
-	$ids_perfiles = array();
+	
     while ($row_PerfilesAsignados = sqlsrv_fetch_array($SQL_PerfilesAsignados)) {
         $ids_perfiles[] = $row_PerfilesAsignados['IdPerfil'];
     }
+
+	// Conceptos de salida. SMM, 20/01/2023
+	$SQL_Conceptos = Seleccionar("uvw_tbl_UsuariosConceptos", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DeConcepto');
+
+	while ($row_Conceptos = sqlsrv_fetch_array($SQL_Conceptos)) {
+		$ids_conceptos[] = $row_Conceptos['IdConcepto'];
+	}
 }
 
 //Estados
@@ -425,6 +467,9 @@ $SQL_Perfiles = Seleccionar('uvw_tbl_PerfilesUsuarios', '*', '', 'PerfilUsuario'
 
 // Perfiles autorizaciones. SMM, 19/12/2022
 $SQL_Perfiles_Autorizaciones = Seleccionar('uvw_tbl_PerfilesUsuarios', '*', '', 'PerfilUsuario');
+
+// Conceptos de salida. SMM, 20/01/2023
+$SQL_Conceptos_Salida = Seleccionar("tbl_SalidaInventario_Conceptos", "*", '', 'concepto_salida');
 
 //Proveedores
 $SQL_Proveedores = Seleccionar('uvw_Sap_tbl_Proveedores', 'CodigoCliente, NombreCliente', '', 'NombreCliente');
@@ -1099,6 +1144,32 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
 								</div>
 							</div>
 							<!-- SMM, 19/12/2022 -->
+
+							<!-- Acordeón de conceptos -->
+							<div class="ibox">
+								<div class="ibox-title bg-success">
+									<h5><i class="fa fa-briefcase"></i> Conceptos de salida</h5>
+									 <a class="collapse-link pull-right">
+										<i class="fa fa-chevron-up"></i>
+									</a>
+								</div>
+								<div class="ibox-content">
+								  <div class="form-group">
+									 <label class="col-lg-2 control-label">Conceptos de salida seleccionados</label>
+									 <div class="col-lg-10">
+										 <select data-placeholder="Digite para buscar..." name="Concepto[]" class="form-control select2" id="Concepto" multiple>
+										  <?php while ($row_Concepto = sqlsrv_fetch_array($SQL_Conceptos_Salida)) {?>
+												<option value="<?php echo $row_Concepto['id_concepto_salida']; ?>"
+												<?php if (in_array($row_Concepto['id_concepto_salida'], $ids_conceptos)) {echo "selected=\"selected\"";}?>>
+													<?php echo $row_Concepto['concepto_salida'] . " (" . $row_Concepto['id_concepto_salida'] . ")"; ?>
+												</option>
+										  <?php }?>
+										</select>
+									 </div>
+								 </div>
+								</div>
+							</div>
+							<!-- SMM, 20/01/2022 -->
 						</div>
 						<div id="tab-2" class="tab-pane">
 							<div id="dv_clientes" class="panel-body">

@@ -4,16 +4,15 @@ PermitirAcceso(216);
 
 $sw_error = 0;
 
-// SMM, 21/07/2022
 if (isset($_POST['Metodo']) && ($_POST['Metodo'] == 3)) {
     try {
 
-        if ($_POST['TipoDoc'] == "Retencion") {
+        if ($_POST['TipoDoc'] == "Concepto") {
             $Param = array(
                 $_POST['Metodo'], // 3 - Eliminar
                 isset($_POST['id']) ? $_POST['id'] : "NULL",
             );
-            $SQL = EjecutarSP('sp_tbl_MunicipiosRetenciones', $Param);
+            $SQL = EjecutarSP('sp_tbl_SalidaInventario_Conceptos', $Param);
             if (!$SQL) {
                 $sw_error = 1;
                 $msg_error = "No se pudo eliminar el registro";
@@ -30,27 +29,16 @@ if (isset($_POST['Metodo']) && ($_POST['Metodo'] == 3)) {
 if ((isset($_POST['frmType']) && ($_POST['frmType'] != "")) || (isset($_POST['Metodo']) && ($_POST['Metodo'] == 2))) {
     try {
 
-        if ($_POST['TipoDoc'] == "Retencion") {
-            $id = (isset($_POST['ID_Actual']) && ($_POST['ID_Actual'] != "")) ? $_POST['ID_Actual'] : "NULL";
-
-            $Usuario = "'" . $_SESSION['CodUser'] . "'";
-            $FechaHora = "'" . FormatoFecha(date('Y-m-d'), date('H:i:s')) . "'";
-
+        if ($_POST['TipoDoc'] == "Concepto") {
             $Param = array(
                 $_POST['Metodo'] ?? 1, // 1 - Crear, 2 - Actualizar
-                $id,
-                "'" . $_POST['id_retencion'] . "'",
-                "'" . $_POST['id_tipo_entidad'] . "'",
-                "'" . $_POST['id_municipio'] . "'",
+                "'" . $_POST['id_concepto_salida'] . "'",
+                "'" . $_POST['concepto_salida'] . "'",
+                "'" . $_POST['id_cc'] . "'", // id_cuenta_contable
+                "'" . $_POST['cc'] . "'", // cuenta_contable
                 "'" . $_POST['estado'] . "'",
-                $Usuario, // @id_usuario_actualizacion
-                $FechaHora, // @fecha_actualizacion
-                $FechaHora, // @hora_actualizacion
-                ($_POST['Metodo'] == 1) ? $Usuario : "NULL",
-                ($_POST['Metodo'] == 1) ? $FechaHora : "NULL",
-                ($_POST['Metodo'] == 1) ? $FechaHora : "NULL",
             );
-            $SQL = EjecutarSP('sp_tbl_MunicipiosRetenciones', $Param);
+            $SQL = EjecutarSP('sp_tbl_SalidaInventario_Conceptos', $Param);
             if (!$SQL) {
                 $sw_error = 1;
                 $msg_error = "No se pudo insertar los datos";
@@ -59,7 +47,7 @@ if ((isset($_POST['frmType']) && ($_POST['frmType'] != "")) || (isset($_POST['Me
 
         if ($sw_error == 0) {
             $TipoDoc = $_POST['TipoDoc'];
-            header("Location:parametros_asistente_socios_negocio.php?doc=$TipoDoc&a=" . base64_encode("OK_PRUpd") . "#$TipoDoc");
+            header("Location:parametros_conceptos_salida.php?doc=$TipoDoc&a=" . base64_encode("OK_PRUpd") . "#$TipoDoc");
         }
 
     } catch (Exception $e) {
@@ -69,8 +57,7 @@ if ((isset($_POST['frmType']) && ($_POST['frmType'] != "")) || (isset($_POST['Me
 
 }
 
-// SMM, 06/09/2022
-$SQL_MunicipiosRetenciones = Seleccionar("uvw_tbl_MunicipiosRetenciones", "*");
+$SQL_ConceptosSalida = Seleccionar("tbl_SalidaInventario_Conceptos", "*");
 ?>
 
 <!DOCTYPE html>
@@ -148,7 +135,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Parámetros asistente de socios de negocio</h2>
+                    <h2>Parámetros de Concepto de salida de inventario</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -160,7 +147,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
                             <a href="#">Parámetros del sistema</a>
                         </li>
                         <li class="active">
-                            <strong>Parámetros asistente de socios de negocio</strong>
+                            <strong>Parámetros de Concepto de salida de inventario</strong>
                         </li>
                     </ol>
                 </div>
@@ -180,18 +167,18 @@ if (isset($sw_error) && ($sw_error == 1)) {
 						<?php include "includes/spinner.php";?>
 						 <div class="tabs-container">
 							<ul class="nav nav-tabs">
-								<li class="<?php echo (isset($_GET['doc']) && ($_GET['doc'] == "Retencion") || !isset($_GET['doc'])) ? "active" : ""; ?>">
-									<a data-toggle="tab" href="#tab-1"><i class="fa fa-list"></i> Lista de retenciones</a>
+								<li class="<?php echo (isset($_GET['doc']) && ($_GET['doc'] == "Concepto") || !isset($_GET['doc'])) ? "active" : ""; ?>">
+									<a data-toggle="tab" href="#tab-1"><i class="fa fa-list"></i> Lista de Conceptos de Salida</a>
 								</li>
 							</ul>
 							<div class="tab-content">
-								<!-- Inicio, lista Retenciones -->
-								<div id="tab-1" class="tab-pane <?php echo (isset($_GET['doc']) && ($_GET['doc'] == "Retencion") || !isset($_GET['doc'])) ? "active" : ""; ?>">
+								<!-- Inicio, lista Conceptos de Salida -->
+								<div id="tab-1" class="tab-pane <?php echo (isset($_GET['doc']) && ($_GET['doc'] == "Concepto") || !isset($_GET['doc'])) ? "active" : ""; ?>">
 									<form class="form-horizontal">
-										<!-- Inicio, ibox Retenciones -->
-										<div class="ibox" id="Retencion">
+										<!-- Inicio, ibox Conceptos -->
+										<div class="ibox" id="Concepto">
 											<div class="ibox-title bg-success">
-												<h5 class="collapse-link"><i class="fa fa-list"></i> Lista de retenciones</h5>
+												<h5 class="collapse-link"><i class="fa fa-list"></i> Lista de Conceptos de Salida</h5>
 												 <a class="collapse-link pull-right">
 													<i class="fa fa-chevron-up"></i>
 												</a>
@@ -199,39 +186,37 @@ if (isset($sw_error) && ($sw_error == 1)) {
 											<div class="ibox-content">
 												<div class="row m-b-md">
 													<div class="col-lg-12">
-														<button class="btn btn-primary pull-right" type="button" id="NewRetencion" onClick="CrearCampo('Retencion');"><i class="fa fa-plus-circle"></i> Agregar nuevo</button>
+														<button class="btn btn-primary pull-right" type="button" id="NewConcepto" onClick="CrearCampo('Concepto');"><i class="fa fa-plus-circle"></i> Agregar nuevo</button>
 													</div>
 												</div>
 												<div class="table-responsive">
 													<table class="table table-striped table-bordered table-hover dataTables-example">
 														<thead>
 															<tr>
-																<th>ID Retencion</th>
-																<th>Entidad</th>
-																<th>Municipio</th>
-																<th>Fecha Actualizacion</th>
-																<th>Usuario Actualizacion</th>
+																<th>ID Concepto Salida</th>
+																<th>Concepto Salida</th>
+																<th>ID Cuenta Contable</th>
+																<th>Cuenta Contable</th>
 																<th>Estado</th>
 																<th>Acciones</th>
 															</tr>
 														</thead>
 														<tbody>
-															 <?php while ($row_MunicipiosRetenciones = sqlsrv_fetch_array($SQL_MunicipiosRetenciones)) {?>
+															 <?php while ($row_ConceptosSalida = sqlsrv_fetch_array($SQL_ConceptosSalida)) {?>
 															<tr>
-																<td><?php echo $row_MunicipiosRetenciones['id_retencion']; ?></td>
-																<td><?php echo $row_MunicipiosRetenciones['entidad']; ?></td>
-																<td><?php echo $row_MunicipiosRetenciones['municipio']; ?></td>
+																<td><?php echo $row_ConceptosSalida['id_concepto_salida']; ?></td>
+																<td><?php echo $row_ConceptosSalida['concepto_salida']; ?></td>
+																<td><?php echo $row_ConceptosSalida['id_cuenta_contable']; ?></td>
+																<td><?php echo $row_ConceptosSalida['cuenta_contable']; ?></td>
 
-																<td><?php echo isset($row_MunicipiosRetenciones['fecha_actualizacion']) ? date_format($row_MunicipiosRetenciones['fecha_actualizacion'], 'Y-m-d H:i:s') : ""; ?></td>
-																<td><?php echo $row_MunicipiosRetenciones['usuario_actualizacion']; ?></td>
 																<td>
-																	<span class="label <?php echo ($row_MunicipiosRetenciones['estado'] == "Y") ? "label-info" : "label-danger"; ?>">
-																		<?php echo ($row_MunicipiosRetenciones['estado'] == "Y") ? "Activo" : "Inactivo"; ?>
+																	<span class="label <?php echo ($row_ConceptosSalida['estado'] == "Y") ? "label-info" : "label-danger"; ?>">
+																		<?php echo ($row_ConceptosSalida['estado'] == "Y") ? "Activo" : "Inactivo"; ?>
 																	</span>
 																</td>
 																<td>
-																	<button type="button" id="btnEdit<?php echo $row_MunicipiosRetenciones['id']; ?>" class="btn btn-success btn-xs" onClick="EditarCampo('<?php echo $row_MunicipiosRetenciones['id']; ?>','Retencion');"><i class="fa fa-pencil"></i> Editar</button>
-																	<button type="button" id="btnDelete<?php echo $row_MunicipiosRetenciones['id']; ?>" class="btn btn-danger btn-xs" onClick="EliminarCampo('<?php echo $row_MunicipiosRetenciones['id']; ?>','Retencion');"><i class="fa fa-trash"></i> Eliminar</button>
+																	<button type="button" id="btnEdit<?php echo $row_ConceptosSalida['id']; ?>" class="btn btn-success btn-xs" onClick="EditarCampo('<?php echo $row_ConceptosSalida['id_concepto_salida']; ?>','Concepto');"><i class="fa fa-pencil"></i> Editar</button>
+																	<button type="button" id="btnDelete<?php echo $row_ConceptosSalida['id']; ?>" class="btn btn-danger btn-xs" onClick="EliminarCampo('<?php echo $row_ConceptosSalida['id_concepto_salida']; ?>','Concepto');"><i class="fa fa-trash"></i> Eliminar</button>
 																</td>
 															</tr>
 															 <?php }?>
@@ -240,10 +225,10 @@ if (isset($sw_error) && ($sw_error == 1)) {
 												</div>
 											</div>
 										</div>
-										<!-- Fin, ibox Retenciones -->
+										<!-- Fin, ibox Conceptos -->
 									</form>
 								</div>
-								<!-- Fin, lista retenciones -->
+								<!-- Fin, lista Conceptos de Salida -->
 							</div>
 						 </div>
 					</div>
@@ -259,52 +244,53 @@ if (isset($sw_error) && ($sw_error == 1)) {
 <?php include_once "includes/pie.php";?>
 <!-- InstanceBeginEditable name="EditRegion4" -->
  <script>
-        $(document).ready(function(){
-			$(".select2").select2();
-			$('.i-checks').iCheck({
-				 checkboxClass: 'icheckbox_square-green',
-				 radioClass: 'iradio_square-green',
-			  });
-
-			$('.dataTables-example').DataTable({
-				pageLength: 10,
-				dom: '<"html5buttons"B>lTfgitp',
-				language: {
-					"decimal":        "",
-					"emptyTable":     "No se encontraron resultados.",
-					"info":           "Mostrando _START_ - _END_ de _TOTAL_ registros",
-					"infoEmpty":      "Mostrando 0 - 0 de 0 registros",
-					"infoFiltered":   "(filtrando de _MAX_ registros)",
-					"infoPostFix":    "",
-					"thousands":      ",",
-					"lengthMenu":     "Mostrar _MENU_ registros",
-					"loadingRecords": "Cargando...",
-					"processing":     "Procesando...",
-					"search":         "Filtrar:",
-					"zeroRecords":    "Ningún registro encontrado",
-					"paginate": {
-						"first":      "Primero",
-						"last":       "Último",
-						"next":       "Siguiente",
-						"previous":   "Anterior"
-					},
-					"aria": {
-						"sortAscending":  ": Activar para ordenar la columna ascendente",
-						"sortDescending": ": Activar para ordenar la columna descendente"
-					}
-				},
-				buttons: []
-
+	$(document).ready(function(){
+		$(".select2").select2();
+		$('.i-checks').iCheck({
+				checkboxClass: 'icheckbox_square-green',
+				radioClass: 'iradio_square-green',
 			});
-        });
-    </script>
+
+		$('.dataTables-example').DataTable({
+			pageLength: 10,
+			dom: '<"html5buttons"B>lTfgitp',
+			language: {
+				"decimal":        "",
+				"emptyTable":     "No se encontraron resultados.",
+				"info":           "Mostrando _START_ - _END_ de _TOTAL_ registros",
+				"infoEmpty":      "Mostrando 0 - 0 de 0 registros",
+				"infoFiltered":   "(filtrando de _MAX_ registros)",
+				"infoPostFix":    "",
+				"thousands":      ",",
+				"lengthMenu":     "Mostrar _MENU_ registros",
+				"loadingRecords": "Cargando...",
+				"processing":     "Procesando...",
+				"search":         "Filtrar:",
+				"zeroRecords":    "Ningún registro encontrado",
+				"paginate": {
+					"first":      "Primero",
+					"last":       "Último",
+					"next":       "Siguiente",
+					"previous":   "Anterior"
+				},
+				"aria": {
+					"sortAscending":  ": Activar para ordenar la columna ascendente",
+					"sortDescending": ": Activar para ordenar la columna descendente"
+				}
+			},
+			buttons: []
+
+		});
+	});
+</script>
+
 <script>
 function CrearCampo(doc){
 	$('.ibox-content').toggleClass('sk-loading',true);
 
 	$.ajax({
 		type: "POST",
-		url: "md_asistente_socios_negocio.php",
+		url: "md_parametros_conceptos_salida.php",
 		data:{
 			doc:doc
 		},
@@ -312,6 +298,9 @@ function CrearCampo(doc){
 			$('.ibox-content').toggleClass('sk-loading',false);
 			$('#ContenidoModal').html(response);
 			$('#myModal').modal("show");
+		},
+		error: function(error) {
+			console.error("consulta erronea, crear");
 		}
 	});
 }
@@ -320,7 +309,7 @@ function EditarCampo(id, doc){
 
 	$.ajax({
 		type: "POST",
-		url: "md_asistente_socios_negocio.php",
+		url: "md_parametros_conceptos_salida.php",
 		data:{
 			doc:doc,
 			id:id,
@@ -330,6 +319,9 @@ function EditarCampo(id, doc){
 			$('.ibox-content').toggleClass('sk-loading',false);
 			$('#ContenidoModal').html(response);
 			$('#myModal').modal("show");
+		},
+		error: function(error) {
+			console.error("consulta erronea, editar");
 		}
 	});
 }
@@ -345,7 +337,7 @@ function EliminarCampo(id, doc){
 			//$('.ibox-content').toggleClass('sk-loading',true);
 			$.ajax({
 				type: "post",
-				url: "parametros_asistente_socios_negocio.php",
+				url: "parametros_conceptos_salida.php",
 				data: {
 					TipoDoc: doc,
 					id: id,
@@ -353,18 +345,18 @@ function EliminarCampo(id, doc){
 					 },
 				async: false,
 				success: function(data){
-					location.href = "parametros_asistente_socios_negocio.php?a=<?php echo base64_encode("OK_PRDel"); ?>";
+					console.log(data);
+					location.href = "parametros_conceptos_salida.php?a=<?php echo base64_encode("OK_PRDel"); ?>";
 				},
 				error: function(error) {
-					console.error("consulta erronea");
+					console.error("consulta erronea, eliminar");
 				}
 			});
 		}
 	});
-
-	return result;
 }
 </script>
+
 <!-- InstanceEndEditable -->
 </body>
 

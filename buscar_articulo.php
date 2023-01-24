@@ -36,8 +36,9 @@ if (!isset($_GET['dato']) || ($_GET['dato'] == "")) {
 
     $prjcode = $_GET['prjcode'] ?? ""; // SMM, 04/05/2022
     $empventas = $_GET['empventas'] ?? ""; // SMM, 04/05/2022
-
-    $borrador = $_GET['borrador'] ?? ""; // SMM, 04/05/2022
+	
+    $borrador = $_GET['borrador'] ?? ""; // SMM, 05/05/2022
+	$concepto = $_GET['concepto'] ?? ""; // SMM, 23/01/2023
 
     if (isset($_GET['idordenventa']) && $_GET['idordenventa'] != "") {
         $ID_OrdenVenta = base64_decode($_GET['idordenventa']);
@@ -337,7 +338,7 @@ else if(doctype==7){//Solicitud de traslado crear
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	  // alert(whscode);
-	  xhttp.send("P=35&doctype=7&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=7&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&concepto=<?php echo $concepto; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==8){//Solicitud de traslado editar
 	  var xhttp;
@@ -349,15 +350,19 @@ else if(doctype==8){//Solicitud de traslado editar
 	  xhttp = new XMLHttpRequest();
 	  xhttp.onreadystatechange = function() {
 		  if (this.readyState == 4 && this.status == 200) {
-			  window.opener.document.getElementById('DataGrid').src='detalle_solicitud_salida.php?id=<?php echo base64_encode($ID_SolTras); ?>&evento=<?php echo base64_encode($ID_Evento); ?>&type=2';
-			  window.opener.document.getElementById('TotalItems').value=this.responseText;
-			  window.opener.document.getElementById('BuscarItem').value="";
-			  window.close();
+				// Se agrego la bandera "borrador". SMM, 22/12/2022
+				window.opener.document.getElementById('DataGrid').src='detalle_solicitud_salida<?php echo isset($_GET['borrador']) ? "_borrador" : ""; ?>.php?id=<?php echo base64_encode($ID_SolTras); ?>&evento=<?php echo base64_encode($ID_Evento); ?>&type=2';
+				
+				window.opener.document.getElementById('TotalItems').value=this.responseText;
+				window.opener.document.getElementById('BuscarItem').value="";
+				window.close();
 		}
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=8&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolTras; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+
+	  // Se agrego la bandera $borrador. SMM, 22/12/2022
+	  xhttp.send("P=35&borrador=<?php echo $borrador; ?>&doctype=8&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&concepto=<?php echo $concepto; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolTras; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==9){//Salida de inventario crear
 	  var xhttp;
@@ -377,7 +382,7 @@ else if(doctype==9){//Salida de inventario crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=9&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
+	  xhttp.send("P=35&doctype=9&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&concepto=<?php echo $concepto; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
   }
 else if(doctype==10){//Salida de inventario editar
 	  var xhttp;
@@ -397,7 +402,7 @@ else if(doctype==10){//Salida de inventario editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=10&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SalidaInv; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
+	  xhttp.send("P=35&doctype=10&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&concepto=<?php echo $concepto; ?>&id=<?php echo $ID_SalidaInv; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>&prjcode=<?php echo $prjcode; ?>");
   }
 else if(doctype==11){//Traslado de inventario crear
 	  var xhttp;
@@ -417,7 +422,7 @@ else if(doctype==11){//Traslado de inventario crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=11&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=11&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&concepto=<?php echo $concepto; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==12){//Traslado de inventario editar
 	  var xhttp;
@@ -437,7 +442,7 @@ else if(doctype==12){//Traslado de inventario editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=12&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_TrasladoInv; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=12&item="+str+"&whscode="+whscode+"&towhscode=<?php echo $AlmacenDestino; ?>&concepto=<?php echo $concepto; ?>&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_TrasladoInv; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==13){//Devolucion de venta crear
 	  var xhttp;

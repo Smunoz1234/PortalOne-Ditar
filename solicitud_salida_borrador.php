@@ -503,9 +503,6 @@ $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 // Proyectos, SMM 29/11/2022
 $SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
 
-// Conceptos de salida de inventario, SMM 23/12/2022
-$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', '', 'id_concepto_salida');
-
 // Consultar el motivo de autorización según el ID. SMM, 30/11/2022
 if (isset($row['IdMotivoAutorizacion']) && ($row['IdMotivoAutorizacion'] != "") && ($IdMotivo == "")) {
     $IdMotivo = $row['IdMotivoAutorizacion'];
@@ -529,6 +526,24 @@ $BloquearDocumento = false;
 if (!PermitirFuncion(1211)) {
     $BloquearDocumento = true;
 }
+
+// Filtrar conceptos de salida. SMM, 21/01/2023
+$Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Conceptos = Seleccionar('uvw_tbl_UsuariosConceptos', '*', $Where_Conceptos);
+
+$Filtro_Conceptos = "Estado = 'Y'";
+$Conceptos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
+    $Conceptos[] = ("'" . $Concepto['IdConcepto'] . "'");
+}
+
+if (count($Conceptos) > 0) {
+    $Filtro_Conceptos .= " AND id_concepto_salida IN (";
+    $Filtro_Conceptos .= implode(",", $Conceptos);
+    $Filtro_Conceptos .= ")";
+}
+// Conceptos de salida de inventario, SMM 21/01/2023
+$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
 
 // Stiven Muñoz Murillo, 29/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
@@ -622,6 +637,9 @@ function BuscarArticulo(dato){
 	let proyecto = document.getElementById("PrjCode").value;
 	var almacenDestino = document.getElementById("AlmacenDestino").value;
 
+	// SMM, 23/01/2023
+	let conceptoSalida = document.getElementById("ConceptoSalida").value;
+
 	var posicion_x;
 	var posicion_y;
 	posicion_x=(screen.width/2)-(1200/2);
@@ -630,7 +648,7 @@ function BuscarArticulo(dato){
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")){
 			// Se agrego la bandera (borrador = 1). SMM, 22/12/2022
-			remote=open(`buscar_articulo.php?borrador=1&dim1=${dim1}&dim2=${dim2}&dim3=${dim3}&towhscode=${almacenDestino}&prjcode=${proyecto}&dato=`+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			remote=open(`buscar_articulo.php?borrador=1&concepto=${conceptoSalida}&dim1=${dim1}&dim2=${dim2}&dim3=${dim3}&towhscode=${almacenDestino}&prjcode=${proyecto}&dato=`+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
@@ -1103,6 +1121,45 @@ function verAutorizacion() {
 			}
 		});
 		// Actualizar proyecto, llega hasta aquí.
+
+				// Actualización del concepto de salida en las líneas, SMM 21/01/2023
+				$("#ConceptoSalida").change(function() {
+			var frame=document.getElementById('DataGrid');
+
+			if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=4&type=1&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=4&type=2&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		// Actualización del concepto de salida, llega hasta aquí.
 	});
 </script>
 <!-- InstanceEndEditable -->

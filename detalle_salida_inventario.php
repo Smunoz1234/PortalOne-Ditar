@@ -83,6 +83,25 @@ $SQL_Almacen = EjecutarSP('sp_ConsultarAlmacenesUsuario', $ParamAlmacen);
 // Proyectos, SMM, 05/12/2022
 $SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
 
+// Filtrar conceptos de salida. SMM, 21/01/2023
+$Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Conceptos = Seleccionar('uvw_tbl_UsuariosConceptos', '*', $Where_Conceptos);
+
+$Filtro_Conceptos = "Estado = 'Y'";
+$Conceptos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
+    $Conceptos[] = ("'" . $Concepto['IdConcepto'] . "'");
+}
+
+if (count($Conceptos) > 0) {
+    $Filtro_Conceptos .= " AND id_concepto_salida IN (";
+    $Filtro_Conceptos .= implode(",", $Conceptos);
+    $Filtro_Conceptos .= ")";
+}
+
+// Conceptos de salida de inventario, SMM 21/01/2023
+$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
+
 // Base del Redondeo. SMM, 05/12/2022
 $SQL_DatosBase = Seleccionar('uvw_Sap_ConfiguracionSAPB1_DatosBase', '*');
 
@@ -324,7 +343,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 			<tr>
 				<!-- SMM, 20/12/2022 -->
 				<th class="text-center form-inline w-150">
-					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos" <?php if(($type == 2) || ($Estado == 2)) { echo "disabled";}?>><label></label></div>
+					<div class="checkbox checkbox-success"><input type="checkbox" id="chkAll" value="" onChange="SeleccionarTodos();" title="Seleccionar todos" <?php if (($type == 2) || ($Estado == 2)) {echo "disabled";}?>><label></label></div>
 					<button type="button" id="btnBorrarLineas" title="Borrar lineas" class="btn btn-danger btn-xs" disabled onClick="BorrarLinea();"><i class="fa fa-trash"></i></button>
 					<button type="button" id="btnDuplicarLineas" title="Duplicar lineas" class="btn btn-success btn-xs" disabled onClick="DuplicarLinea();"><i class="fa fa-copy"></i></button>
 				</th>
@@ -337,7 +356,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 				<th>Cant. Inicial</th>
 
 				<!-- SMM, 05/12/2022 -->
-				<th>Almacén origen</th>
+				<th>Almacén</th>
 
 				<th>Stock almacén</th>
 
@@ -349,6 +368,9 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 
 				<!-- SMM, 05/12/2022 -->
 				<th>Proyecto</th>
+
+				<!-- SMM, 21/01/2023 -->
+				<th>Concepto Salida</th>
 
 				<th>Texto libre</th>
 				<th>Precio</th>
@@ -370,6 +392,7 @@ if ($sw == 1) {
         // $Almacen = $row['WhsCode'];
         sqlsrv_fetch($SQL_Almacen, SQLSRV_SCROLL_ABSOLUTE, -1);
         sqlsrv_fetch($SQL_Proyecto, SQLSRV_SCROLL_ABSOLUTE, -1);
+        sqlsrv_fetch($SQL_ConceptoSalida, SQLSRV_SCROLL_ABSOLUTE, -1);
         ?>
 
 		<tr>
@@ -389,11 +412,12 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="CantInicial<?php echo $i; ?>" name="CantInicial[]" class="form-control" value="<?php echo number_format($row['CantInicial'], 2); ?>" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
 			<td> <!-- SMM, 05/12/2022 -->
-				<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control select2" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);ActStockAlmacen('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "disabled='disabled'";}?>>
+				<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);ActStockAlmacen('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "readonly";}?>>
 				  <option value="">Seleccione...</option>
 				  <?php while ($row_Almacen = sqlsrv_fetch_array($SQL_Almacen)) {?>
-						<?php $CodigoAlmacen = ($dt_TI == 0) ? $row_Almacen['WhsCode'] : $row_Almacen['ToWhsCode'];?>
-						<?php $NombreAlmacen = ($dt_TI == 0) ? $row_Almacen['WhsName'] : $row_Almacen['ToWhsName'];?>
+						<?php $CodigoAlmacen = (($dt_TI == 0) && ($type == 1)) ? $row_Almacen['WhsCode'] : $row_Almacen['ToWhsCode'];?>
+						<?php $NombreAlmacen = (($dt_TI == 0) && ($type == 1)) ? $row_Almacen['WhsName'] : $row_Almacen['ToWhsName'];?>
+						<!-- option><?php //print_r($row_Almacen);?></option-->
 						<option value="<?php echo $CodigoAlmacen; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($CodigoAlmacen, $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $NombreAlmacen; ?></option>
 				  <?php }?>
 				</select>
@@ -407,7 +431,7 @@ if ($sw == 1) {
 				<?php $OcrId = ($DimCode == 1) ? "" : $DimCode;?>
 
 				<td>
-					<select id="OcrCode<?php echo $OcrId . $i; ?>" name="OcrCode<?php echo $OcrId; ?>[]" class="form-control select2" onChange="ActualizarDatos('OcrCode<?php echo $OcrId; ?>',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "disabled='disabled'";}?>>
+					<select id="OcrCode<?php echo $OcrId . $i; ?>" name="OcrCode<?php echo $OcrId; ?>[]" class="form-control" onChange="ActualizarDatos('OcrCode<?php echo $OcrId; ?>',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "readonly";}?>>
 						<option value="">(NINGUNO)</option>
 
 						<?php $SQL_Dim = Seleccionar('uvw_Sap_tbl_DimensionesReparto', '*', "DimCode=$DimCode");?>
@@ -420,13 +444,23 @@ if ($sw == 1) {
 			<!-- Dimensiones dinámicas, hasta aquí -->
 
 			<td> <!-- SMM, 05/12/2022 -->
-				<select id="PrjCode<?php echo $i; ?>" name="PrjCode[]" class="form-control select2" onChange="ActualizarDatos('PrjCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "disabled='disabled'";}?>>
+				<select id="PrjCode<?php echo $i; ?>" name="PrjCode[]" class="form-control" onChange="ActualizarDatos('PrjCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "readonly";}?>>
 					<option value="">(NINGUNO)</option>
 				  <?php while ($row_Proyecto = sqlsrv_fetch_array($SQL_Proyecto)) {?>
 						<option value="<?php echo $row_Proyecto['IdProyecto']; ?>" <?php if ((isset($row['PrjCode'])) && (strcmp($row_Proyecto['IdProyecto'], $row['PrjCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Proyecto['DeProyecto']; ?></option>
 				  <?php }?>
 				</select>
 			</td>
+
+			<td>
+				<!-- SMM, 21/01/2023 -->
+				<select id="ConceptoSalida<?php echo $i; ?>" name="ConceptoSalida[]" class="form-control" onChange="ActualizarDatos('ConceptoSalida',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || ($type == 2) || ($Estado == 2)) {echo "readonly";}?>>
+					<option value="">(NINGUNO)</option>
+					<?php while ($row_ConceptoSalida = sqlsrv_fetch_array($SQL_ConceptoSalida)) {?>
+						<option value="<?php echo $row_ConceptoSalida['id_concepto_salida']; ?>" <?php if ((isset($row['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], $row['ConceptoSalida']) == 0)) {echo "selected";}?>><?php echo $row_ConceptoSalida['id_concepto_salida'] . "-" . $row_ConceptoSalida['concepto_salida']; ?></option>
+					<?php }?>
+				</select>
+			</td> <!-- form-group -->
 
 			<td><input size="50" type="text" id="FreeTxt<?php echo $i; ?>" name="FreeTxt[]" class="form-control" value="<?php echo $row['FreeTxt']; ?>" onChange="ActualizarDatos('FreeTxt',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" maxlength="100" <?php if (($row['LineStatus'] == 'C') || ($type == 2) || ($Estado == 2)) {echo "readonly";}?>></td>
 

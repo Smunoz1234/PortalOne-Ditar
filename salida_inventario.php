@@ -1,5 +1,8 @@
 <?php require_once "includes/conexion.php";
 PermitirAcceso(1206);
+
+$debug_mode = false; // Impide el llamado al Web Service, fuerza el $sw_error = 1
+
 $msg_error = ""; //Mensaje del error
 $dt_TI = 0; //sw para saber si vienen datos de una Solicitud de salida.
 $IdSalidaInv = 0;
@@ -153,8 +156,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             "'" . $_SESSION['CodUser'] . "'",
             "$Type",
 
-			// SMM, 23/12/2022
-			"'" . $_POST['ConceptoSalida'] . "'",
+            // SMM, 23/12/2022
+            "'" . $_POST['ConceptoSalida'] . "'",
         );
 
         // Enviar el valor de la dimensiones dinámicamente al SP.
@@ -214,16 +217,18 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 
             //Enviar datos al WebServices
             try {
-                $Parametros = array(
-                    'id_documento' => intval($IdSalidaInv),
-                    'id_evento' => intval($IdEvento),
-                );
-                $Metodo = "SalidasInventarios";
-                $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
+                if (!$debug_mode) {
+                    $Parametros = array(
+                        'id_documento' => intval($IdSalidaInv),
+                        'id_evento' => intval($IdEvento),
+                    );
+                    $Metodo = "SalidasInventarios";
+                    $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
+                }
 
-                if ($Resultado->Success == 0) {
+                if ($debug_mode || ($Resultado->Success == 0)) {
                     $sw_error = 1;
-                    $msg_error = $Resultado->Mensaje;
+                    $msg_error = ($debug_mode) ? "Modo de pruebas" : $Resultado->Mensaje;
                 } else {
                     sqlsrv_close($conexion);
                     if ($_POST['tl'] == 0) { //Creando salida
@@ -269,6 +274,7 @@ if (isset($_GET['dt_TI']) && ($_GET['dt_TI']) == 1) { //Verificar que viene de u
         "'" . base64_decode($_GET['Almacen']) . "'",
         "'" . base64_decode($_GET['Cardcode']) . "'",
         "'" . $_SESSION['CodUser'] . "'",
+        "'" . base64_decode($_GET['DocEntry']) . "'", // SMM, 24/01/2023
     );
     $SQL_CopiarTrasladoInvToSalidaInv = EjecutarSP('sp_tbl_TrasladoInvDet_To_SalidaInvDet', $ParametrosCopiarTrasladoInvToSalidaInv);
     if (!$SQL_CopiarTrasladoInvToSalidaInv) {
@@ -417,22 +423,22 @@ if (count($Conceptos) > 0) {
 $SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
 
 // SMM, 20/01/2023
-if($edit == 0) {
-	$ClienteDefault = "";
-	$NombreClienteDefault = "";
-	$SucursalDestinoDefault = "";
-	$SucursalFacturacionDefault = "";
+if ($edit == 0) {
+    $ClienteDefault = "";
+    $NombreClienteDefault = "";
+    $SucursalDestinoDefault = "";
+    $SucursalFacturacionDefault = "";
 
-	if (ObtenerVariable("NITClienteDefault") != "") {
-		$ClienteDefault = ObtenerVariable("NITClienteDefault");
+    if (ObtenerVariable("NITClienteDefault") != "") {
+        $ClienteDefault = ObtenerVariable("NITClienteDefault");
 
-		$SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
-		$row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
+        $SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
+        $row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
 
-		$NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
-		$SucursalDestinoDefault = "DITAR S.A";
-		$SucursalFacturacionDefault = "DITAR S.A.";
-	}
+        $NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
+        $SucursalDestinoDefault = "DITAR S.A";
+        $SucursalFacturacionDefault = "DITAR S.A.";
+    }
 }
 
 // Stiven Muñoz Murillo, 31/08/2022
@@ -618,8 +624,8 @@ function ConsultarDatosCliente(){
 			});
 
 			// SMM, 23/01/2023
-			<?php if(isset($_GET['a'])) {?>
-				frame.src="detalle_traslado_inventario.php";
+			<?php if (isset($_GET['a'])) {?>
+				frame.src="detalle_salida_inventario.php";
 			<?php } else {?>
 				// Antiguo fragmento de código
 				<?php if ($edit == 0) {?>
@@ -1127,6 +1133,12 @@ if ($edit == 1 || $sw_error == 1) {
 				</div>
 				<div class="col-lg-4">
 					<div class="form-group">
+						<label class="col-lg-5">Número</label>
+						<div class="col-lg-7">
+							<input type="text" name="DocNum" id="DocNum" class="form-control" value="<?php if ($edit == 1) {echo $row['DocNum'];}?>" readonly>
+						</div>
+					</div>
+					<div class="form-group">
 						<label class="col-lg-5">Fecha de contabilización</label>
 						<div class="col-lg-7 input-group date">
 							 <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input name="DocDate" id="DocDate" type="text" required="required" class="form-control" value="<?php if ($edit == 1 || $sw_error == 1) {echo $row['DocDate'];} else {echo date('Y-m-d');}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1)) {echo "readonly";}?>>
@@ -1167,10 +1179,7 @@ if ($edit == 1 || $sw_error == 1) {
 						  <?php }?>
 						</select>
                	  	</div>
-					<label class="col-lg-1 control-label">Número</label>
-					<div class="col-lg-3">
-                    	<input type="text" name="DocNum" id="DocNum" class="form-control" value="<?php if ($edit == 1) {echo $row['DocNum'];}?>" readonly>
-               	  	</div>
+
 					<label class="col-lg-1 control-label">Referencia</label>
 					<div class="col-lg-3">
                     	<input type="text" name="Referencia" id="Referencia" class="form-control" value="<?php if ($edit == 1) {echo $row['NumAtCard'];}?>" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || ($dt_TI == 1)) {echo "readonly";}?>>
@@ -1253,7 +1262,7 @@ if ($edit == 1 || $sw_error == 1) {
 						<select name="ConceptoSalida" class="form-control" id="ConceptoSalida" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C') || ($dt_TI == 1)) {echo "readonly";}?>>
 								<option value="">Seleccione...</option>
 								<?php while ($row_ConceptoSalida = sqlsrv_fetch_array($SQL_ConceptoSalida)) {?>
-									<option value="<?php echo $row_ConceptoSalida['id_concepto_salida']; ?>" <?php if ((isset($row['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], $row['row_ConceptoSalida']) == 0)) {echo "selected";} elseif ((isset($_GET['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], base64_decode($_GET['ConceptoSalida'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_ConceptoSalida['id_concepto_salida'] . "-" . $row_ConceptoSalida['concepto_salida']; ?></option>
+									<option value="<?php echo $row_ConceptoSalida['id_concepto_salida']; ?>" <?php if ((isset($row['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], $row['ConceptoSalida']) == 0)) {echo "selected";} elseif ((isset($_GET['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], base64_decode($_GET['ConceptoSalida'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_ConceptoSalida['id_concepto_salida'] . "-" . $row_ConceptoSalida['concepto_salida']; ?></option>
 								<?php }?>
 						</select>
 					</div>
@@ -1401,7 +1410,7 @@ if ($edit == 1 || $sw_error == 1) {
 							<button class="btn btn-primary" type="submit" form="CrearSalidaInventario" id="Crear"><i class="fa fa-check"></i> Crear Salida de traslado</button>
 						<?php } elseif (isset($row['Cod_Estado']) && $row['Cod_Estado'] == "O" && PermitirFuncion(1205)) {?>
 							<button class="btn btn-warning" type="submit" form="CrearSalidaInventario" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Salida de traslado</button>
-						<?php } elseif(!PermitirFuncion(1205)) {?>
+						<?php } elseif (!PermitirFuncion(1205)) {?>
 							<!-- p>No tiene permiso, 1205</p -->
 						<?php }?>
 						<?php
@@ -1459,7 +1468,7 @@ if (isset($_GET['return'])) {
 		<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
 			$("#CardCode").change();
 		<?php }?>
-		 
+
 		$("#CrearSalidaInventario").validate({
 			 submitHandler: function(form){
 				if(Validar()){

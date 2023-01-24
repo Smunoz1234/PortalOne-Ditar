@@ -500,7 +500,8 @@ if (count($Conceptos) > 0) {
     $Filtro_Conceptos .= implode(",", $Conceptos);
     $Filtro_Conceptos .= ")";
 }
-// Conceptos de salida de inventario, SMM 30/01/2023
+
+// Conceptos de salida de inventario, SMM 20/01/2023
 $SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
 
 // Consultar el motivo de autorización según el ID. SMM, 30/11/2022
@@ -518,24 +519,22 @@ if (isset($row['AuthPortal']) && ($row['AuthPortal'] == "Y") && (!PermitirFuncio
 }
 
 // SMM, 20/01/2023
-if($edit == 0) {
-	$ClienteDefault = "";
-	$NombreClienteDefault = "";
-	$SucursalDestinoDefault = "";
-	$SucursalFacturacionDefault = "";
+if ($edit == 0) {
+    $ClienteDefault = "";
+    $NombreClienteDefault = "";
+    $SucursalDestinoDefault = "";
+    $SucursalFacturacionDefault = "";
 
-	
+    if (ObtenerVariable("NITClienteDefault") != "") {
+        $ClienteDefault = ObtenerVariable("NITClienteDefault");
 
-	if (ObtenerVariable("NITClienteDefault") != "") {
-		$ClienteDefault = ObtenerVariable("NITClienteDefault");
+        $SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
+        $row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
 
-		$SQL_ClienteDefault = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='$ClienteDefault'");
-		$row_ClienteDefault = sqlsrv_fetch_array($SQL_ClienteDefault);
-
-		$NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
-		$SucursalDestinoDefault = "DITAR S.A";
-		$SucursalFacturacionDefault = "DITAR S.A.";
-	}
+        $NombreClienteDefault = $row_ClienteDefault["NombreBuscarCliente"]; // NombreCliente
+        $SucursalDestinoDefault = "DITAR S.A";
+        $SucursalFacturacionDefault = "DITAR S.A.";
+    }
 }
 
 // Stiven Muñoz Murillo, 29/08/2022
@@ -643,6 +642,9 @@ function BuscarArticulo(dato){
 	let proyecto = document.getElementById("PrjCode").value;
 	var almacenDestino = document.getElementById("AlmacenDestino").value;
 
+	// SMM, 23/01/2023
+	let conceptoSalida = document.getElementById("ConceptoSalida").value;
+
 	var posicion_x;
 	var posicion_y;
 	posicion_x=(screen.width/2)-(1200/2);
@@ -650,7 +652,7 @@ function BuscarArticulo(dato){
 
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")){
-			remote=open(`buscar_articulo.php?dim1=${dim1}&dim2=${dim2}&dim3=${dim3}&towhscode=${almacenDestino}&prjcode=${proyecto}&dato=`+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			remote=open(`buscar_articulo.php?concepto=${conceptoSalida}&dim1=${dim1}&dim2=${dim2}&dim3=${dim3}&towhscode=${almacenDestino}&prjcode=${proyecto}&dato=`+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "7";} else {echo "8";}?>&idsolsalida=<?php if ($edit == 1) {echo base64_encode($row['ID_SolSalida']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
@@ -699,7 +701,8 @@ function verAutorizacion() {
 				}
 			});
 
-			<?php if ($edit == 0 && $sw_error == 0) { // Limpiar carrito detalle. ?>
+			// || isset($_GET['a'])
+			<?php if (($edit == 0) && ($sw_error == 0)) { // Limpiar carrito detalle. ?>
 			$.ajax({
 				type: "POST",
 				url: "includes/procedimientos.php?type=7&objtype=1250000001&cardcode="+carcode
@@ -712,7 +715,7 @@ function verAutorizacion() {
 				url: "ajx_cbo_select.php?type=3&tdir=S&id="+carcode,
 				success: function(response){
 					$('#SucursalDestino').html(response).fadeIn();
-					
+
 					<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
 						$("#SucursalDestino").val("<?php echo $SucursalDestinoDefault; ?>");
 					<?php }?>
@@ -758,19 +761,27 @@ function verAutorizacion() {
 				}
 			});
 
-			<?php if ($edit == 0) {?>
-				if(carcode!="" && almacen!=""){
-					frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode+"&whscode="+almacen;
-				}else{
-					frame.src="detalle_solicitud_salida.php";
-				}
+			// SMM, 23/01/2023
+			<?php if(isset($_GET['a'])) {?>
+				frame.src="detalle_solicitud_salida.php";
 			<?php } else {?>
-				if(carcode!="" && almacen!=""){
-					frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
-				}else{
-					frame.src="detalle_solicitud_salida.php";
-				}
+				// Antiguo fragmento de código
+				<?php if ($edit == 0) {?>
+					if(carcode!="") {
+						frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
+					}else{
+						frame.src="detalle_solicitud_salida.php";
+					}
+				<?php } else {?>
+					if(carcode!="") {
+						frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
+					}else{
+						frame.src="detalle_solicitud_salida.php";
+					}
+				<?php }?>
+				// Hasta aquí
 			<?php }?>
+
 
 			$('.ibox-content').toggleClass('sk-loading',false);
 		});
@@ -1132,6 +1143,45 @@ function verAutorizacion() {
 			}
 		});
 		// Actualizar proyecto, llega hasta aquí.
+
+		// Actualización del concepto de salida en las líneas, SMM 21/01/2023
+		$("#ConceptoSalida").change(function() {
+			var frame=document.getElementById('DataGrid');
+
+			if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=4&type=1&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=4&type=2&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		// Actualización del concepto de salida, llega hasta aquí.
 	});
 </script>
 <!-- InstanceEndEditable -->
@@ -1738,7 +1788,7 @@ function verAutorizacion() {
 					<div class="form-group">
 						<label class="col-lg-2">Comentarios</label>
 						<div class="col-lg-10">
-							<textarea name="Comentarios" form="CrearSolicitudSalida" rows="4" class="form-control" id="Comentarios" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1) {echo $row['Comentarios'];}?></textarea>
+							<textarea name="Comentarios" form="CrearSolicitudSalida" rows="4" class="form-control" id="Comentarios" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];}?></textarea>
 						</div>
 					</div>
 				</div>

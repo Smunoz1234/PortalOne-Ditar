@@ -2367,6 +2367,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "''", //dim5
                     "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
                     "'" . $_REQUEST['towhscode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['concepto'] . "'", // SMM, 23/01/2023
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_SolicitudSalidaDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2406,14 +2407,22 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "''", //dim5
                     "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
                     "'" . $_REQUEST['towhscode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['concepto'] . "'", // SMM, 23/01/2023
                 );
-                $SQL_Insert = EjecutarSP('sp_tbl_SolicitudSalidaDetalleInsert', $ParametrosInsert, 35);
+
+                // SMM, 22/12/2022
+                $borrador = '';
+                if (isset($_REQUEST['borrador']) && ($_REQUEST['borrador'] == 1)) {
+                    $borrador = '_Borrador';
+                }
+
+                $SQL_Insert = EjecutarSP("sp_tbl_SolicitudSalidaDetalleInsert$borrador", $ParametrosInsert, 35);
                 if ($SQL_Insert) {
                     $ParametrosCount = array(
                         "'" . $id . "'",
                         "'" . $evento . "'",
                     );
-                    $SQL_ConCount = EjecutarSP('sp_tbl_SolicitudSalidaDetalleInsert_Count', $ParametrosCount, 35);
+                    $SQL_ConCount = EjecutarSP("sp_tbl_SolicitudSalidaDetalleInsert_Count$borrador", $ParametrosCount, 35);
                     $row_ConCount = sqlsrv_fetch_array($SQL_ConCount);
                     sqlsrv_close($conexion);
                     echo $row_ConCount['Cuenta'];
@@ -2435,6 +2444,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "''", //dim4
                     "''", //dim5
                     "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['concepto'] . "'", // SMM, 23/01/2023
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_SalidaInventarioDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2467,12 +2477,15 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $id . "'",
                     "'" . $evento . "'",
                     "'" . $_SESSION['CodUser'] . "'",
-                    "'" . $_REQUEST['dim1'] . "'", // SMM, 01/12/2022
-                    "'" . $_REQUEST['dim2'] . "'", // SMM, 01/12/2022
-                    "'" . $_REQUEST['dim3'] . "'", // SMM, 01/12/2022
+                    // SMM, 23/01/2023
+                    "'" . $_REQUEST['dim1'] . "'", 
+                    "'" . $_REQUEST['dim2'] . "'", 
+                    "'" . $_REQUEST['dim3'] . "'", 
                     "''", //dim4
                     "''", //dim5
-                    "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['prjcode'] . "'", 
+                    "'" . $_REQUEST['towhscode'] . "'", 
+                    "'" . $_REQUEST['concepto'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_SalidaInventarioDetalleInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2503,6 +2516,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "''", //dim4
                     "''", //dim5
                     "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['concepto'] . "'", // SMM, 23/01/2023
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_TrasladoInventarioDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2542,6 +2556,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "''", //dim4
                     "''", //dim5
                     "'" . $_REQUEST['prjcode'] . "'", // SMM, 01/12/2022
+                    "'" . $_REQUEST['concepto'] . "'", // SMM, 23/01/2023
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_TrasladoInventarioDetalleInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -3078,11 +3093,14 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
 
     } elseif ($P == 36) { //Actualizar los datos del detalle de los documentos de SAP
         try {
+            $valor = "'" . base64_decode($_GET['value']) . "'";
+            $valor = str_replace(",", "", $valor); // Las comas generan un error en tipos de datos INT, los puntos no.
+
             if ($_GET['doctype'] == 1) { //Orden de venta
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3110,7 +3128,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3139,7 +3157,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3159,7 +3177,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3180,7 +3198,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3208,7 +3226,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3237,7 +3255,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3257,14 +3275,21 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
                         "'" . $_SESSION['CodUser'] . "'",
                         "'" . ($_GET['actodos'] ?? 0) . "'", // SMM, 02/12/2022
                     );
-                    $SQL = EjecutarSP('sp_tbl_SolicitudSalidaDetalleUpdCampos', $Parametros, 36);
+
+                    // SMM, 22/12/2022
+                    $spDetalle = 'sp_tbl_SolicitudSalidaDetalleUpdCampos';
+                    if (isset($_GET['borrador']) && $_GET['borrador'] == 1) {
+                        $spDetalle .= '_Borrador';
+                    }
+                    $SQL = EjecutarSP($spDetalle, $Parametros, 36);
+
                     if ($SQL) {
                         sqlsrv_close($conexion);
                         echo date('h:i:s a');
@@ -3278,7 +3303,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3298,7 +3323,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3319,7 +3344,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3340,7 +3365,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3361,7 +3386,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3381,7 +3406,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3402,7 +3427,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_SESSION['CodUser'] . "'",
@@ -3421,7 +3446,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3448,7 +3473,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3517,7 +3542,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
             } elseif ($_GET['doctype'] == 13) { //Actualiza los campos de la gestion de series
                 $Parametros = array(
                     "'" . $_GET['name'] . "'",
-                    "'" . base64_decode($_GET['value']) . "'",
+                    $valor,
                     "'" . $_GET['line'] . "'",
                     "'" . $_SESSION['CodUser'] . "'",
                 );
@@ -3533,7 +3558,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
             } elseif ($_GET['doctype'] == 14) { //Actualiza los datos de la creacion de actividades en lote en el programador
                 $Parametros = array(
                     "'" . $_GET['name'] . "'",
-                    "'" . base64_decode($_GET['value']) . "'",
+                    $valor,
                     "'" . $_GET['line'] . "'",
                     "'" . $_SESSION['CodUser'] . "'",
                 );
@@ -3568,7 +3593,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3588,7 +3613,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3609,7 +3634,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3629,7 +3654,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3650,7 +3675,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3670,7 +3695,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3691,7 +3716,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3711,7 +3736,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
@@ -3731,7 +3756,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
             } elseif ($_GET['doctype'] == 20) { //Actualiza los datos en mover las actividades en lote en el programador
                 $Parametros = array(
                     "'" . $_GET['name'] . "'",
-                    "'" . base64_decode($_GET['value']) . "'",
+                    $valor,
                     "'" . $_GET['line'] . "'",
                     "'" . $_SESSION['CodUser'] . "'",
                     "'" . $_GET['actodos'] . "'",
@@ -3755,7 +3780,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 1) { //Actualiza campos en carrito
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['cardcode'] . "'",
                         "'" . $_GET['whscode'] . "'",
@@ -3775,7 +3800,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                 if ($_GET['type'] == 2) { //Actualiza campos en detalle editando
                     $Parametros = array(
                         "'" . $_GET['name'] . "'",
-                        "'" . base64_decode($_GET['value']) . "'",
+                        $valor,
                         "'" . $_GET['line'] . "'",
                         "'" . $_GET['id'] . "'",
                         "'" . $_GET['evento'] . "'",
