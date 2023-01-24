@@ -511,6 +511,12 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 if (isset($_GET['dt_SS']) && ($_GET['dt_SS']) == 1) { //Verificar que viene de una Solicitud de salida
     $dt_SS = 1;
 
+	// Limpiar lotes y seriales. SMM, 23/01/2022
+	$ConsLote = "Delete From tbl_LotesDocSAP Where CardCode='" . base64_decode($_GET['Cardcode']) . "' And Usuario='" . $_SESSION['CodUser'] . "'";
+	$ConsSerial = "Delete From tbl_SerialesDocSAP Where CardCode='" . base64_decode($_GET['Cardcode']) . "' And Usuario='" . $_SESSION['CodUser'] . "'";
+	$SQL_ConsLote = sqlsrv_query($conexion, $ConsLote);
+	$SQL_ConsSerial = sqlsrv_query($conexion, $ConsSerial);
+
     //Clientes
     $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
     $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
@@ -716,8 +722,24 @@ $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 // Proyectos, SMM 29/11/2022
 $SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
 
-// Conceptos de salida de inventario, SMM 23/12/2022
-$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', "Estado = 'Y'", 'id_concepto_salida');
+// Filtrar conceptos de salida. SMM, 21/01/2023
+$Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Conceptos = Seleccionar('uvw_tbl_UsuariosConceptos', '*', $Where_Conceptos);
+
+$Filtro_Conceptos = "Estado = 'Y'";
+$Conceptos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
+    $Conceptos[] = ("'" . $Concepto['IdConcepto'] . "'");
+}
+
+if (count($Conceptos) > 0) {
+    $Filtro_Conceptos .= " AND id_concepto_salida IN (";
+    $Filtro_Conceptos .= implode(",", $Conceptos);
+    $Filtro_Conceptos .= ")";
+}
+
+// Conceptos de salida de inventario, SMM 21/01/2023
+$SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
 
 // Consultar el motivo de autorización según el ID. SMM, 30/11/2022
 if (isset($row['IdMotivoAutorizacion']) && ($row['IdMotivoAutorizacion'] != "") && ($IdMotivo == "")) {
@@ -733,8 +755,6 @@ if($edit == 0) {
 	$NombreClienteDefault = "";
 	$SucursalDestinoDefault = "";
 	$SucursalFacturacionDefault = "";
-
-	
 
 	if (ObtenerVariable("NITClienteDefault") != "") {
 		$ClienteDefault = ObtenerVariable("NITClienteDefault");
@@ -829,6 +849,9 @@ function BuscarArticulo(dato){
 	// SMM, 29/11/2022
 	let proyecto = document.getElementById("PrjCode").value;
 
+	// SMM, 23/01/2023
+	let conceptoSalida = document.getElementById("ConceptoSalida").value;
+
 	var posicion_x;
 	var posicion_y;
 	posicion_x=(screen.width/2)-(1200/2);
@@ -836,12 +859,12 @@ function BuscarArticulo(dato){
 
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")&&(almacendestino!="")){
-			remote=open('buscar_articulo.php?dato='+dato+'&cardcode='+cardcode+'&prjcode='+proyecto+'&whscode='+almacen+'&towhscode='+almacendestino+'&doctype=<?php if ($edit == 0) {echo "11";} else {echo "12";}?>&idtrasladoinv=<?php if ($edit == 1) {echo base64_encode($row['ID_TrasladoInv']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			remote=open('buscar_articulo.php?concepto=${conceptoSalida}&dato='+dato+'&cardcode='+cardcode+'&prjcode='+proyecto+'&whscode='+almacen+'&towhscode='+almacendestino+'&doctype=<?php if ($edit == 0) {echo "11";} else {echo "12";}?>&idtrasladoinv=<?php if ($edit == 1) {echo base64_encode($row['ID_TrasladoInv']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=3&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
 				title: "¡Advertencia!",
-				text: "Debe seleccionar un cliente y un almacén",
+				text: "Debe seleccionar un cliente, un almacén de origen y uno de destino",
 				icon: "warning",
 				confirmButtonText: "OK"
 			});
@@ -888,6 +911,7 @@ function verAutorizacion() {
 				url: "includes/procedimientos.php?type=7&objtype=67&cardcode="+carcode
 			});
 			<?php }?>
+			
 			$.ajax({
 				type: "POST",
 				url: "ajx_cbo_select.php?type=2&id="+carcode,
@@ -946,18 +970,25 @@ function verAutorizacion() {
 				}
 			});
 
-			<?php if ($edit == 0) {?>
-				if(carcode!=""){
-					frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
-				}else{
-					frame.src="detalle_traslado_inventario.php";
-				}
+			// SMM, 23/01/2023
+			<?php if(isset($_GET['a'])) {?>
+				frame.src="detalle_traslado_inventario.php";
 			<?php } else {?>
-				if(carcode!=""){
-					frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&docentry=<?php echo base64_encode($row['DocEntry']); ?>&type=2";
-				}else{
-					frame.src="detalle_traslado_inventario.php";
-				}
+				// Antiguo fragmento de código
+				<?php if ($edit == 0) {?>
+					if(carcode!="") {
+						frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
+					}else{
+						frame.src="detalle_traslado_inventario.php";
+					}
+				<?php } else {?>
+					if(carcode!="") {
+						frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&docentry=<?php echo base64_encode($row['DocEntry']); ?>&type=2";
+					}else{
+						frame.src="detalle_traslado_inventario.php";
+					}
+				<?php }?>
+				// Hasta aquí
 			<?php }?>
 
 			$('.ibox-content').toggleClass('sk-loading',false);
@@ -1301,6 +1332,45 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 			}
 		});
 		// Actualizar proyecto, llega hasta aquí.
+
+		// Actualización del concepto de salida en las líneas, SMM 21/01/2023
+		$("#ConceptoSalida").change(function() {
+			var frame=document.getElementById('DataGrid');
+
+			if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+				Swal.fire({
+					title: "¿Desea actualizar las lineas?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
+							<?php if ($edit == 0) {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=6&type=1&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php } else {?>
+						$.ajax({
+							type: "GET",
+							url: "registro.php?P=36&doctype=6&type=2&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&id=<?php echo $row['ID_TrasladoInv']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							success: function(response){
+								frame.src="detalle_traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								$('.ibox-content').toggleClass('sk-loading',false);
+							}
+						});
+						<?php }?>
+					}
+				});
+			}
+		});
+		// Actualización del concepto de salida, llega hasta aquí.
 	});
 </script>
 <!-- InstanceEndEditable -->
