@@ -35,18 +35,20 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             } else {
                 $Cons = "Select * From $Vista Where CodigoCliente='" . $_GET['id'] . "' And Estado='Y' And ID_Contacto NOT LIKE '%ELECTRONICA%' Order by ID_Contacto";
             }
+
+            //echo $Cons;
             $SQL = sqlsrv_query($conexion, $Cons);
-            if ($SQL) {
-                while ($row = sqlsrv_fetch_array($SQL)) {
-                    if ($row['IdContactoPorDefecto'] == "Y") {
-                        echo "<option value=\"" . $row['CodigoContacto'] . "\" selected=\"selected\">" . $row['ID_Contacto'] . "</option>";
-                    } else {
-                        echo "<option value=\"" . $row['CodigoContacto'] . "\">" . $row['ID_Contacto'] . "</option>";
-                    }
+
+            echo "<option value=''>Seleccione...</option>";
+
+            while ($row = sqlsrv_fetch_array($SQL)) {
+                if ($row['IdContactoPorDefecto'] == "Y") {
+                    echo "<option value=\"" . $row['CodigoContacto'] . "\" selected=\"selected\">" . $row['ID_Contacto'] . "</option>";
+                } else {
+                    echo "<option value=\"" . $row['CodigoContacto'] . "\">" . $row['ID_Contacto'] . "</option>";
                 }
-            } else {
-                echo "<option value=''>Seleccione...</option>";
             }
+
         }
     } elseif ($_GET['type'] == 3) { //Sucursal cliente, dependiendo del cliente
         if (!isset($_GET['id']) || ($_GET['id'] == "")) {
