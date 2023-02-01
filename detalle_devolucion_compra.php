@@ -257,7 +257,7 @@ function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almac
 				<th>Almacén</th>
 				<th>Stock almacén</th>
 				<?php $row_DimReparto = sqlsrv_fetch_array($SQL_DimReparto);?>
-				<th><?php echo $row_DimReparto['NombreDim']; //Dimension 1  ?></th>
+				<th><?php echo $row_DimReparto['NombreDim']; //Dimension 1   ?></th>
 				<th>Proyecto</th>
 				<th>Texto libre</th>
 				<th>Precio</th>
