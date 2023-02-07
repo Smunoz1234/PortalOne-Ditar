@@ -95,6 +95,26 @@ if (isset($_GET['IDTicket']) && $_GET['IDTicket'] != "") {
     $Cons = "Select * From uvw_Sap_tbl_DevolucionesCompras Where $Where";
 }
 
+// SMM, 22/07/2022
+if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
+    $Where = "DocNum LIKE '%" . trim($_GET['DocNum']) . "%'";
+
+    $FilSerie = "";
+    $i = 0;
+    while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {
+        if ($i == 0) {
+            $FilSerie .= "'" . $row_Series['IdSeries'] . "'";
+        } else {
+            $FilSerie .= ",'" . $row_Series['IdSeries'] . "'";
+        }
+        $i++;
+    }
+    $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
+
+    $Cons = "Select * From uvw_Sap_tbl_DevolucionesCompras Where $Where";
+}
+
 $SQL = sqlsrv_query($conexion, $Cons);
 //echo $Cons;
 ?>
@@ -104,7 +124,7 @@ $SQL = sqlsrv_query($conexion, $Cons);
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Consultar devolución | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Consultar devolución de compra | <?php echo NOMBRE_PORTAL; ?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <?php
@@ -179,16 +199,16 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 			    <div class="ibox-content">
 					 <?php include "includes/spinner.php";?>
 				  <form action="consultar_devolucion_compra.php" method="get" id="formBuscar" class="form-horizontal">
-					   <div class="form-group">
+						<div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
 						<div class="form-group">
 							<label class="col-lg-1 control-label">Fechas</label>
 							<div class="col-lg-3">
 								<div class="input-daterange input-group" id="datepicker">
-									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
+									<input name="FechaInicial" autocomplete="off" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
 									<span class="input-group-addon">hasta</span>
-									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
+									<input name="FechaFinal" autocomplete="off" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
 								</div>
 							</div>
 							<label class="col-lg-1 control-label">Estado</label>
@@ -201,7 +221,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 								</select>
 							</div>
 							<label class="col-lg-1 control-label">Serie</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Series" class="form-control" id="Series">
 										<option value="">(Todos)</option>
 								  <?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
@@ -221,7 +241,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 								<input name="BuscarDato" type="text" class="form-control" id="BuscarDato" maxlength="100" value="<?php if (isset($_GET['BuscarDato']) && ($_GET['BuscarDato'] != "")) {echo $_GET['BuscarDato'];}?>">
 							</div>
 							<label class="col-lg-1 control-label">Autorización</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Autorizacion" class="form-control" id="Autorizacion">
 										<option value="">(Todos)</option>
 								   <?php while ($row_EstadoAuth = sqlsrv_fetch_array($SQL_EstadoAuth)) {?>
@@ -231,7 +251,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 							</div>
 						</div>
 					  	<div class="form-group">
-							<label class="col-lg-1 control-label">Encargado de compras</label>
+						  	<label class="col-lg-1 control-label">Encargado de compras</label>
 							<div class="col-lg-3">
 								<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas">
 									<option value="">(Todos)</option>
@@ -240,10 +260,20 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 								  <?php }?>
 								</select>
 							</div>
+
 							<label class="col-lg-1 control-label">Orden servicio</label>
 							<div class="col-lg-3">
 								<input name="IDTicket" type="text" class="form-control" id="IDTicket" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if (isset($_GET['IDTicket']) && ($_GET['IDTicket'] != "")) {echo $_GET['IDTicket'];}?>">
 							</div>
+
+							<!-- Número de documento -->
+							<label class="col-lg-1 control-label">Número documento</label>
+							<div class="col-lg-3">
+								<input name="DocNum" type="text" class="form-control" id="DocNum" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if (isset($_GET['DocNum']) && ($_GET['DocNum'] != "")) {echo $_GET['DocNum'];}?>">
+							</div>
+						</div>
+
+						<div class="form-group">
 							<div class="col-lg-4">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
@@ -266,6 +296,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 						<th>Serie</th>
 						<th>Fecha orden</th>
 						<th>Socio de negocio</th>
+						<th>Comentarios</th>
 						<th>Encargado de compras</th>
 						<th>Autorización</th>
 						<th>Usuario Autoriza</th>
@@ -285,6 +316,7 @@ if ($sw == 1) {
 							<td><?php echo $row['DeSeries']; ?></td>
 							<td><?php echo $row['DocDate']; ?></td>
 							<td><?php echo $row['NombreCliente']; ?></td>
+							<td><?php echo $row['Comentarios']; ?></td>
 							<td><?php echo $row['NombreEmpleadoVentas']; ?></td>
 							<td><?php echo $row['DeAuthPortal']; ?></td>
 							<td><?php echo $row['UsuarioAutoriza']; ?></td>
