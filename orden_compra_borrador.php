@@ -1,5 +1,5 @@
 <?php require_once "includes/conexion.php";
-PermitirAcceso(421);
+PermitirAcceso(706);
 
 // Dimensiones, SMM 22/08/2022
 $DimSeries = intval(ObtenerVariable("DimensionSeries"));
@@ -15,12 +15,12 @@ while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
 
 $encode_Dimensiones = json_encode($array_Dimensiones);
 $cadena_Dimensiones = "JSON.parse('$encode_Dimensiones'.replace(/\\n|\\r/g, ''))";
-echo "<script> console.log('cadena_Dimensiones'); </script>";
-echo "<script> console.log($cadena_Dimensiones); </script>";
+// echo "<script> console.log('cadena_Dimensiones'); </script>";
+// echo "<script> console.log($cadena_Dimensiones); </script>";
 // Hasta aquí, SMM 22/08/2022
 
 $dt_LS = 0; //sw para saber si vienen datos de la llamada de servicio. 0 no vienen. 1 si vienen.
-$dt_OF = 0; //sw para saber si vienen datos de una Oferta de venta.
+$dt_OF = 0; //sw para saber si vienen datos de una Oferta de compra.
 
 $IdMotivo = "";
 $motivoAutorizacion = "";
@@ -34,18 +34,18 @@ $IdOrden = 0;
 $IdPortal = 0; //Id del portal para las ordenes que fueron creadas en el portal, para eliminar el registro antes de cargar al editar
 
 // Procesos de autorización, SMM 19/08/2022
-$SQL_Procesos = Seleccionar("uvw_tbl_Autorizaciones_Procesos", "*", "Estado = 'Y' AND IdTipoDocumento = 17");
+$SQL_Procesos = Seleccionar("uvw_tbl_Autorizaciones_Procesos", "*", "Estado = 'Y' AND IdTipoDocumento = 22");
 
-if (isset($_GET['id']) && ($_GET['id'] != "")) { //ID de la Orden de venta (DocEntry)
+if (isset($_GET['id']) && ($_GET['id'] != "")) { //ID de la Orden de compra (DocEntry)
     $IdOrden = base64_decode($_GET['id']);
 }
 
-if (isset($_GET['id_portal']) && ($_GET['id_portal'] != "")) { //Id del portal de venta (ID interno)
+if (isset($_GET['id_portal']) && ($_GET['id_portal'] != "")) { //Id del portal de compra (ID interno)
     $IdPortal = base64_decode($_GET['id_portal']);
 }
 
-if (isset($_POST['IdOrdenVenta']) && ($_POST['IdOrdenVenta'] != "")) { //Tambien el Id interno, pero lo envío cuando mando el formulario
-    $IdOrdenVenta = base64_decode($_POST['IdOrdenVenta']);
+if (isset($_POST['IdOrdenCompra']) && ($_POST['IdOrdenCompra'] != "")) { //Tambien el Id interno, pero lo envío cuando mando el formulario
+    $IdOrdenCompra = base64_decode($_POST['IdOrdenCompra']);
     $IdEvento = base64_decode($_POST['IdEvento']);
 }
 
@@ -55,6 +55,7 @@ if (isset($_POST['swError']) && ($_POST['swError'] != "")) { //Para saber si ha 
     $sw_error = 0;
 }
 
+// echo $_REQUEST['tl'];
 if (isset($_REQUEST['tl']) && ($_REQUEST['tl'] != "")) { //0 Si se está creando. 1 Se se está editando.
     $edit = $_REQUEST['tl'];
 } else {
@@ -65,19 +66,19 @@ if (isset($_REQUEST['tl']) && ($_REQUEST['tl'] != "")) { //0 Si se está creando
 if ($edit == 1) {
     $DocEntry = "'" . $IdOrden . "'";
     $EsBorrador = (true) ? "DocumentoBorrador" : "Documento";
-    $SQL_Autorizaciones = Seleccionar("uvw_Sap_tbl_Autorizaciones", "*", "IdTipoDocumento = 17 AND DocEntry$EsBorrador = $DocEntry");
+    $SQL_Autorizaciones = Seleccionar("uvw_Sap_tbl_Autorizaciones", "*", "IdTipoDocumento = 22 AND DocEntry$EsBorrador = $DocEntry");
     $row_Autorizaciones = sqlsrv_fetch_array($SQL_Autorizaciones);
 
     // SMM, 19/08/2022
-    $SQL_Procesos = Seleccionar("uvw_tbl_Autorizaciones_Procesos", "*", "IdTipoDocumento = 17");
+    $SQL_Procesos = Seleccionar("uvw_tbl_Autorizaciones_Procesos", "*", "IdTipoDocumento = 22");
 }
 
-if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
+if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de compra
     //*** Carpeta temporal ***
     $i = 0; //Archivos
     $RutaAttachSAP = ObtenerDirAttach();
     $dir = CrearObtenerDirTemp();
-    $dir_new = CrearObtenerDirAnx("ordenventa");
+    $dir_new = CrearObtenerDirAnx("ordencompra");
     $route = opendir($dir);
     $DocFiles = array();
     while ($archivo = readdir($route)) { //obtenemos un archivo y luego otro sucesivamente
@@ -95,19 +96,20 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
 
     try {
         if ($_POST['P'] == 39) { //Actualizar
-            $IdOrdenVenta = base64_decode($_POST['IdOrdenVenta']);
+            $IdOrdenCompra = base64_decode($_POST['IdOrdenCompra']);
             $IdEvento = base64_decode($_POST['IdEvento']);
             $Type = 2;
-            if (!PermitirFuncion(403)) { //Permiso para autorizar orden de venta
+            if (!PermitirFuncion(716)) { //Permiso para autorizar orden de compra
                 $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la orden queda pendiente
             }
         } else { //Crear
-            $IdOrdenVenta = "NULL";
+            $IdOrdenCompra = "NULL";
             $IdEvento = "0";
             $Type = 1;
         }
-        $ParametrosCabOrdenVenta = array(
-            $IdOrdenVenta,
+
+        $ParametrosCabOrdenCompra = array(
+            $IdOrdenCompra,
             $IdEvento,
             "NULL",
             "NULL",
@@ -132,9 +134,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
             "'" . LSiqmlObs($_POST['SucursalDestino']) . "'",
             "'" . LSiqmlObs($_POST['DireccionDestino']) . "'",
             "'" . $_POST['CondicionPago'] . "'",
-            "'" . $_POST['Dim1'] . "'",
-            "'" . $_POST['Dim2'] . "'",
-            "'" . $_POST['Dim3'] . "'",
+
+            // Se eliminaron las dimensiones, SMM 22/08/2022
+
             "'" . $_POST['PrjCode'] . "'",
             "'" . $_POST['Autorizacion'] . "'",
             "'" . $_POST['Almacen'] . "'",
@@ -146,13 +148,21 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
             "'" . ($_POST['MensajeProceso'] ?? "") . "'",
         );
 
-        $SQL_CabeceraOrdenVenta = EjecutarSP('sp_tbl_OrdenVenta_Borrador', $ParametrosCabOrdenVenta, $_POST['P']);
-        if ($SQL_CabeceraOrdenVenta) {
-            if ($Type == 1) {
-                $row_CabeceraOrdenVenta = sqlsrv_fetch_array($SQL_CabeceraOrdenVenta);
+        // Enviar el valor de la dimensiones dinámicamente al SP.
+        foreach ($array_Dimensiones as &$dim) {
+            $Dim_PostValue = $_POST[strval($dim['IdPortalOne'])];
 
-                $IdOrdenVenta = $row_CabeceraOrdenVenta[0];
-                $IdEvento = $row_CabeceraOrdenVenta[1];
+            // El nombre de los parámetros es diferente en cada documento.
+            array_push($ParametrosCabOrdenCompra, "'$Dim_PostValue'");
+        } // SMM, 22/08/2022
+
+        $SQL_CabeceraOrdenCompra = EjecutarSP('sp_tbl_OrdenCompra_Borrador', $ParametrosCabOrdenCompra, $_POST['P']);
+        if ($SQL_CabeceraOrdenCompra) {
+            if ($Type == 1) {
+                $row_CabeceraOrdenCompra = sqlsrv_fetch_array($SQL_CabeceraOrdenCompra);
+
+                $IdOrdenCompra = $row_CabeceraOrdenCompra[0];
+                $IdEvento = $row_CabeceraOrdenCompra[1];
 
                 // Comprobar procesos de autorización en la creación, SMM 20/08/2022
                 while ($row_Proceso = sqlsrv_fetch_array($SQL_Procesos)) {
@@ -161,7 +171,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
                     if (in_array($_SESSION['Perfil'], $ids_perfiles) || (count($ids_perfiles) == 0)) {
                         $sql = $row_Proceso['Condiciones'] ?? '';
 
-                        $sql = str_replace("[IdDocumento]", $IdOrdenVenta, $sql);
+                        $sql = str_replace("[IdDocumento]", $IdOrdenCompra, $sql);
                         $sql = str_replace("[IdEvento]", $IdEvento, $sql);
 
                         $stmt = sqlsrv_query($conexion, $sql);
@@ -193,9 +203,9 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
                 // Consultar el motivo de autorización según el id, SMM 20/08/2022
                 $SQL_Motivos = Seleccionar("uvw_tbl_Autorizaciones_Motivos", "*", "IdMotivoAutorizacion = '$IdMotivo'");
                 $row_MotivoAutorizacion = sqlsrv_fetch_array($SQL_Motivos);
-                $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'];
+                $motivoAutorizacion = $row_MotivoAutorizacion['MotivoAutorizacion'] ?? "";
             } else {
-                $IdOrdenVenta = base64_decode($_POST['IdOrdenVenta']); //Lo coloco otra vez solo para saber que tiene ese valor
+                $IdOrdenCompra = base64_decode($_POST['IdOrdenCompra']); //Lo coloco otra vez solo para saber que tiene ese valor
                 $IdEvento = base64_decode($_POST['IdEvento']);
             }
 
@@ -215,14 +225,14 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
 
                         //Registrar archivo en la BD
                         $ParamInsAnex = array(
-                            "'17'",
-                            "'" . $IdOrdenVenta . "'",
+                            "'22'",
+                            "'" . $IdOrdenCompra . "'",
                             "'" . $OnlyName . "'",
                             "'" . $Ext . "'",
                             "1",
                             "'" . $_SESSION['CodUser'] . "'",
                             "1",
-                            "1", // EsBorrador
+							"1", // EsBorrador
                         );
                         $SQL_InsAnex = EjecutarSP('sp_tbl_DocumentosSAP_Anexos', $ParamInsAnex, $_POST['P']);
                         if (!$SQL_InsAnex) {
@@ -244,11 +254,11 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
                 //Enviar datos al WebServices
                 try {
                     $Parametros = array(
-                        'id_documento' => intval($IdOrdenVenta),
+                        'id_documento' => intval($IdOrdenCompra),
                         'id_evento' => intval($IdEvento),
                     );
-                    // $Metodo = "OrdenesVentas/Borrador";
-                    $Metodo = ($_POST["Definitivo"] == "1") ? "OrdenesVentas/CrearBorrador_A_Definitivo" : "OrdenesVentas/Borrador";
+                    // $Metodo = "OrdenesCompras/Borrador";
+                    $Metodo = ($_POST["Definitivo"] == "1") ? "OrdenesCompras/CrearBorrador_A_Definitivo" : "OrdenesCompras/Borrador";
                     $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
 
                     if ($Resultado->Success == 0) {
@@ -260,21 +270,21 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
                         if ($_POST['P'] == 37) { //Creando orden
                             //Consultar ID creado para cargar el documento
                             if ($_POST['d_LS'] == 0) {
-                                $SQL_ConsID = Seleccionar('uvw_Sap_tbl_OrdenesVentas_Borrador', 'ID_OrdenVenta', "IdDocPortal='" . $IdOrdenVenta . "'");
+                                $SQL_ConsID = Seleccionar('uvw_Sap_tbl_OrdenesCompras_Borrador', 'ID_OrdenCompra', "IdDocPortal='" . $IdOrdenCompra . "'");
                                 $row_ConsID = sqlsrv_fetch_array($SQL_ConsID);
                                 sqlsrv_close($conexion);
-                                header('Location:orden_venta_borrador.php?id=' . base64_encode($row_ConsID['ID_OrdenVenta']) . '&id_portal=' . base64_encode($IdOrdenVenta) . '&tl=1&a=' . base64_encode("OK_OVenAdd"));
+                                header('Location:orden_compra_borrador.php?id=' . base64_encode($row_ConsID['ID_OrdenCompra']) . '&id_portal=' . base64_encode($IdOrdenCompra) . '&tl=1&a=' . base64_encode("OK_OCompAdd"));
                             } else {
-                                header('Location:' . base64_decode($_POST['return']) . '&a=' . base64_encode("OK_OVenAdd"));
+                                header('Location:' . base64_decode($_POST['return']) . '&a=' . base64_encode("OK_OCompAdd"));
                             }
                         } else { //Actualizando orden
-                            $SQL_ConsID = Seleccionar('uvw_Sap_tbl_OrdenesVentas_Borrador', 'ID_OrdenVenta', "IdDocPortal='" . $IdOrdenVenta . "'");
+                            $SQL_ConsID = Seleccionar('uvw_Sap_tbl_OrdenesCompras_Borrador', 'ID_OrdenCompra', "IdDocPortal='" . $IdOrdenCompra . "'");
                             $row_ConsID = sqlsrv_fetch_array($SQL_ConsID);
                             sqlsrv_close($conexion);
 
-                            header('Location:orden_venta_borrador.php?a=' . base64_encode("OK_BorradorAdd"));
-                            // header('Location:orden_venta_borrador.php?id=' . base64_encode($row_ConsID['ID_OrdenVenta']) . '&id_portal=' . base64_encode($row_ConsID['ID_OrdenVenta']) . '&tl=1&a=' . base64_encode("OK_OVenUpd"));
-                            //header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_OVenUpd"));
+                            header('Location:orden_compra_borrador.php?a=' . base64_encode("OK_BorradorAdd"));
+                            // header('Location:orden_compra_borrador.php?id=' . base64_encode($row_ConsID['ID_OrdenCompra']) . '&id_portal=' . base64_encode($row_ConsID['ID_OrdenVenta']) . '&tl=1&a=' . base64_encode("OK_OCompUpd"));
+                            //header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_OCompUpd"));
                         }
                     }
                 } catch (Exception $e) {
@@ -285,9 +295,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de venta
                 $sw_error = 1;
                 $msg_error = "Este documento necesita autorización.";
             }
+
         } else {
             $sw_error = 1;
-            $msg_error = "Ha ocurrido un error al crear la orden de venta";
+            $msg_error = "Ha ocurrido un error al crear la orden de compra";
         }
     } catch (Exception $e) {
         echo 'Excepcion capturada: ', $e->getMessage(), "\n";
@@ -310,67 +321,28 @@ if (isset($_GET['dt_LS']) && ($_GET['dt_LS']) == 1) { //Verificar que viene de u
             "'" . base64_decode($_GET['Cardcode']) . "'",
             "'" . $_SESSION['CodUser'] . "'",
         );
-        $SQL_AddLMT = EjecutarSP('sp_CargarLMT_OrdenVentaDetalleCarrito', $ParametrosAddLMT);
+        $SQL_AddLMT = EjecutarSP('sp_CargarLMT_OrdenCompraDetalleCarrito', $ParametrosAddLMT);
     } else {
-        Eliminar('tbl_OrdenVentaDetalleCarrito_Borrador', "Usuario='" . $_SESSION['CodUser'] . "' AND CardCode='" . base64_decode($_GET['Cardcode']) . "'");
+        Eliminar('tbl_OrdenCompraDetalleCarrito_Borrador', "Usuario='" . $_SESSION['CodUser'] . "' AND CardCode='" . base64_decode($_GET['Cardcode']) . "'");
     }
 
     //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
     $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
 
     //Contacto cliente
-    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
+    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ProveedorContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
 
     //Sucursales, SMM 06/05/2022
-    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
-    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
+    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
 
     //Orden de servicio
     $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . base64_decode($_GET['LS']) . "'");
+    $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
 }
 
-// SMM, 07/03/2022
-if (isset($_GET['dt_OV']) && ($_GET['dt_OV']) == 1) { // Verificar que viene de una Orden de ventas (Duplicar)
-    $dt_OF = 1;
-
-    $ParametrosCopiarOrdenToOrden = array(
-        "'" . base64_decode($_GET['OV']) . "'",
-        "'" . base64_decode($_GET['Evento']) . "'",
-        "'" . base64_decode($_GET['Almacen']) . "'",
-        "'" . base64_decode($_GET['Cardcode']) . "'",
-        "'" . $_SESSION['CodUser'] . "'",
-    );
-
-    $SQL_CopiarOrdenToOrden = EjecutarSP('sp_tbl_OrdenVentaDet_To_OrdenVentaDet', $ParametrosCopiarOrdenToOrden);
-    if (!$SQL_CopiarOrdenToOrden) {
-        echo "<script>
-		$(document).ready(function() {
-			Swal.fire({
-				title: '¡Ha ocurrido un error!',
-				text: 'No se pudo duplicar la Orden de venta.',
-				icon: 'error'
-			});
-		});
-		</script>";
-    }
-
-    //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
-    $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
-
-    //Contacto cliente
-    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
-
-    //Sucursales, SMM 06/05/2022
-    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
-    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
-
-    //Orden de servicio
-    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . base64_decode($_GET['LS']) . "'");
-}
-
-if (isset($_GET['dt_OF']) && ($_GET['dt_OF']) == 1) { //Verificar que viene de una Oferta de ventas
+if (isset($_GET['dt_OF']) && ($_GET['dt_OF']) == 1) { //Verificar que viene de una Oferta de compras
     $dt_OF = 1;
 
     $ParametrosCopiarOfertaToOrden = array(
@@ -381,13 +353,13 @@ if (isset($_GET['dt_OF']) && ($_GET['dt_OF']) == 1) { //Verificar que viene de u
         "'" . $_SESSION['CodUser'] . "'",
     );
 
-    $SQL_CopiarOfertaToOrden = EjecutarSP('sp_tbl_OfertaVentaDet_To_OrdenVentaDet', $ParametrosCopiarOfertaToOrden);
+    $SQL_CopiarOfertaToOrden = EjecutarSP('sp_tbl_SolicitudCompraDet_To_OrdenCompraDet', $ParametrosCopiarOfertaToOrden);
     if (!$SQL_CopiarOfertaToOrden) {
         echo "<script>
 		$(document).ready(function() {
 			Swal.fire({
 				title: '¡Ha ocurrido un error!',
-				text: 'No se pudo copiar la Oferta en Orden de venta.',
+				text: 'No se pudo copiar la Oferta en Orden de compra.',
 				icon: 'error'
 			});
 		});
@@ -395,18 +367,19 @@ if (isset($_GET['dt_OF']) && ($_GET['dt_OF']) == 1) { //Verificar que viene de u
     }
 
     //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
     $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
 
     //Contacto cliente
-    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
+    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ProveedorContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
 
     //Sucursales, SMM 06/05/2022
-    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
-    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
+    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
 
     //Orden de servicio
     $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . base64_decode($_GET['LS']) . "'");
+    $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
 }
 
 if (isset($_GET['dt_FC']) && ($_GET['dt_FC']) == 1) { //Verificar que viene de una Facturacion de OTs
@@ -418,15 +391,15 @@ if (isset($_GET['dt_FC']) && ($_GET['dt_FC']) == 1) { //Verificar que viene de u
         "'" . base64_decode($_GET['adt']) . "'",
         "'" . base64_decode($_GET['CodFactura']) . "'",
     );
-    $SQL_CopiarFactToOrden = EjecutarSP('sp_tbl_FacturaOTDet_To_OrdenVentaDet', $ParametrosCopiarFactToOrden);
+    $SQL_CopiarFactToOrden = EjecutarSP('sp_tbl_FacturaOTDet_To_OrdenCompraDet', $ParametrosCopiarFactToOrden);
 
     //Verificar si se va a facturar a nombre de otro cliente
     if ($_GET['CodFactura'] != "") {
         $_GET['Cardcode'] = $_GET['CodFactura'];
     }
 
-    //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
+    //Proveedores
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
     $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
 
     if (!$SQL_CopiarFactToOrden) {
@@ -434,13 +407,66 @@ if (isset($_GET['dt_FC']) && ($_GET['dt_FC']) == 1) { //Verificar que viene de u
 		$(document).ready(function() {
 			Swal.fire({
 				title: '¡Ha ocurrido un error!',
-				text: 'No se pudo copiar el detale de las ordenes de servicio en Orden de venta.',
+				text: 'No se pudo copiar el detale de las ordenes de servicio en Orden de compra.',
 				icon: 'error'
 			});
 		});
 		</script>";
     }
 
+}
+
+// SMM, 07/03/2022
+if (isset($_GET['dt_OV']) && ($_GET['dt_OV']) == 1) { // Verificar que viene de una Orden de compras (Duplicar)
+    $dt_OF = 1;
+
+    // SMM, 30/09/2022
+    $ID_Documento = "'" . base64_decode($_GET['OV']) . "'";
+
+    $WhereAnexos = "ID_Documento=$ID_Documento";
+    // echo $WhereAnexos;
+
+    Eliminar("tbl_DocumentosSAP_Anexos", $WhereAnexos);
+    // Hasta aquí, 30/09/2022
+
+    $ParametrosCopiarOrdenToOrden = array(
+        $ID_Documento, // SMM, 30/09/2022
+        "'" . base64_decode($_GET['Evento']) . "'",
+        "'" . base64_decode($_GET['Almacen']) . "'",
+        "'" . base64_decode($_GET['Cardcode']) . "'",
+        "'" . $_SESSION['CodUser'] . "'",
+    );
+
+    $SQL_CopiarOrdenToOrden = EjecutarSP('sp_tbl_OrdenCompra_BorradorDet_To_OrdenCompraDet', $ParametrosCopiarOrdenToOrden);
+    if (!$SQL_CopiarOrdenToOrden) {
+        echo "<script>
+		$(document).ready(function() {
+			Swal.fire({
+				title: '¡Ha ocurrido un error!',
+				text: 'No se pudo duplicar la Orden de compra.',
+				icon: 'error'
+			});
+		});
+		</script>";
+    }
+
+    //Clientes
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreCliente');
+    $row_Cliente = sqlsrv_fetch_array($SQL_Cliente);
+
+    //Contacto cliente
+    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ProveedorContactos', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "'", 'NombreContacto');
+
+    //Sucursales, SMM 06/05/2022
+    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='S'", 'NombreSucursal');
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . base64_decode($_GET['Cardcode']) . "' AND TipoDireccion='B'", 'NombreSucursal');
+
+    //Orden de servicio
+    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . base64_decode($_GET['LS']) . "'");
+    $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
+
+    // Anexos, SMM 30/09/2022
+    $SQL_Anexo = Seleccionar('uvw_tbl_DocumentosSAP_Anexos', '*', $WhereAnexos);
 }
 
 if ($edit == 1 && $sw_error == 0) {
@@ -450,28 +476,32 @@ if ($edit == 1 && $sw_error == 0) {
         "'" . $IdPortal . "'",
         "'" . $_SESSION['CodUser'] . "'",
     );
-    $LimpiarOrden = EjecutarSP('sp_EliminarDatosOrdenVenta_Borrador', $ParametrosLimpiar);
+    $LimpiarOrden = EjecutarSP('sp_EliminarDatosOrdenCompra_Borrador', $ParametrosLimpiar);
 
     $SQL_IdEvento = sqlsrv_fetch_array($LimpiarOrden);
     $IdEvento = $SQL_IdEvento[0];
 
-    //Orden de venta
-    $Cons = "Select * From uvw_tbl_OrdenVenta_Borrador Where DocEntry='" . $IdOrden . "' AND IdEvento='" . $IdEvento . "'";
+    //Orden de compra
+    $Cons = "Select * From uvw_tbl_OrdenCompra_Borrador Where DocEntry='" . $IdOrden . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
-    //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
+    // SMM, 06/09/2022
+    // echo $Cons;
+
+    //Proveedores
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
 
     //Sucursales, SMM 06/05/2022
-    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='S'", 'NombreSucursal');
-    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='B'", 'NombreSucursal');
+    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='S'", 'NombreSucursal');
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='B'", 'NombreSucursal');
 
     //Contacto cliente
-    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreContacto');
+    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ProveedorContactos', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreContacto');
 
-    //Orden de servicio
-    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_CodigoCliente='" . $row['CardCode'] . "' OR ID_LlamadaServicio='" . $row['ID_LlamadaServicio'] . "' AND IdEstadoLlamada<>'-1'");
+    //Orden de servicio, SMM 05/08/2022
+    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . $row['ID_LlamadaServicio'] . "'");
+    $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
 
     //Sucursal
     $SQL_Sucursal = Seleccionar('uvw_tbl_SeriesSucursalesAlmacenes', 'IdSucursal, DeSucursal', "IdSeries='" . $row['IdSeries'] . "'");
@@ -486,23 +516,24 @@ if ($edit == 1 && $sw_error == 0) {
 
 if ($sw_error == 1) {
 
-    //Orden de venta
-    $Cons = "Select * From uvw_tbl_OrdenVenta_Borrador Where ID_OrdenVenta='" . $IdOrdenVenta . "' AND IdEvento='" . $IdEvento . "'";
+    //Orden de compra
+    $Cons = "Select * From uvw_tbl_OrdenCompra_Borrador Where ID_OrdenCompra='" . $IdOrdenCompra . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
-    //Clientes
-    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Clientes', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
+    //Proveedores
+    $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
 
     //Sucursales, SMM 06/05/2022
-    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='S'", 'NombreSucursal');
-    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Clientes_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='B'", 'NombreSucursal');
+    $SQL_SucursalDestino = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='S'", 'NombreSucursal');
+    $SQL_SucursalFacturacion = Seleccionar('uvw_Sap_tbl_Proveedores_Sucursales', '*', "CodigoCliente='" . $row['CardCode'] . "' AND TipoDireccion='B'", 'NombreSucursal');
 
     //Contacto cliente
-    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ClienteContactos', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreContacto');
+    $SQL_ContactoCliente = Seleccionar('uvw_Sap_tbl_ProveedorContactos', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreContacto');
 
     //Orden de servicio
-    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_CodigoCliente='" . $row['CardCode'] . "' OR ID_LlamadaServicio='" . $row['ID_LlamadaServicio'] . "' AND IdEstadoLlamada<>'-1'");
+    $SQL_OrdenServicioCliente = Seleccionar('uvw_Sap_tbl_LlamadasServicios', '*', "ID_LlamadaServicio='" . $row['ID_LlamadaServicio'] . "'");
+    $row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente);
 
     //Sucursal
     $SQL_Sucursal = Seleccionar('uvw_tbl_SeriesSucursalesAlmacenes', 'IdSucursal, DeSucursal', "IdSeries='" . $row['IdSeries'] . "'");
@@ -528,13 +559,13 @@ $SQL_EstadoDoc = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 //Estado autorizacion
 $SQL_EstadoAuth = Seleccionar('uvw_Sap_tbl_EstadosAuth', '*');
 
-//Empleado de ventas
+//Empleado de compras
 $SQL_EmpleadosVentas = Seleccionar('uvw_Sap_tbl_EmpleadosVentas', '*', '', 'DE_EmpVentas');
 
 //Series de documento
 $ParamSerie = array(
     "'" . $_SESSION['CodUser'] . "'",
-    "'17'",
+    "'22'",
 );
 $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
@@ -564,25 +595,25 @@ $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Orden de venta borrador | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Orden de compra | <?php echo NOMBRE_PORTAL; ?></title>
 <?php
-if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_OVenAdd")) {
+if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_OCompAdd")) {
     echo "<script>
 		$(document).ready(function() {
 			Swal.fire({
 				title: '¡Listo!',
-				text: 'La Orden de venta ha sido creada exitosamente.',
+				text: 'La Orden de compra ha sido creada exitosamente.',
 				icon: 'success'
 			});
 		});
 		</script>";
 }
-if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_OVenUpd")) {
+if (isset($_GET['a']) && $_GET['a'] == base64_encode("OK_OCompUpd")) {
     echo "<script>
 		$(document).ready(function() {
 			Swal.fire({
 				title: '¡Listo!',
-				text: 'La Orden de venta ha sido actualizada exitosamente.',
+				text: 'La Orden de compra ha sido actualizada exitosamente.',
 				icon: 'success'
 			});
 		});
@@ -621,7 +652,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_BorradorAdd"))) {
 		$(document).ready(function() {
 			Swal.fire({
                 title: '¡Listo!',
-                text: 'Se ha actualizado el documento en borrador.',
+                text: 'El documento en borrador se ha creado exitosamente.',
                 icon: 'success'
             });
 		});
@@ -640,15 +671,31 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_BorradorAdd"))) {
 	.nav-tabs > li > a{
 		padding: 14px 20px 14px 25px !important;
 	}
+
+	/**
+	* Stiven Muñoz Murillo
+	* 30/07/2022
+	 */
+	.bootstrap-maxlength {
+		background-color: black;
+		z-index: 9999999;
+	}
+	.swal2-container {
+		z-index: 9999999 !important;
+	}
 </style>
 <script>
 function BuscarArticulo(dato){
 	var almacen= document.getElementById("Almacen").value;
 	var cardcode= document.getElementById("CardCode").value;
 
-	var dim1= document.getElementById("Dim1").value;
-	var dim2= document.getElementById("Dim2").value;
-	var dim3= document.getElementById("Dim3").value;
+	// SMM, 22/08/2022
+	var dim1= ((document.getElementById("Dim1") || {}).value) || "";
+	var dim2= ((document.getElementById("Dim2") || {}).value) || "";
+	var dim3= ((document.getElementById("Dim3") || {}).value) || "";
+	var dim4= ((document.getElementById("Dim4") || {}).value) || "";
+	var dim5= ((document.getElementById("Dim5") || {}).value) || "";
+	// Hasta aquí, 22/08/2022
 
 	var posicion_x;
 	var posicion_y;
@@ -662,7 +709,8 @@ function BuscarArticulo(dato){
 
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")&&(idlistaprecio!="")){
-			remote=open("buscar_articulo.php?borrador=1&dato="+dato+'&prjcode='+proyecto+'&empventas='+empleado+'&cardcode='+cardcode+'&whscode='+almacen+'&idlistaprecio='+idlistaprecio+'&doctype=<?php if ($edit == 0) {echo "1";} else {echo "2";}?>&idordenventa=<?php if ($edit == 1) {echo base64_encode($row['ID_OrdenVenta']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=2&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			// Nuevo, 26/01/2023 (prjcode='+proyecto+'&empventas='+empleado+'&idlistaprecio='+idlistaprecio+'&)
+			remote=open('buscar_articulo.php?borrador=1&prjcode='+proyecto+'&empventas='+empleado+'&idlistaprecio='+idlistaprecio+'&dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "18";} else {echo "19";}?>&idordencompra=<?php if ($edit == 1) {echo base64_encode($row['ID_OrdenCompra']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=1&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
@@ -701,12 +749,12 @@ function verAutorizacion() {
 			// Cargar contactos del cliente.
 			$.ajax({
 				type: "POST",
-				url: "ajx_cbo_select.php?type=2&id="+carcode,
+				url: "ajx_cbo_select.php?type=2&id="+carcode+"&pv=1",
 				success: function(response){
 					$('#ContactoCliente').html(response).fadeIn();
 				},
 				error: function(error) {
-					console.error("Linea 661", error.responseText);
+					console.log("Linea 641", error.responseText);
 					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
@@ -733,7 +781,7 @@ function verAutorizacion() {
 					document.getElementById('Exento').value=data.SujetoImpuesto; // SMM, 23/04/2022
 				},
 				error: function(error) {
-					// console.error("Linea 688", error.responseText);
+					// console.log("Linea 693", error.responseText);
 					console.log("El cliente no tiene IdListaPrecio");
 
 					$('.ibox-content').toggleClass('sk-loading', false);
@@ -743,49 +791,31 @@ function verAutorizacion() {
 			<?php if ($edit == 0 && $sw_error == 0 && $dt_LS == 0 && $dt_OF == 0) { // Limpiar carrito detalle. ?>
 			$.ajax({
 				type: "POST",
-				url: "includes/procedimientos.php?type=7&objtype=17&cardcode="+carcode
-			});
-
-			// Recargar lista de llamadas de servicio.
-			$.ajax({
-				type: "POST",
-				url: "ajx_cbo_select.php?type=6&id="+carcode,
-				success: function(response){
-					$('#OrdenServicioCliente').html(response).fadeIn();
-					$('#OrdenServicioCliente').trigger('change');
-				},
-				error: function(error) {
-					console.error(error.responseText);
-					$('.ibox-content').toggleClass('sk-loading', false);
-				}
+				url: "includes/procedimientos.php?type=7&objtype=22&cardcode="+carcode
 			});
 
 			// Recargar sucursales.
 			$.ajax({
 				type: "POST",
-				url: "ajx_cbo_select.php?type=3&tdir=S&id="+carcode,
+				url: "ajx_cbo_select.php?type=3&tdir=S&id="+carcode+"&pv=1",
 				success: function(response){
 					$('#SucursalDestino').html(response).fadeIn();
 					$('#SucursalDestino').trigger('change');
 				},
 				error: function(error) {
-					// console.error("Linea 725", error.responseText);
-					console.log("El cliente no tiene Dirección de Destino");
-
+					console.log(error.responseText);
 					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
 			$.ajax({
 				type: "POST",
-				url: "ajx_cbo_select.php?type=3&tdir=B&id="+carcode,
+				url: "ajx_cbo_select.php?type=3&tdir=B&id="+carcode+"&pv=1",
 				success: function(response){
 					$('#SucursalFacturacion').html(response).fadeIn();
 					$('#SucursalFacturacion').trigger('change');
 				},
 				error: function(error) {
-					// console.error("Linea 738", error.responseText);
-					console.log("El cliente no tiene Dirección de Facturación");
-
+					console.log(error.responseText);
 					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
@@ -794,12 +824,12 @@ function verAutorizacion() {
 			<?php if ($edit == 0 && $sw_error == 0 && $dt_OF == 0) { // Recargar condición de pago. ?>
 				$.ajax({
 					type: "POST",
-					url: "ajx_cbo_select.php?type=7&id="+carcode,
+					url: "ajx_cbo_select.php?type=7&id="+carcode+"&pv=1",
 					success: function(response){
 						$('#CondicionPago').html(response).fadeIn();
 					},
 					error: function(error) {
-						console.error(error.responseText);
+						console.log(error.responseText);
 						$('.ibox-content').toggleClass('sk-loading', false);
 					}
 				});
@@ -808,15 +838,15 @@ function verAutorizacion() {
 
 			<?php if ($edit == 0) {?>
 				if(carcode!=""){
-					frame.src="detalle_orden_venta_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
+					frame.src="detalle_orden_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
 				}else{
-					frame.src="detalle_orden_venta_borrador.php";
+					frame.src="detalle_orden_compra_borrador.php";
 				}
 			<?php } else {?>
 				if(carcode!=""){
-					frame.src="detalle_orden_venta_borrador.php?autoriza=1&id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
+					frame.src="detalle_orden_compra_borrador.php?autoriza=1&id=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&type=2";
 				}else{
-					frame.src="detalle_orden_venta_borrador.php";
+					frame.src="detalle_orden_compra_borrador.php";
 				}
 			<?php }?>
 
@@ -830,14 +860,16 @@ function verAutorizacion() {
 			var Sucursal=document.getElementById('SucursalDestino').value;
 			$.ajax({
 				url:"ajx_buscar_datos_json.php",
-				data:{type:3,CardCode:Cliente,Sucursal:Sucursal},
+				data:{type:3,CardCode:Cliente,Sucursal:Sucursal,pv:1},
 				dataType:'json',
 				success: function(data){
 					document.getElementById('DireccionDestino').value=data.Direccion;
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
-					console.error("Line 657", error.responseText);
+					// console.log("Line 657", error.responseText);
+					console.log("El cliente no tiene Dirección de Destino");
+
 					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
@@ -850,14 +882,16 @@ function verAutorizacion() {
 			var Sucursal=document.getElementById('SucursalFacturacion').value;
 			$.ajax({
 				url:"ajx_buscar_datos_json.php",
-				data:{type:3,CardCode:Cliente,Sucursal:Sucursal},
+				data:{type:3,CardCode:Cliente,Sucursal:Sucursal,pv:1},
 				dataType:'json',
 				success: function(data){
 					document.getElementById('DireccionFacturacion').value=data.Direccion;
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
-					console.error("Line 677", error.responseText);
+					// console.log("Line 677", error.responseText);
+					console.log("El cliente no tiene Dirección de Facturación");
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 				}
 			});
@@ -897,7 +931,7 @@ function verAutorizacion() {
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
-					console.log("Line 903", error.responseText);
+					console.log("Line 697", error.responseText);
 
 					$('.ibox-content').toggleClass('sk-loading',false);
 				}
@@ -921,18 +955,18 @@ function verAutorizacion() {
 							<?php if ($edit == 0) {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&borrador=1&doctype=1&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							url: "registro.php?P=36&doctype=16&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_orden_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
 						<?php } else {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&borrador=1&doctype=1&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							url: "registro.php?P=36&doctype=16&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_OrdenCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_orden_compra_borrador.php?id=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -943,17 +977,17 @@ function verAutorizacion() {
 		});
 		// Actualizar almacen, llega hasta aquí.
 
-// Actualización de las dimensiones dinámicamente, SMM 15/06/2022
+// Actualización de las dimensiones dinámicamente, SMM 22/08/2022
 <?php foreach ($array_Dimensiones as &$dim) {?>
 
-	<?php $Name_IdDoc = "ID_OrdenVenta";?>
+	<?php $Name_IdDoc = "ID_OrdenCompra";?>
 	<?php $DimCode = intval($dim['DimCode']);?>
 	<?php $OcrId = ($DimCode == 1) ? "" : $DimCode;?>
 
 	$("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 
-		var docType = 1;
-		var detalleDoc = "detalle_orden_venta_borrador.php";
+		var docType = 16;
+		var detalleDoc = "detalle_orden_compra_borrador.php";
 
 		var frame = document.getElementById('DataGrid');
 		var DimIdPO = document.getElementById('<?php echo $dim['IdPortalOne']; ?>').value;
@@ -961,7 +995,7 @@ function verAutorizacion() {
 		<?php if ($DimCode == $DimSeries) {?>
 			$('.ibox-content').toggleClass('sk-loading',true);
 
-			let tDoc = 17;
+			let tDoc = 22;
 			let Serie = document.getElementById('Serie').value;
 
 			var url20 = `ajx_cbo_select.php?type=20&id=${DimIdPO}&serie=${Serie}&tdoc=${tDoc}&WhsCode=<?php echo isset($_GET['Almacen']) ? base64_decode($_GET['Almacen']) : ($row['WhsCode'] ?? ""); ?>`;
@@ -970,8 +1004,8 @@ function verAutorizacion() {
 				type: "POST",
 				url: url20,
 				success: function(response){
-					console.log(url20);
-					console.log("ajx_cbo_select.php?type=20");
+					// console.log(url20);
+					// console.log("ajx_cbo_select.php?type=20");
 
 					$('#Almacen').html(response).fadeIn();
 					// $('#Almacen').trigger('change');
@@ -979,7 +1013,10 @@ function verAutorizacion() {
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
-					console.log("Line 807", error.responseText);
+					// Mensaje de error
+					console.log("Line 869", error.responseText);
+
+					$('.ibox-content').toggleClass('sk-loading', false);
 				}
 			});
 		<?php }?>
@@ -989,7 +1026,7 @@ function verAutorizacion() {
 
 		if(DimIdPO!="" && CardCode!="" && TotalItems!="0") {
 			Swal.fire({
-				title: "¿Desea actualizar las lineas de la <?php echo $dim['DimName']; ?>?",
+				title: "¿Desea actualizar las lineas de la <?php echo $dim['DescPortalOne']; ?>?",
 				icon: "question",
 				showCancelButton: true,
 				confirmButtonText: "Si, confirmo",
@@ -1054,18 +1091,18 @@ function verAutorizacion() {
 							<?php if ($edit == 0) {?>
 						$.ajax({
 							type: "GET", // "EmpVentas" es el nombre que tiene el registro en el detalle.
-							url: "registro.php?P=36&borrador=1&doctype=1&type=1&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							url: "registro.php?P=36&doctype=16&borrador=1&type=1&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_orden_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
 						<?php } else {?>
 						$.ajax({
 							type: "GET", // "EmpVentas" es el nombre que tiene el registro en el detalle.
-							url: "registro.php?P=36&borrador=1&doctype=1&type=2&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							url: "registro.php?P=36&doctype=16&borrador=1&type=2&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&id=<?php echo $row['ID_OrdenCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_orden_compra_borrador.php?id=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1093,18 +1130,18 @@ function verAutorizacion() {
 							<?php if ($edit == 0) {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&borrador=1&doctype=1&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+							url: "registro.php?P=36&doctype=16&borrador=1&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_orden_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
 						<?php } else {?>
 						$.ajax({
 							type: "GET",
-							url: "registro.php?P=36&borrador=1&doctype=1&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_OrdenVenta']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+							url: "registro.php?P=36&doctype=16&borrador=1&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_OrdenCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_orden_venta_borrador.php?id=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_orden_compra_borrador.php?id=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1130,16 +1167,16 @@ function verAutorizacion() {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Orden de venta borrador</h2>
+                    <h2>Orden de compra borrador</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
                         </li>
                         <li>
-                            <a href="#">Ventas - Clientes</a>
+                            <a href="#">Compras</a>
                         </li>
                         <li class="active">
-                            <strong>Orden de venta borrador</strong>
+                            <strong>Orden de compra borrador</strong>
                         </li>
                     </ol>
                 </div>
@@ -1218,7 +1255,7 @@ function verAutorizacion() {
 										<div class="form-group">
 											<label class="col-lg-2">Motivo <span class="text-danger">*</span></label>
 											<div class="col-lg-10">
-												<input required type="hidden" form="CrearOrdenVenta" class="form-control" name="IdMotivoAutorizacion" id="IdMotivoAutorizacion" value="<?php echo $IdMotivo; ?>">
+												<input required type="hidden" form="CrearOrdenCompra" class="form-control" name="IdMotivoAutorizacion" id="IdMotivoAutorizacion" value="<?php echo $IdMotivo; ?>">
 												<input readonly type="text" style="color: black; font-weight: bold;" class="form-control" id="MotivoAutorizacion" value="<?php echo $motivoAutorizacion; ?>">
 											</div>
 										</div>
@@ -1226,7 +1263,7 @@ function verAutorizacion() {
 										<div class="form-group">
 											<label class="col-lg-2">Mensaje proceso</label>
 											<div class="col-lg-10">
-												<textarea readonly form="CrearOrdenVenta" style="color: black; font-weight: bold;" class="form-control" name="MensajeProceso" id="MensajeProceso" type="text" maxlength="250" rows="4"><?php if ($mensajeProceso != "") {echo $mensajeProceso;} elseif ($edit == 1 || $sw_error == 1) {echo $row['ComentariosMotivo'];}?></textarea>
+												<textarea readonly form="CrearOrdenCompra" style="color: black; font-weight: bold;" class="form-control" name="MensajeProceso" id="MensajeProceso" type="text" maxlength="250" rows="4"><?php if ($mensajeProceso != "") {echo $mensajeProceso;} elseif ($edit == 1 || $sw_error == 1) {echo $row['ComentariosMotivo'];}?></textarea>
 											</div>
 										</div>
 										<br><br><br>
@@ -1234,7 +1271,7 @@ function verAutorizacion() {
 										<div class="form-group">
 											<label class="col-lg-2">Comentarios autor <span class="text-danger">*</span></label>
 											<div class="col-lg-10">
-												<textarea form="CrearOrdenVenta" class="form-control required" name="ComentariosAutor" id="ComentariosAutor" type="text" maxlength="250" rows="4"><?php if ($edit == 1 || $sw_error == 1) {echo $row['ComentariosAutor'];} elseif (isset($_GET['ComentariosAutor'])) {echo base64_decode($_GET['ComentariosAutor']);}?></textarea>
+												<textarea <?php if ($edit == 1) {echo "readonly";}?> form="CrearOrdenCompra" class="form-control required" name="ComentariosAutor" id="ComentariosAutor" type="text" maxlength="250" rows="4"><?php if ($edit == 1 || $sw_error == 1) {echo $row['ComentariosAutor'];} elseif (isset($_GET['ComentariosAutor'])) {echo base64_decode($_GET['ComentariosAutor']);}?></textarea>
 											</div>
 										</div>
 										<br><br><br>
@@ -1295,7 +1332,9 @@ function verAutorizacion() {
 								</div>
 
 								<div class="modal-footer">
-									<button type="button" class="btn btn-success m-t-md" id="formAUT_button"><i class="fa fa-check"></i> Enviar</button>
+									<?php if ($edit == 0) {?>
+										<button type="button" class="btn btn-success m-t-md" id="formAUT_button"><i class="fa fa-check"></i> Enviar</button>
+									<?php }?>
 									<button type="button" class="btn btn-warning m-t-md" data-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
 								</div>
 							<!-- /form -->
@@ -1313,7 +1352,7 @@ function verAutorizacion() {
 							<h5><span class="font-normal">Creada por</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php if ($row['CDU_UsuarioCreacion'] != "") {echo $row['CDU_UsuarioCreacion'];} else {echo "&nbsp;";}?></h3>
+							<h3 class="no-margins"><?php if ($row['Usuario'] != "") {echo $row['Usuario'];} else {echo "&nbsp;";}?></h3>
 						</div>
 					</div>
 				</div>
@@ -1323,7 +1362,7 @@ function verAutorizacion() {
 							<h5><span class="font-normal">Fecha creación</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php echo ($row['CDU_FechaHoraCreacion'] != "") ? $row['CDU_FechaHoraCreacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+							<h3 class="no-margins"><?php echo ($row['FechaRegistro'] != "") ? $row['FechaRegistro']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
 						</div>
 					</div>
 				</div>
@@ -1333,7 +1372,7 @@ function verAutorizacion() {
 							<h5><span class="font-normal">Actualizado por</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php if ($row['CDU_UsuarioActualizacion'] != "") {echo $row['CDU_UsuarioActualizacion'];} else {echo "&nbsp;";}?></h3>
+							<h3 class="no-margins"><?php if ($row['UsuarioActualizacion'] != "") {echo $row['UsuarioActualizacion'];} else {echo "&nbsp;";}?></h3>
 						</div>
 					</div>
 				</div>
@@ -1343,7 +1382,7 @@ function verAutorizacion() {
 							<h5><span class="font-normal">Fecha actualización</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php echo ($row['CDU_FechaHoraActualizacion'] != "") ? $row['CDU_FechaHoraActualizacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+							<h3 class="no-margins"><?php echo ($row['FechaActualizacion'] != "") ? $row['FechaActualizacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
 						</div>
 					</div>
 				</div>
@@ -1363,7 +1402,7 @@ function verAutorizacion() {
 							<div class="btn-group">
 								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
 								<ul class="dropdown-menu">
-									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=17 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND EsBorrador='Y'");?>
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=17 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
 									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
 										<li>
 											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
@@ -1375,7 +1414,7 @@ function verAutorizacion() {
 						</div>
 						<div class="col-lg-6">
 							<?php if ($row['DocDestinoDocEntry'] != "") {?>
-								<a href="entrega_venta.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank" class="btn btn-outline btn-primary pull-right">Ir a documento destino <i class="fa fa-external-link"></i></a>
+								<a href="entrada_compra.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank" class="btn btn-outline btn-primary pull-right">Ir a documento destino <i class="fa fa-external-link"></i></a>
 							<?php }?>
 						</div>
 					</div>
@@ -1388,18 +1427,18 @@ function verAutorizacion() {
 			 <?php include "includes/spinner.php";?>
           <div class="row">
            <div class="col-lg-12">
-              <form action="orden_venta_borrador.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearOrdenVenta">
+              <form action="orden_compra_borrador.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearOrdenCompra">
 				   <?php
-$_GET['obj'] = "17";
+$_GET['obj'] = "22";
 include_once 'md_frm_campos_adicionales.php';
 ?>
 				<div class="form-group">
-					<label class="col-md-8 col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-user"></i> Información de cliente</h3></label>
+					<label class="col-md-8 col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-user"></i> Información de proveedor</h3></label>
 					<label class="col-md-4 col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-calendar"></i> Fechas y estado de documento</h3></label>
 				</div>
 				<div class="col-lg-8">
 					<div class="form-group">
-						<label class="col-lg-1 control-label"><i onClick="ConsultarDatosCliente();" title="Consultar cliente" style="cursor: pointer" class="btn-xs btn-success fa fa-search"></i> Cliente <span class="text-danger">*</span></label>
+						<label class="col-lg-1 control-label"><i onClick="ConsultarDatosCliente();" title="Consultar cliente" style="cursor: pointer" class="btn-xs btn-success fa fa-search"></i> Proveedor <span class="text-danger">*</span></label>
 						<div class="col-lg-9">
 							<input name="CardCode" type="hidden" id="CardCode" value="<?php if (($edit == 1) || ($sw_error == 1)) {echo $row['CardCode'];} elseif ($dt_LS == 1 || $dt_OF == 1) {echo $row_Cliente['CodigoCliente'];}?>">
 
@@ -1412,9 +1451,9 @@ include_once 'md_frm_campos_adicionales.php';
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-lg-1 control-label">Contacto <span class="text-danger">*</span></label>
+						<label class="col-lg-1 control-label">Contacto</label>
 						<div class="col-lg-5">
-							<select name="ContactoCliente" class="form-control" id="ContactoCliente" required <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="ContactoCliente" class="form-control" id="ContactoCliente" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 									<option value="">Seleccione...</option>
 							<?php
 if ($edit == 1 || $sw_error == 1) {
@@ -1428,7 +1467,7 @@ if ($edit == 1 || $sw_error == 1) {
 						<!-- Inicio, Lista Precios SN -->
 						<label class="col-lg-1 control-label">Lista Precios <!--span class="text-danger">*</span--></label>
 						<div class="col-lg-5">
-							<select name="IdListaPrecio" class="form-control" id="IdListaPrecio" <?php if (!PermitirFuncion(418)) {echo "disabled='disabled'";}?>>
+							<select name="IdListaPrecio" class="form-control" id="IdListaPrecio" <?php if (!PermitirFuncion(719)) {echo "disabled='disabled'";}?>>
 								<?php while ($row_ListaPrecio = sqlsrv_fetch_array($SQL_ListaPrecios)) {?>
 								<option value="<?php echo $row_ListaPrecio['IdListaPrecio']; ?>"
 								<?php if (isset($row['IdListaPrecio']) && (strcmp($row_ListaPrecio['IdListaPrecio'], $row['IdListaPrecio']) == 0)) {echo "selected=\"selected\"";}?>>
@@ -1440,9 +1479,9 @@ if ($edit == 1 || $sw_error == 1) {
 						<!-- Fin, Lista Precios SN -->
 					</div>
 					<div class="form-group">
-						<label class="col-lg-1 control-label">Sucursal destino <span class="text-danger">*</span></label>
+						<label class="col-lg-1 control-label">Sucursal destino</label>
 						<div class="col-lg-5">
-							<select name="SucursalDestino" class="form-control select2" id="SucursalDestino" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="SucursalDestino" class="form-control select2" id="SucursalDestino" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							      <option value="">Seleccione...</option>
 							  <?php if ($edit == 1 || $sw_error == 1 || $dt_LS == 1 || $dt_OF == 1) {?>
 								  <optgroup label='Dirección de destino'></optgroup>
@@ -1476,19 +1515,16 @@ if ($edit == 1 || $sw_error == 1) {
 						</div>
 					</div>
 					<div class="form-group">
-					<label class="col-lg-1 control-label"><?php if (($edit == 1) && ($row['ID_LlamadaServicio'] != 0)) {?><a href="llamada_servicio.php?id=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&tl=1" target="_blank" title="Consultar Llamada de servicio" class="btn-xs btn-success fa fa-search"></a> <?php }?>Orden servicio</label>
-				  	<div class="col-lg-11">
-                    	<select name="OrdenServicioCliente" class="form-control select2" id="OrdenServicioCliente" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
-                         	<option value="">(Ninguna)</option>
-							<?php
-if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
-    while ($row_OrdenServicioCliente = sqlsrv_fetch_array($SQL_OrdenServicioCliente)) {?>
-										<option value="<?php echo $row_OrdenServicioCliente['ID_LlamadaServicio']; ?>" <?php if ((isset($row['ID_LlamadaServicio'])) && (strcmp($row_OrdenServicioCliente['ID_LlamadaServicio'], $row['ID_LlamadaServicio']) == 0)) {echo "selected=\"selected\"";} elseif ((isset($_GET['LS'])) && (strcmp($row_OrdenServicioCliente['ID_LlamadaServicio'], base64_decode($_GET['LS'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_OrdenServicioCliente['DocNum'] . " - " . $row_OrdenServicioCliente['AsuntoLlamada'] . " (" . $row_OrdenServicioCliente['DeTipoLlamada'] . ")"; ?></option>
-							  <?php }
-}?>
-						</select>
-               	  	</div>
-				</div>
+						<label class="col-lg-1 control-label"><?php if (($edit == 1) && ($row['ID_LlamadaServicio'] != 0)) {?><a href="llamada_servicio.php?id=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&tl=1" target="_blank" title="Consultar Llamada de servicio" class="btn-xs btn-success fa fa-search"></a> <?php }?>Orden servicio</label>
+						<div class="col-lg-7">
+							<input type="hidden" class="form-control" name="OrdenServicioCliente" id="OrdenServicioCliente" value="<?php if (isset($row_OrdenServicioCliente['ID_LlamadaServicio']) && ($row_OrdenServicioCliente['ID_LlamadaServicio'] != 0)) {echo $row_OrdenServicioCliente['ID_LlamadaServicio'];}?>">
+							<input readonly type="text" class="form-control" name="Desc_OrdenServicioCliente" id="Desc_OrdenServicioCliente" placeholder="Haga clic en el botón"
+							value="<?php if (isset($row_OrdenServicioCliente['ID_LlamadaServicio']) && ($row_OrdenServicioCliente['ID_LlamadaServicio'] != 0)) {echo $row_OrdenServicioCliente['DocNum'] . " - " . $row_OrdenServicioCliente['AsuntoLlamada'] . " (" . $row_OrdenServicioCliente['DeTipoLlamada'] . ")";}?>">
+						</div>
+						<div class="col-lg-4">
+							<button class="btn btn-success" type="button" onClick="$('#mdOT').modal('show');"><i class="fa fa-refresh"></i> Cambiar orden servicio</button>
+						</div>
+					</div>
 				</div>
 				<div class="col-lg-4">
 					<div class="form-group">
@@ -1613,7 +1649,7 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 					<!-- Inicio, Proyecto -->
 					<label class="col-lg-1 control-label">Proyecto <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
-						<select id="PrjCode" name="PrjCode" class="form-control select2" required="required" form="CrearOrdenVenta" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+						<select id="PrjCode" name="PrjCode" class="form-control select2" required="required" form="CrearOrdenCompra" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 								<option value="">(NINGUNO)</option>
 							<?php while ($row_Proyecto = sqlsrv_fetch_array($SQL_Proyecto)) {?>
 								<option value="<?php echo $row_Proyecto['IdProyecto']; ?>" <?php if ((isset($row['PrjCode'])) && (strcmp($row_Proyecto['IdProyecto'], $row['PrjCode']) == 0)) {echo "selected=\"selected\"";} elseif ((isset($_GET['Proyecto'])) && (strcmp($row_Proyecto['IdProyecto'], base64_decode($_GET['Proyecto'])) == 0)) {echo "selected=\"selected\"";}?>>
@@ -1630,7 +1666,7 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 				<div class="form-group">
 					<label class="col-lg-1 control-label">Buscar articulo</label>
 					<div class="col-lg-4">
-                    	<input name="BuscarItem" id="BuscarItem" type="text" class="form-control" placeholder="Escriba para buscar..." onBlur="javascript:BuscarArticulo(this.value);" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || (!PermitirFuncion(402))) {echo "readonly";}?>>
+                    	<input name="BuscarItem" id="BuscarItem" type="text" class="form-control" placeholder="Escriba para buscar..." onBlur="javascript:BuscarArticulo(this.value);" <?php if ((($edit == 1) && ($row['Cod_Estado'] == 'C')) || (!PermitirFuncion(702))) {echo "readonly";}?>>
                	  	</div>
 
 					<!-- SMM, 04/05/2022 -->
@@ -1641,13 +1677,13 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 
 					<?php $cookie_cardcode = 0;?>
 					<?php if ($edit == 1) {?>
-						<?php $ID_OrdenVenta = $row['ID_OrdenVenta'];?>
+						<?php $ID_OrdenCompra = $row['ID_OrdenCompra'];?>
                         <?php $Evento = $row['IdEvento'];?>
-						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_OrdenVentaDetalle_Borrador WHERE ID_OrdenVenta='$ID_OrdenVenta' AND IdEvento='$Evento' AND Metodo <> 3";?>
+						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_OrdenCompraDetalle_Borrador WHERE ID_OrdenCompra='$ID_OrdenCompra' AND IdEvento='$Evento' AND Metodo <> 3";?>
 					<?php } else {?>
 						<?php $Usuario = $_SESSION['CodUser'];?>
                         <?php $cookie_cardcode = 1;?>
-						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_OrdenVentaDetalleCarrito_Borrador WHERE Usuario='$Usuario'";?>
+						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_OrdenCompraDetalleCarrito_Borrador WHERE Usuario='$Usuario'";?>
 					<?php }?>
 
 					<div class="col-lg-1 pull-right">
@@ -1666,7 +1702,7 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 					</ul>
 					<div class="tab-content">
 						<div id="tab-1" class="tab-pane active">
-							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_orden_venta_borrador.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_orden_venta_borrador.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'];} else {echo "detalle_orden_venta_borrador.php?autoriza=1&id=" . base64_encode($row['ID_OrdenVenta']) . "&evento=" . base64_encode($row['IdEvento']) . "&docentry=" . base64_encode($row['DocEntry']) . "&type=2&status=" . base64_encode($row['Cod_Estado']);}?>"></iframe>
+							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_orden_compra_borrador.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_orden_compra_borrador.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'];} else {echo "detalle_orden_compra_borrador.php?id=" . base64_encode($row['ID_OrdenCompra']) . "&evento=" . base64_encode($row['IdEvento']) . "&docentry=" . base64_encode($row['DocEntry']) . "&type=2&status=" . base64_encode($row['Cod_Estado']);}?>"></iframe>
 						</div>
 						<?php if ($edit == 1) {?>
 						<div id="tab-2" class="tab-pane">
@@ -1676,17 +1712,28 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 						</div>
 						<?php }?>
 						 </form>
+
+						<!-- Limpiar directorio temporal antes de copiar los anexos de SAP, 01/10/2022 -->
+						<!-- dt_OF, también hace referencia al duplicar orden de compra -->
+						<?php if (($sw_error == 0) && ($dt_OF == 0)) {LimpiarDirTemp();}?>
+
 						<div id="tab-3" class="tab-pane">
 							<div class="panel-body">
-								<?php if ($edit == 1) {
-    if ($row['IdAnexo'] != 0) {?>
+								<?php if (($edit == 1) || sqlsrv_has_rows($SQL_Anexo)) {
+    if ((($edit == 1) && ($row['IdAnexo'] != 0)) || (sqlsrv_has_rows($SQL_Anexo) && ($edit == 0))) {?>
 										<div class="form-group">
 											<div class="col-lg-4">
 											 <ul class="folder-list" style="padding: 0">
 											<?php while ($row_Anexo = sqlsrv_fetch_array($SQL_Anexo)) {
         $Icon = IconAttach($row_Anexo['FileExt']);
+
+        // SMM, 30/09/2022
+        $RutaAnexoSAP = ObtenerDirAttach()[0] . $row_Anexo['NombreArchivo'];
+        $RutaAnexoTemporal = CrearObtenerDirTemp() . $row_Anexo['NombreArchivo'];
+
+        copy($RutaAnexoSAP, $RutaAnexoTemporal);
         ?>
-												<li><a href="attachdownload.php?file=<?php echo base64_encode($row_Anexo['AbsEntry']); ?>&line=<?php echo base64_encode($row_Anexo['Line']); ?>" target="_blank" class="btn-link btn-xs"><i class="<?php echo $Icon; ?>"></i> <?php echo $row_Anexo['NombreArchivo']; ?></a></li>
+												<li><a <?php if ($edit == 0) {echo "disabled";} else {echo "href='attachdownload.php?file=" . base64_encode($row_Anexo['AbsEntry']) . "&line=" . base64_encode($row_Anexo['Line']) . "'";}?> target="_blank" class="btn-link btn-xs"><i class="<?php echo $Icon; ?>"></i> <?php echo $row_Anexo['NombreArchivo']; ?></a></li>
 											<?php }?>
 											 </ul>
 											</div>
@@ -1695,7 +1742,6 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 }?>
 								<div class="row">
 									<form action="upload.php" class="dropzone" id="dropzoneForm" name="dropzoneForm">
-										<?php if ($sw_error == 0) {LimpiarDirTemp();}?>
 										<div class="fallback">
 											<input name="File" id="File" type="file" form="dropzoneForm" />
 										</div>
@@ -1709,27 +1755,28 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 				<div class="form-group">&nbsp;</div>
 				<div class="col-lg-8">
 					<div class="form-group">
-						<label class="col-lg-2">Empleado de ventas <span class="text-danger">*</span></label>
+						<label class="col-lg-2">Encargado de compras <span class="text-danger">*</span></label>
 						<div class="col-lg-5">
-							<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas" form="CrearOrdenVenta" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas" form="CrearOrdenCompra" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							  <?php while ($row_EmpleadosVentas = sqlsrv_fetch_array($SQL_EmpleadosVentas)) {?>
 									<option value="<?php echo $row_EmpleadosVentas['ID_EmpVentas']; ?>" <?php if ($edit == 0 && $sw_error == 0) {if (isset($_GET['Empleado']) && (strcmp($row_EmpleadosVentas['ID_EmpVentas'], base64_decode($_GET['Empleado'])) == 0)) {echo "selected=\"selected\"";} elseif (($_SESSION['CodigoEmpVentas'] != "") && (!isset($_GET['Empleado'])) && (strcmp($row_EmpleadosVentas['ID_EmpVentas'], $_SESSION['CodigoEmpVentas']) == 0)) {echo "selected=\"selected\"";}} elseif ($edit == 1 || $sw_error == 1) {if (($row['SlpCode'] != "") && (strcmp($row_EmpleadosVentas['ID_EmpVentas'], $row['SlpCode']) == 0)) {echo "selected=\"selected\"";}}?>><?php echo $row_EmpleadosVentas['DE_EmpVentas']; ?></option>
 							  <?php }?>
 							</select>
 						</div>
-
-
 					</div>
 					<div class="form-group">
 						<label class="col-lg-2">Comentarios</label>
 						<div class="col-lg-10">
-							<textarea name="Comentarios" form="CrearOrdenVenta" rows="4" id="Comentarios" class="form-control" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];} elseif (isset($_GET['Comentarios'])) {echo base64_decode($_GET['Comentarios']);}?></textarea>
+							<textarea type="text" maxlength="2000" name="Comentarios" form="CrearOrdenCompra" rows="4" id="Comentarios" class="form-control" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];} elseif (isset($_GET['Comentarios'])) {echo base64_decode($_GET['Comentarios']);}?></textarea>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-2">Información adicional</label>
-						<div class="col-lg-10">
+						<div class="col-lg-4">
 							<button class="btn btn-success" type="button" id="DatoAdicionales" onClick="VerCamposAdi();"><i class="fa fa-list"></i> Ver campos adicionales</button>
+						</div>
+						<div class="col-lg-6">
+							<!-- Espacio para un botón -->
 						</div>
 					</div>
 				</div>
@@ -1737,52 +1784,52 @@ if ($edit == 1 || $dt_LS == 1 || $sw_error == 1) {
 					<div class="form-group">
 						<label class="col-lg-7"><strong class="pull-right">Subtotal</strong></label>
 						<div class="col-lg-5">
-							<input type="text" name="SubTotal" form="CrearOrdenVenta" id="SubTotal" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['SubTotal'], 0);} else {echo "0.00";}?>" readonly>
+							<input type="text" name="SubTotal" form="CrearOrdenCompra" id="SubTotal" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['SubTotal'], 0);} else {echo "0.00";}?>" readonly>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-7"><strong class="pull-right">Descuentos</strong></label>
 						<div class="col-lg-5">
-							<input type="text" name="Descuentos" form="CrearOrdenVenta" id="Descuentos" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['DiscSum'], 0);} else {echo "0.00";}?>" readonly>
+							<input type="text" name="Descuentos" form="CrearOrdenCompra" id="Descuentos" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['DiscSum'], 0);} else {echo "0.00";}?>" readonly>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-7"><strong class="pull-right">IVA</strong></label>
 						<div class="col-lg-5">
-							<input type="text" name="Impuestos" form="CrearOrdenVenta" id="Impuestos" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['VatSum'], 0);} else {echo "0.00";}?>" readonly>
+							<input type="text" name="Impuestos" form="CrearOrdenCompra" id="Impuestos" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['VatSum'], 0);} else {echo "0.00";}?>" readonly>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-7"><strong class="pull-right">Redondeo</strong></label>
 						<div class="col-lg-5">
-							<input type="text" name="Redondeo" form="CrearOrdenVenta" id="Redondeo" class="form-control" style="text-align: right; font-weight: bold;" value="0.00" readonly>
+							<input type="text" name="Redondeo" form="CrearOrdenCompra" id="Redondeo" class="form-control" style="text-align: right; font-weight: bold;" value="0.00" readonly>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-lg-7"><strong class="pull-right">Total</strong></label>
 						<div class="col-lg-5">
-							<input type="text" name="TotalOrden" form="CrearOrdenVenta" id="TotalOrden" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['DocTotal'], 0);} else {echo "0.00";}?>" readonly>
+							<input type="text" name="TotalOrden" form="CrearOrdenCompra" id="TotalOrden" class="form-control" style="text-align: right; font-weight: bold;" value="<?php if ($edit == 1) {echo number_format($row['DocTotal'], 0);} else {echo "0.00";}?>" readonly>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
 					<div class="col-lg-9">
-						<?php if ($edit == 0 && PermitirFuncion(402)) {?>
-							<!-- button class="btn btn-primary" type="submit" form="CrearOrdenVenta" id="Crear"><i class="fa fa-check"></i> Crear Orden de venta</button -->
-						<?php } elseif ($row['Cod_Estado'] == "O" && PermitirFuncion(402)) {?>
+						<?php if ($edit == 0 && PermitirFuncion(702)) {?>
+							<!-- button class="btn btn-primary" type="submit" form="CrearOrdenCompra" id="Crear"><i class="fa fa-check"></i> Crear Orden de compra</button -->
+						<?php } elseif ($row['Cod_Estado'] == "O" && PermitirFuncion(702)) {?>
 							<?php if (isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($row_Autorizaciones['IdEstadoAutorizacion'] == 'Y')) {?>
-								<button class="btn btn-primary" type="submit" form="CrearOrdenVenta" id="Actualizar2" onclick="CambiarDefinitivo();"><i class="fa fa-check"></i> Crear Orden de venta Definitiva</button>
+								<button class="btn btn-primary" type="submit" form="CrearOrdenCompra" id="Actualizar2" onclick="CambiarDefinitivo();"><i class="fa fa-check"></i> Crear Orden de compra Definitiva</button>
 							<?php }?>
-							<button class="btn btn-warning" type="submit" form="CrearOrdenVenta" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Orden de venta Borrador</button>
+							<button class="btn btn-warning" type="submit" form="CrearOrdenCompra" id="Actualizar"><i class="fa fa-refresh"></i> Actualizar Orden de compra Borrador</button>
 						<?php }?>
 						<?php
 //
 if (isset($_GET['return'])) {
-    $return = base64_decode($_GET['pag']) . "?" . base64_decode($_GET['return']);
+    $return = base64_decode($_GET['pag']) . "?" . $_GET['return'];
 } elseif (isset($_POST['return'])) {
     $return = base64_decode($_POST['return']);
 } else {
-    $return = "orden_venta_borrador.php?" . $_SERVER['QUERY_STRING'];
+    $return = "orden_compra_borrador.php?" . $_SERVER['QUERY_STRING'];
 }
 $return = QuitarParametrosURL($return, array("a"));
 ?>
@@ -1805,14 +1852,13 @@ $return = QuitarParametrosURL($return, array("a"));
 
 <!-- Aquí va el copiar a otros documentos, 23/08/2022 -->
 				</div>
-				<input type="hidden" form="CrearOrdenVenta" id="P" name="P" value="<?php if ($edit == 0) {echo "37";} else {echo "39";}?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="IdOrdenVenta" name="IdOrdenVenta" value="<?php if ($edit == 1) {echo base64_encode($row['ID_OrdenVenta']);}?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="IdEvento" name="IdEvento" value="<?php if ($edit == 1) {echo base64_encode($IdEvento);}?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="d_LS" name="d_LS" value="<?php echo $dt_LS; ?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="tl" name="tl" value="<?php echo $edit; ?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="swError" name="swError" value="<?php echo $sw_error; ?>" />
-				<input type="hidden" form="CrearOrdenVenta" id="return" name="return" value="<?php echo base64_encode($return); ?>" />
-				<!--input type="hidden" form="CrearOrdenVenta" id="PrjCode" name="PrjCode" value="<?php // if ($edit == 1) {echo $row['PrjCode'];}?>" /-->
+				<input type="hidden" form="CrearOrdenCompra" id="P" name="P" value="<?php if ($edit == 0) {echo "37";} else {echo "39";}?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="IdOrdenCompra" name="IdOrdenCompra" value="<?php if ($edit == 1) {echo base64_encode($row['ID_OrdenCompra']);}?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="IdEvento" name="IdEvento" value="<?php if ($edit == 1) {echo base64_encode($IdEvento);}?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="d_LS" name="d_LS" value="<?php echo $dt_LS; ?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="tl" name="tl" value="<?php echo $edit; ?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="swError" name="swError" value="<?php echo $sw_error; ?>" />
+				<input type="hidden" form="CrearOrdenCompra" id="return" name="return" value="<?php echo base64_encode($return); ?>" />
 			 </form>
 		   </div>
 			</div>
@@ -1827,7 +1873,7 @@ $return = QuitarParametrosURL($return, array("a"));
 <!-- InstanceBeginEditable name="EditRegion4" -->
 <script>
 	 $(document).ready(function(){
-		 $("#CrearOrdenVenta").validate({
+		 $("#CrearOrdenCompra").validate({
 			 submitHandler: function(form){
 				 if(Validar()){
 					Swal.fire({
@@ -1873,7 +1919,7 @@ $return = QuitarParametrosURL($return, array("a"));
 			} else {
 				Swal.fire({
 					"title": "¡Listo!",
-					"text": "Puede continuar con la actualización del documento.",
+					"text": "Puede continuar con la creación del documento.",
 					"icon": "success"
 				});
 
@@ -1897,14 +1943,17 @@ $return = QuitarParametrosURL($return, array("a"));
 			}
 		});
 
+		maxLength('Comentarios'); // SMM, 15/07/2022
+		maxLength('ComentariosAutor'); // SMM, 15/07/2022
+
 		$(".alkin").on('click', function(){
 			$('.ibox-content').toggleClass('sk-loading');
 		});
 
 
 		// Cambiar SN en las copias
-		$(".d-venta").on("click", function(event){
-			<?php if (PermitirFuncion(419)) {?>
+		$(".d-compra").on("click", function(event){
+			<?php if (PermitirFuncion(720)) {?>
 				event.preventDefault(); // Evitar redirección del ancla
 				console.log(event);
 
@@ -1926,7 +1975,7 @@ $return = QuitarParametrosURL($return, array("a"));
 					}
 				});
 			<?php } else {?>
-				console.log("Permiso 419, no esta activo");
+				console.log("Permiso 720, no esta activo");
 			<?php }?>
 		});
 
@@ -1982,7 +2031,7 @@ $return = QuitarParametrosURL($return, array("a"));
 					$('#ContactoSN').trigger('change');
 				},
 				error: function(error) {
-					console.error("ContactoSN", error.responseText);
+					console.log("ContactoSN", error.responseText);
 				}
 			});
 			$.ajax({
@@ -1995,7 +2044,7 @@ $return = QuitarParametrosURL($return, array("a"));
 					$('#SucursalSN').trigger('change');
 				},
 				error: function(error) {
-					console.error("SucursalSN", error.responseText);
+					console.log("SucursalSN", error.responseText);
 				}
 			});
 		});
@@ -2017,7 +2066,7 @@ $return = QuitarParametrosURL($return, array("a"));
 						document.getElementById('DireccionSN').value=data.Direccion;
 					},
 					error: function(error) {
-						console.error("SucursalSN", error.responseText);
+						console.log("SucursalSN", error.responseText);
 					}
 				});
 			}
@@ -2055,7 +2104,7 @@ $return = QuitarParametrosURL($return, array("a"));
             });
 	 	 <?php }?>
 		 //$('.chosen-select').chosen({width: "100%"});
-
+		 $(".select2").select2();
 
 		// SMM, 12/08/2022
 		<?php if (isset($row_Autorizaciones['IdEstadoAutorizacion']) && ($row_Autorizaciones['IdEstadoAutorizacion'] == 'Y')) {?>
@@ -2063,7 +2112,7 @@ $return = QuitarParametrosURL($return, array("a"));
 
 			$(".form-control").attr('readonly', 'readonly');
 
-			<?php if (PermitirFuncion(424)) {?>
+			<?php if (PermitirFuncion(725)) {?>
 				$("#ComentariosAutor").removeAttr('readonly');
 			<?php } else {?>
 				$("#formAUT_button").hide();
@@ -2082,14 +2131,14 @@ if ($edit == 1) {?>
 //		 $('#Almacen option:not(:selected)').attr('disabled',true);
 	 	 <?php }?>
 
-		 <?php
-if (!PermitirFuncion(403)) {?>
-		 $('#Autorizacion option:not(:selected)').attr('disabled',true);
-	 	 <?php }?>
+		<?php if (!PermitirFuncion(716)) {?>
+			// $('#Autorizacion').attr('readonly', true);
+			$('#Autorizacion option:not(:selected)').attr('disabled', true);
+	 	<?php }?>
 
 		 var options = {
 			  url: function(phrase) {
-				  return "ajx_buscar_datos_json.php?type=7&id="+phrase;
+				  return "ajx_buscar_datos_json.php?type=7&id="+phrase+"&pv=1";
 			  },
 			  getValue: "NombreBuscarCliente",
 			  requestDelay: 400,
@@ -2103,7 +2152,7 @@ if (!PermitirFuncion(403)) {?>
 				  }
 			  }
 		 };
-		 <?php if (PermitirFuncion(419) || ($edit == 0)) {?>
+		 <?php if (PermitirFuncion(720) || ($edit == 0)) {?>
 		 $("#CardName").easyAutocomplete(options);
 	 	 <?php }?>
 		<?php if ($dt_LS == 1 || $dt_OF == 1) {?>
@@ -2133,7 +2182,7 @@ function ConsultarTab(type){
 			$('.ibox-content').toggleClass('sk-loading',true);
 			$.ajax({
 				type: "POST",
-				url: "dm_actividades.php?id=<?php if ($edit == 1) {echo base64_encode($row['DocEntry']);}?>&objtype=17",
+				url: "dm_actividades.php?id=<?php if ($edit == 1) {echo base64_encode($row['DocEntry']);}?>&objtype=22",
 				success: function(response){
 					$('#dv_actividades').html(response).fadeIn();
 					$('.ibox-content').toggleClass('sk-loading',false);
@@ -2156,7 +2205,7 @@ function Validar(){
 		data:{
 			type:15,
 			docentry:'<?php if ($edit == 1) {echo base64_encode($row['DocEntry']);}?>',
-			objtype:17,
+			objtype:22,
 			date:'<?php echo FormatoFecha(date('Y-m-d'), date('H:i:s')); ?>'
 		},
 		dataType:'json',
