@@ -36,8 +36,8 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
         $where = "Usuario='" . $_GET['usr'] . "' and CardCode='" . $_GET['cardcode'] . "'";
         $SQL = Seleccionar("uvw_tbl_SolicitudCompraDetalleCarrito", "*", $where);
         // echo $where;
-
-        if ($SQL) {
+		
+		if ($SQL) {
             $sw = 1;
             $CardCode = $_GET['cardcode'];
             //$Proyecto=$_GET['prjcode'];
@@ -292,23 +292,34 @@ function ActualizarDatos(name, id, line, round=0) { // Actualizar datos asincron
 			valor = 'Y';
 		}
 	}
-
-	$.ajax({
-		type: "GET",
-		<?php if ($type == 1) {?>
-		url: "registro.php?P=36&doctype=2&type=1&name="+name+"&value="+Base64.encode(valor)+"&line="+line+"&cardcode=<?php echo $CardCode; ?>&whscode=<?php echo $Almacen; ?>&actodos=0",
-		<?php } else {?>
-		url: "registro.php?P=36&doctype=2&type=2&name="+name+"&value="+Base64.encode(valor)+"&line="+line+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>&actodos=0",
-		<?php }?>
-		success: function(response){
-			if(response!="Error"){
-				window.parent.document.getElementById('TimeAct').innerHTML="<strong>Actualizado:</strong> "+response;
-			}
-		},
-		error: function(error) {
-			console.log(error);
+	
+	let res=true;
+	if(name=='ReqDate'){
+		let fecha=document.getElementById(name+id);
+		if((fecha.value=="")||(fecha.value.length<10)||(!esFecha(fecha.value))){
+			res=false;
+			alert("Fecha invalida. Recuerde que el formato debe ser AAAA-MM-DD.");
+			fecha.value="";
 		}
-	});
+	}
+	if(res){
+		$.ajax({
+			type: "GET",
+			<?php if ($type == 1) {?>
+			url: "registro.php?P=36&doctype=18&type=1&name="+name+"&value="+Base64.encode(valor)+"&line="+line+"&cardcode=<?php echo $CardCode; ?>&whscode=<?php echo $Almacen; ?>&actodos=0",
+			<?php } else {?>
+			url: "registro.php?P=36&doctype=18&type=2&name="+name+"&value="+Base64.encode(valor)+"&line="+line+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>&actodos=0",
+			<?php }?>
+			success: function(response){
+				if(response!="Error"){
+					window.parent.document.getElementById('TimeAct').innerHTML="<strong>Actualizado:</strong> "+response;
+				}
+			},
+			error: function(error) {
+				console.log(error);
+			}
+		});
+	}
 }
 
 // ¿ SujetoImpuesto, Exento de IVA ?
@@ -347,7 +358,7 @@ function ActDosificacion(id){//Actualizar dosificacion
 function ActStockAlmacen(name,id,line){//Actualizar el stock al cambiar el almacen
 	$.ajax({
 		type: "GET",
-		url: "includes/procedimientos.php?type=34&edit=<?php echo $type; ?>&whscode="+document.getElementById(name+id).value+"&linenum="+line+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $Id; ?>&evento=<?php echo $Evento; ?>&tdoc=22",
+		url: "includes/procedimientos.php?type=34&edit=<?php echo $type; ?>&whscode="+document.getElementById(name+id).value+"&linenum="+line+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $Id; ?>&evento=<?php echo $Evento; ?>&tdoc=1470000113",
 		success: function(response){
 			if(response!="Error"){
 				document.getElementById("OnHand"+id).value=number_format(response, dCantidades, sDecimal, sMillares);
@@ -496,6 +507,10 @@ function ConsultarArticulo(articulo){
 				<th>Cantidad</th>
 				<th>Cant. Inicial</th>
 				<th>Cant. Litros</th>
+
+				<!-- SMM, 07/02/2023 -->
+				<th>Fecha necesaria</th>
+
 				<th>Almacén</th>
 				<th>Dosificación</th>
 				<th>Stock almacén</th>
@@ -505,13 +520,14 @@ function ConsultarArticulo(articulo){
 					<th><?php echo $dim["DimDesc"]; ?></th>
 				<?php }?>
 				<!-- Dimensiones dinámicas, hasta aquí -->
-
 				<th>Proyecto</th>
+
 				<th>Encargado de compras</th>
 				<th>Servicio</th>
 				<th>Método aplicación</th>
 				<th>Tipo plaga</th>
 				<th>Áreas controladas</th>
+
 				<th>Texto libre</th>
 				<th>Precio</th>
 				<th>Precio con IVA</th>
@@ -526,7 +542,7 @@ function ConsultarArticulo(articulo){
 		<tbody>
 		<?php
 if ($sw == 1) {
-    $i = 1; // Totalizar
+	$i = 1; // Totalizar
 
     // Stiven Muñoz Murillo, 27/01/2022
     $flag = PermitirFuncion(416);
@@ -573,6 +589,10 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="CantInicial<?php echo $i; ?>" name="CantInicial[]" class="form-control" value="<?php echo number_format($row['CantInicial'], $dCantidades, $sDecimal, $sMillares); ?>" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
 			<td><input size="15" type="text" autocomplete="off" id="CDU_CantLitros<?php echo $i; ?>" name="CDU_CantLitros[]" class="form-control" value="<?php echo number_format(($row['CDU_CantLitros'] ?? 0), $dCantidades, $sDecimal, $sMillares); ?>" onChange="ActualizarDatos('CDU_CantLitros',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(702))) {echo "readonly";}?>></td>
+
+			<td> <!-- SMM, 07/02/2023 -->
+				<input size="15" type="text" id="ReqDate<?php echo $i; ?>" name="ReqDate[]" class="form-control" onChange="ActualizarDatos('ReqDate',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" value="<?php if ($row['ReqDate'] != "") {echo $row['ReqDate'];}?>" data-mask="9999-99-99" placeholder="AAAA-MM-DD">
+			</td>
 
 			<td>
 				<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control select2" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);ActStockAlmacen('WhsCode',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(702))) {echo "disabled='disabled'";}?>>
@@ -722,6 +742,9 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="UnitMsrNew" name="UnitMsrNew" class="form-control"></td>
 			<td><input size="15" type="text" id="QuantityNew" name="QuantityNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CantInicialNew" name="CantInicialNew" class="form-control"></td>
+			
+			<td><input size="15" type="text" id="ReqDateNew" name="ReqDateNew" class="form-control"></td>
+			
 			<td><input size="15" type="text" id="CDU_CantLitrosNew" name="CDU_CantLitrosNew" class="form-control"></td>
 			<td><input size="20" type="text" id="WhsCodeNew" name="WhsCodeNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CDU_DosificacionNew" name="CDU_DosificacionNew" class="form-control"></td>
