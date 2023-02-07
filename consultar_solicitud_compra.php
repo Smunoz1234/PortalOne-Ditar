@@ -14,6 +14,11 @@ $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 //Estado autorizacion
 $SQL_EstadoAuth = Seleccionar('uvw_Sap_tbl_EstadosAuth', '*');
 
+//Empleado de ventas
+$SQL_EmpleadosVentas = Seleccionar('uvw_Sap_tbl_EmpleadosVentas', '*', '', 'DE_EmpVentas');
+
+$Filtro = ""; //Filtro
+
 //Fechas
 if (isset($_GET['FechaInicial']) && $_GET['FechaInicial'] != "") {
     $FechaInicial = $_GET['FechaInicial'];
@@ -30,9 +35,13 @@ if (isset($_GET['FechaFinal']) && $_GET['FechaFinal'] != "") {
 } else {
     $FechaFinal = date('Y-m-d');
 }
+$WhereFecha = "(DocDate Between '$FechaInicial' and '$FechaFinal')";
+
+if (isset($_GET['FechaVenc']) && $_GET['FechaVenc'] != "") {
+    $WhereFecha = "DocDueDate='" . $_GET['FechaVenc'] . "'";
+}
 
 //Filtros
-$Filtro = ""; //Filtro
 if (isset($_GET['Estado']) && $_GET['Estado'] != "") {
     $Filtro .= " and Cod_Estado='" . $_GET['Estado'] . "'";
 }
@@ -47,6 +56,10 @@ if (isset($_GET['Cliente']) && $_GET['Cliente'] != "") {
 
 if (isset($_GET['EmpleadoVentas']) && $_GET['EmpleadoVentas'] != "") {
     $Filtro .= " and IdEmpleadoVentas='" . $_GET['EmpleadoVentas'] . "'";
+}
+
+if (isset($_GET['TipoVenta']) && $_GET['TipoVenta'] != "") {
+    $Filtro .= " and IdTipoVenta='" . $_GET['TipoVenta'] . "'";
 }
 
 if (isset($_GET['Series']) && $_GET['Series'] != "") {
@@ -71,7 +84,7 @@ if (isset($_GET['BuscarDato']) && $_GET['BuscarDato'] != "") {
     $Filtro .= " and (DocNum LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreContacto LIKE '%" . $_GET['BuscarDato'] . "%' OR DocNumLlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR ID_LlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR IdDocPortal LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreEmpleadoVentas LIKE '%" . $_GET['BuscarDato'] . "%' OR Comentarios LIKE '%" . $_GET['BuscarDato'] . "%')";
 }
 
-$Cons = "Select * From uvw_Sap_tbl_SolicitudesCompras Where (DocDate Between '$FechaInicial' and '$FechaFinal') $Filtro Order by DocNum DESC";
+$Cons = "Select * From uvw_Sap_tbl_SolicitudesCompras Where $WhereFecha $Filtro Order by DocNum DESC";
 
 if (isset($_GET['IDTicket']) && $_GET['IDTicket'] != "") {
     $Where = "DocNumLlamadaServicio LIKE '%" . $_GET['IDTicket'] . "%'";
@@ -92,9 +105,30 @@ if (isset($_GET['IDTicket']) && $_GET['IDTicket'] != "") {
     $Cons = "Select * From uvw_Sap_tbl_SolicitudesCompras Where $Where";
 }
 
+// SMM, 22/07/2022
+if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
+    $Where = "DocNum LIKE '%" . trim($_GET['DocNum']) . "%'";
+
+    $FilSerie = "";
+    $i = 0;
+    while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {
+        if ($i == 0) {
+            $FilSerie .= "'" . $row_Series['IdSeries'] . "'";
+        } else {
+            $FilSerie .= ",'" . $row_Series['IdSeries'] . "'";
+        }
+        $i++;
+    }
+    $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
+
+    $Cons = "Select * From uvw_Sap_tbl_SolicitudesCompras Where $Where";
+}
+
 $SQL = sqlsrv_query($conexion, $Cons);
 //echo $Cons;
 ?>
+
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
 
@@ -176,16 +210,16 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 			    <div class="ibox-content">
 					 <?php include "includes/spinner.php";?>
 				  <form action="consultar_solicitud_compra.php" method="get" id="formBuscar" class="form-horizontal">
-					   <div class="form-group">
+						<div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
 						<div class="form-group">
 							<label class="col-lg-1 control-label">Fechas</label>
 							<div class="col-lg-3">
 								<div class="input-daterange input-group" id="datepicker">
-									<input name="FechaInicial" type="text" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
+									<input name="FechaInicial" type="text" autocomplete="off" class="input-sm form-control" id="FechaInicial" placeholder="Fecha inicial" value="<?php echo $FechaInicial; ?>"/>
 									<span class="input-group-addon">hasta</span>
-									<input name="FechaFinal" type="text" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
+									<input name="FechaFinal" type="text" autocomplete="off" class="input-sm form-control" id="FechaFinal" placeholder="Fecha final" value="<?php echo $FechaFinal; ?>" />
 								</div>
 							</div>
 							<label class="col-lg-1 control-label">Estado</label>
@@ -198,7 +232,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 								</select>
 							</div>
 							<label class="col-lg-1 control-label">Serie</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Series" class="form-control" id="Series">
 										<option value="">(Todos)</option>
 								  <?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
@@ -218,7 +252,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 								<input name="BuscarDato" type="text" class="form-control" id="BuscarDato" maxlength="100" value="<?php if (isset($_GET['BuscarDato']) && ($_GET['BuscarDato'] != "")) {echo $_GET['BuscarDato'];}?>">
 							</div>
 							<label class="col-lg-1 control-label">Autorización</label>
-							<div class="col-lg-2">
+							<div class="col-lg-3">
 								<select name="Autorizacion" class="form-control" id="Autorizacion">
 										<option value="">(Todos)</option>
 								   <?php while ($row_EstadoAuth = sqlsrv_fetch_array($SQL_EstadoAuth)) {?>
@@ -227,7 +261,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 								</select>
 							</div>
 						</div>
-					  	<div class="form-group">
+					    <div class="form-group">
 							<label class="col-lg-1 control-label">Encargado de compras</label>
 							<div class="col-lg-3">
 								<select name="EmpleadoVentas" class="form-control" id="EmpleadoVentas">
@@ -241,6 +275,29 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 							<div class="col-lg-3">
 								<input name="IDTicket" type="text" class="form-control" id="IDTicket" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if (isset($_GET['IDTicket']) && ($_GET['IDTicket'] != "")) {echo $_GET['IDTicket'];}?>">
 							</div>
+							<label class="col-lg-1 control-label">Fecha venc. servicio</label>
+							<div class="col-lg-3 input-group date">
+								 <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input name="FechaVenc" type="text" class="form-control" id="FechaVenc" value="<?php if (isset($_GET['FechaVenc']) && ($_GET['FechaVenc'] != "")) {echo $_GET['FechaVenc'];}?>" readonly="readonly" placeholder="YYYY-MM-DD">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-lg-1 control-label">Tipo de venta</label>
+							<div class="col-lg-3">
+								<select name="TipoVenta" class="form-control" id="TipoVenta">
+									<option value="">(Todos)</option>
+									<option value="0" <?php if (isset($_GET['TipoVenta']) && $_GET['TipoVenta'] == '0') {echo "selected=\"selected\"";}?>>PRODUCTOS</option>
+									<option value="1" <?php if (isset($_GET['TipoVenta']) && $_GET['TipoVenta'] == '1') {echo "selected=\"selected\"";}?>>SERVICIOS</option>
+								</select>
+							</div>
+
+							<!-- Número de documento -->
+							<label class="col-lg-1 control-label">Número documento</label>
+							<div class="col-lg-3">
+								<input name="DocNum" type="text" class="form-control" id="DocNum" maxlength="50" placeholder="Digite un número completo, o una parte del mismo..." value="<?php if (isset($_GET['DocNum']) && ($_GET['DocNum'] != "")) {echo $_GET['DocNum'];}?>">
+							</div>
+							<!-- SMM, 22/07/2022 -->
+
 							<div class="col-lg-4">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
@@ -265,6 +322,8 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolCompUpd"))) {
 						<th>Socio de negocio</th>
 						<th>Encargado de compras</th>
 						<th>Autorización</th>
+						<th>Comentarios</th>
+						<th>Tipo venta</th>
 						<th>Usuario Autoriza</th>
 						<th>Orden servicio</th>
 						<th>Documento destino</th>
@@ -284,6 +343,8 @@ if ($sw == 1) {
 							<td><?php echo $row['NombreCliente']; ?></td>
 							<td><?php echo $row['NombreEmpleadoVentas']; ?></td>
 							<td><?php echo $row['DeAuthPortal']; ?></td>
+							<td><?php echo $row['Comentarios'] ?? ""; ?></td>
+							<td><?php echo $row['TipoVenta'] ?? ""; ?></td>
 							<td><?php echo $row['UsuarioAutoriza']; ?></td>
 							<td><?php if ($row['ID_LlamadaServicio'] != 0) {?><a href="llamada_servicio.php?id=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_entrada_compra.php'); ?>&tl=1" target="_blank"><?php echo $row['DocNumLlamadaServicio']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="orden_compra.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
@@ -327,7 +388,16 @@ if ($sw == 1) {
 				format: 'yyyy-mm-dd',
 				todayHighlight: true,
             });
-			 $('#FechaFinal').datepicker({
+			$('#FechaFinal').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+				format: 'yyyy-mm-dd',
+				todayHighlight: true,
+            });
+			$('#FechaVenc').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
                 forceParse: false,
