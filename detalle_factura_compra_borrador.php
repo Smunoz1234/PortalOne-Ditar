@@ -33,7 +33,7 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
         $type = $_GET['type'];
     }
     if ($type == 1) { //Creando Factura de Compra
-        $SQL = Seleccionar("uvw_tbl_FacturaCompraDetalleCarrito", "*", "Usuario='" . $_GET['usr'] . "' and CardCode='" . $_GET['cardcode'] . "'");
+        $SQL = Seleccionar("uvw_tbl_FacturaCompraDetalleCarrito_Borrador", "*", "Usuario='" . $_GET['usr'] . "' and CardCode='" . $_GET['cardcode'] . "'");
         if ($SQL) {
             $sw = 1;
             $CardCode = $_GET['cardcode'];
@@ -51,7 +51,7 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
         } else {
             $Estado = 1;
         }
-        $SQL = Seleccionar("uvw_tbl_FacturaCompraDetalle", "*", "ID_FacturaCompra='" . base64_decode($_GET['id']) . "' and IdEvento='" . base64_decode($_GET['evento']) . "' and Metodo <> 3");
+        $SQL = Seleccionar("uvw_tbl_FacturaCompraDetalle_Borrador", "*", "ID_FacturaCompra='" . base64_decode($_GET['id']) . "' and IdEvento='" . base64_decode($_GET['evento']) . "' and Metodo <> 3");
         if ($SQL) {
             $sw = 1;
         }
@@ -323,7 +323,7 @@ function BorrarLinea(){
 			url: "includes/procedimientos.php?type=39&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
 			<?php }?>
 			success: function(response){
-				window.location.href="detalle_factura_compra.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
+				window.location.href="detalle_factura_compra_borrador.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
 				console.log(response);
 			},
 			error: function(error){
@@ -344,7 +344,7 @@ function DuplicarLinea(){
 			url: "includes/procedimientos.php?type=53&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
 			<?php }?>
 			success: function(response){
-				window.location.href="detalle_factura_compra.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
+				window.location.href="detalle_factura_compra_borrador.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
 			},
 			error: function(error) {
 				console.log(error.responseText);
@@ -742,7 +742,7 @@ function CalcularTotal(line, totalizar=true) {
 						url: "registro.php?P=35&doctype=25&item="+IdArticulo+"&whscode="+CodAlmacen+"&cardcode=0&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
 						<?php }?>
 						success: function(response){
-							window.location.href="detalle_factura_compra.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
+							window.location.href="detalle_factura_compra_borrador.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
 						}
 					});
 				}

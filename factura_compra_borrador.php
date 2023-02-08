@@ -124,7 +124,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Factura de compra
             "'" . $_SESSION['CodUser'] . "'",
             "$Type",
         );
-        $SQL_CabeceraFacturaCompra = EjecutarSP('sp_tbl_FacturaCompra', $ParametrosCabFacturaCompra, $_POST['P']);
+        $SQL_CabeceraFacturaCompra = EjecutarSP('sp_tbl_FacturaCompra_Borrador', $ParametrosCabFacturaCompra, $_POST['P']);
         if ($SQL_CabeceraFacturaCompra) {
             if ($Type == 1) {
                 $row_CabeceraFacturaCompra = sqlsrv_fetch_array($SQL_CabeceraFacturaCompra);
@@ -359,13 +359,13 @@ if ($edit == 1 && $sw_error == 0) {
         "'" . $IdPortal . "'",
         "'" . $_SESSION['CodUser'] . "'",
     );
-    $LimpiarFactura = EjecutarSP('sp_EliminarDatosFacturaCompra', $ParametrosLimpiar);
+    $LimpiarFactura = EjecutarSP('sp_EliminarDatosFacturaCompra_Borrador', $ParametrosLimpiar);
 
     $SQL_IdEvento = sqlsrv_fetch_array($LimpiarFactura);
     $IdEvento = $SQL_IdEvento[0];
 
     //Factura de compra
-    $Cons = "Select * From uvw_tbl_FacturaCompra Where DocEntry='" . $IdFactura . "' AND IdEvento='" . $IdEvento . "'";
+    $Cons = "Select * From uvw_tbl_FacturaCompra_Borrador Where DocEntry='" . $IdFactura . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -397,7 +397,7 @@ if ($edit == 1 && $sw_error == 0) {
 if ($sw_error == 1) {
 
     //Factura de compra
-    $Cons = "Select * From uvw_tbl_FacturaCompra Where ID_FacturaCompra='" . $IdFacturaCompra . "' AND IdEvento='" . $IdEvento . "'";
+    $Cons = "Select * From uvw_tbl_FacturaCompra_Borrador Where ID_FacturaCompra='" . $IdFacturaCompra . "' AND IdEvento='" . $IdEvento . "'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -659,15 +659,15 @@ function MostrarRet(){
 
 			<?php if ($edit == 0) {?>
 				if(carcode!=""){
-					frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
+					frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+carcode;
 				}else{
-					frame.src="detalle_factura_compra.php";
+					frame.src="detalle_factura_compra_borrador.php";
 				}
 			<?php } else {?>
 				if(carcode!=""){
-					frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&docentry=<?php echo base64_encode($row['DocEntry']); ?>&type=2";
+					frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($row['IdEvento']); ?>&docentry=<?php echo base64_encode($row['DocEntry']); ?>&type=2";
 				}else{
-					frame.src="detalle_factura_compra.php";
+					frame.src="detalle_factura_compra_borrador.php";
 				}
 			<?php }?>
 
@@ -777,7 +777,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -786,7 +786,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -815,7 +815,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=1&name=OcrCode&value="+Base64.encode(document.getElementById('Dim1').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -824,7 +824,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=2&name=OcrCode&value="+Base64.encode(document.getElementById('Dim1').value)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -867,7 +867,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=1&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -876,7 +876,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=2&name=OcrCode2&value="+Base64.encode(document.getElementById('Dim2').value)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -912,7 +912,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=1&name=OcrCode3&value="+Base64.encode(Dim3)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							},
 							error: function(error) {
@@ -926,7 +926,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=2&name=OcrCode3&value="+Base64.encode(Dim3)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							},
 							error: function(error) {
@@ -959,7 +959,7 @@ function MostrarRet(){
 							type: "GET", // "EmpVentas" es el nombre que tiene el registro en el detalle.
 							url: "registro.php?P=36&doctype=19&type=1&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -968,7 +968,7 @@ function MostrarRet(){
 							type: "GET", // "EmpVentas" es el nombre que tiene el registro en el detalle.
 							url: "registro.php?P=36&doctype=19&type=2&name=EmpVentas&value="+Base64.encode(document.getElementById('EmpleadoVentas').value)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -997,7 +997,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1006,7 +1006,7 @@ function MostrarRet(){
 							type: "GET",
 							url: "registro.php?P=36&doctype=19&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_FacturaCompra']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+								frame.src="detalle_factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
 								$('.ibox-content').toggleClass('sk-loading',false);
 							}
 						});
@@ -1064,10 +1064,10 @@ function MostrarRet(){
 							<div class="btn-group">
 								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
 								<ul class="dropdown-menu">
-									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=13 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=18 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
 									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
 										<li>
-											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
 										</li>
 									<?php }?>
 								</ul>
@@ -1088,7 +1088,7 @@ function MostrarRet(){
 								<a href="entrega_compra.php?id=<?php echo base64_encode($row['DocBaseDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']); ?>&tl=1" target="_blank" class="btn btn-outline btn-primary pull-right"><i class="fa fa-mail-reply"></i> Ir a documento base</a>
 							<?php }?>
 							<?php if ($row['Cod_Estado'] == 'O') {?>
-								<button type="button" onClick="javascript:location.href='actividad.php?dt_DM=1&Cardcode=<?php echo base64_encode($row['CardCode']); ?>&Contacto=<?php echo base64_encode($row['CodigoContacto']); ?>&Sucursal=<?php echo base64_encode($row['SucursalDestino']); ?>&Direccion=<?php echo base64_encode($row['DireccionDestino']); ?>&DM_type=<?php echo base64_encode('13'); ?>&DM=<?php echo base64_encode($row['DocEntry']); ?>&dt_LS=1&LS=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('factura_compra.php'); ?>'" class="alkin btn btn-outline btn-primary pull-right"><i class="fa fa-plus-circle"></i> Agregar actividad</button>
+								<button type="button" onClick="javascript:location.href='actividad.php?dt_DM=1&Cardcode=<?php echo base64_encode($row['CardCode']); ?>&Contacto=<?php echo base64_encode($row['CodigoContacto']); ?>&Sucursal=<?php echo base64_encode($row['SucursalDestino']); ?>&Direccion=<?php echo base64_encode($row['DireccionDestino']); ?>&DM_type=<?php echo base64_encode('13'); ?>&DM=<?php echo base64_encode($row['DocEntry']); ?>&dt_LS=1&LS=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('factura_compra_borrador.php'); ?>'" class="alkin btn btn-outline btn-primary pull-right"><i class="fa fa-plus-circle"></i> Agregar actividad</button>
 						<?php }?>
 						</div>
 					</div>
@@ -1101,7 +1101,7 @@ function MostrarRet(){
 				 <?php include "includes/spinner.php";?>
           <div class="row">
            <div class="col-lg-12">
-              <form action="factura_compra.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearFacturaCompra">
+              <form action="factura_compra_borrador.php" method="post" class="form-horizontal" enctype="multipart/form-data" id="CrearFacturaCompra">
 				  <?php
 $_GET['obj'] = "18";
 include_once 'md_frm_campos_adicionales.php';
@@ -1358,11 +1358,11 @@ if ($edit == 1 || $sw_error == 1) {
 					<?php if ($edit == 1) {?>
 						<?php $ID_FacturaCompra = $row['ID_FacturaCompra'];?>
 						<?php $Evento = $row['IdEvento'];?>
-						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_FacturaCompraDetalle WHERE ID_FacturaCompra='$ID_FacturaCompra' AND IdEvento='$Evento' AND Metodo <> 3";?>
+						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_FacturaCompraDetalle_Borrador WHERE ID_FacturaCompra='$ID_FacturaCompra' AND IdEvento='$Evento' AND Metodo <> 3";?>
 					<?php } else {?>
 						<?php $Usuario = $_SESSION['CodUser'];?>
 						<?php $cookie_cardcode = 1;?>
-						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_FacturaCompraDetalleCarrito WHERE Usuario='$Usuario'";?>
+						<?php $consulta_detalle = "SELECT $filtro_consulta FROM uvw_tbl_FacturaCompraDetalleCarrito_Borrador WHERE Usuario='$Usuario'";?>
 					<?php }?>
 
 					<div class="col-lg-1 pull-right">
@@ -1381,7 +1381,7 @@ if ($edit == 1 || $sw_error == 1) {
 					</ul>
 					<div class="tab-content">
 						<div id="tab-1" class="tab-pane active">
-							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_factura_compra.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_factura_compra.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'];} else {echo "detalle_factura_compra.php?id=" . base64_encode($row['ID_FacturaCompra']) . "&evento=" . base64_encode($row['IdEvento']) . "&docentry=" . base64_encode($row['DocEntry']) . "&type=2&status=" . base64_encode($row['Cod_Estado']);}?>"></iframe>
+							<iframe id="DataGrid" name="DataGrid" style="border: 0;" width="100%" height="300" src="<?php if ($edit == 0 && $sw_error == 0) {echo "detalle_factura_compra_borrador.php";} elseif ($edit == 0 && $sw_error == 1) {echo "detalle_factura_compra_borrador.php?id=0&type=1&usr=" . $_SESSION['CodUser'] . "&cardcode=" . $row['CardCode'];} else {echo "detalle_factura_compra_borrador.php?id=" . base64_encode($row['ID_FacturaCompra']) . "&evento=" . base64_encode($row['IdEvento']) . "&docentry=" . base64_encode($row['DocEntry']) . "&type=2&status=" . base64_encode($row['Cod_Estado']);}?>"></iframe>
 						</div>
 						<?php if ($edit == 1) {?>
 						<div id="tab-2" class="tab-pane">
@@ -1507,7 +1507,7 @@ if (isset($_GET['return'])) {
 } elseif (isset($_POST['return'])) {
     $return = base64_decode($_POST['return']);
 } else {
-    $return = "factura_compra.php?";
+    $return = "factura_compra_borrador.php?";
 }
 $return = QuitarParametrosURL($return, array("a"));
 ?>
@@ -1583,7 +1583,7 @@ $return = QuitarParametrosURL($return, array("a"));
 							type: "GET", // custom=1&
 							url: "registro.php?P=36&doctype=19&type=1&name=DiscPrcnt&value="+Base64.encode(DiscPrcnt)+"&line=0&cardcode="+CardCode+"&whscode=0&actodos=1",
 							success: function(response){
-								frame.src="detalle_factura_compra.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+CardCode;
+								frame.src="detalle_factura_compra_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+CardCode;
 							}
 						});
 					}

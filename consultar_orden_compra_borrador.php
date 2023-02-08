@@ -143,7 +143,7 @@ $SQL = sqlsrv_query($conexion, $Cons);
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Consultar orden de compra | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Consultar orden de compra borrador | <?php echo NOMBRE_PORTAL; ?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <?php
@@ -207,7 +207,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_OCompUpd"))) {
                             <a href="#">Consultas</a>
                         </li>
                         <li class="active">
-                            <strong>Consultar orden de compra</strong>
+                            <strong>Consultar orden de compra borrador</strong>
                         </li>
                     </ol>
                 </div>
