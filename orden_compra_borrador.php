@@ -99,9 +99,12 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Orden de compra
             $IdOrdenCompra = base64_decode($_POST['IdOrdenCompra']);
             $IdEvento = base64_decode($_POST['IdEvento']);
             $Type = 2;
+
+			/*
             if (!PermitirFuncion(716)) { //Permiso para autorizar orden de compra
                 $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la orden queda pendiente
             }
+			*/
         } else { //Crear
             $IdOrdenCompra = "NULL";
             $IdEvento = "0";
@@ -487,7 +490,7 @@ if ($edit == 1 && $sw_error == 0) {
     $row = sqlsrv_fetch_array($SQL);
 
     // SMM, 06/09/2022
-    // echo $Cons;
+	// echo $Cons;
 
     //Proveedores
     $SQL_Cliente = Seleccionar('uvw_Sap_tbl_Proveedores', '*', "CodigoCliente='" . $row['CardCode'] . "'", 'NombreCliente');
@@ -1402,10 +1405,10 @@ function verAutorizacion() {
 							<div class="btn-group">
 								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
 								<ul class="dropdown-menu">
-									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=17 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=22 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
 									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
 										<li>
-											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
 										</li>
 									<?php }?>
 								</ul>
@@ -2131,8 +2134,8 @@ if ($edit == 1) {?>
 //		 $('#Almacen option:not(:selected)').attr('disabled',true);
 	 	 <?php }?>
 
-		<?php if (!PermitirFuncion(716)) {?>
-			// $('#Autorizacion').attr('readonly', true);
+		<?php if (!PermitirFuncion(716) || true) {?>
+			$('#Autorizacion').attr('readonly', true);
 			$('#Autorizacion option:not(:selected)').attr('disabled', true);
 	 	<?php }?>
 
