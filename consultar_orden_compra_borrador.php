@@ -358,7 +358,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_OCompUpd"))) {
 if ($sw == 1) {
     while ($row = sqlsrv_fetch_array($SQL)) {?>
 						 <tr class="gradeX">
-						 	<td><?php echo $row['ID_OrdenVenta']; ?></td>
+						 	<td><?php echo $row['ID_OrdenCompra']; ?></td>
 							<td><?php echo $row['DocNum']; ?></td>
 							<td><?php echo $row['DeSeries']; ?></td>
 							<td><?php echo $row['DocDate']; ?></td>
@@ -389,7 +389,7 @@ if ($sw == 1) {
 							</td>
 							<td>
 								<a href="orden_compra_borrador.php?id=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_orden_compra_borrador.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
-								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_OrdenVenta']); ?>&ObType=<?php echo base64_encode('17'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
+								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_OrdenCompra']); ?>&ObType=<?php echo base64_encode('17'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 							</td>
 						</tr>
 					<?php }

@@ -447,18 +447,18 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                     "documentos_Anexos" => $Anexos,
                     "documentos_Lotes" => $Lotes,
                     "documentos_Seriales" => $Seriales,
-					"id_proyecto" => $row_Cab['PrjCode'], // SMM, 03/02/2023
+                    "id_proyecto" => $row_Cab['PrjCode'], // SMM, 03/02/2023
                 );
 
             }
 
-			// $Cabecera_json=json_encode($Cabecera);
+            // $Cabecera_json=json_encode($Cabecera);
             // echo $Cabecera_json;
             // exit();
 
             //Enviar datos al WebServices
             try {
-				if ($_POST['tl'] == 0) { //Creando
+                if ($_POST['tl'] == 0) { //Creando
                     $Metodo = "DevolucionesCompras";
                     $Resultado = EnviarWebServiceSAP($Metodo, $Cabecera, true, true);
                 } else { //Editando
@@ -466,27 +466,35 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                     $Resultado = EnviarWebServiceSAP($Metodo, $Cabecera, true, true, "PUT");
                 }
 
-				/*
+                /*
                 $Parametros = array(
-                    'id_documento' => intval($IdDevolucionCompra),
-                    'id_evento' => intval($IdEvento),
+                'id_documento' => intval($IdDevolucionCompra),
+                'id_evento' => intval($IdEvento),
                 );
                 $Metodo = "DevolucionesCompras";
                 $Resultado = EnviarWebServiceSAP($Metodo, $Parametros, true, true);
-				*/
+                 */
 
                 if ($Resultado->Success == 0) {
                     //InsertarLog(1, 0, 'Error al generar el informe');
                     //throw new Exception('Error al generar el informe. Error de WebServices');
                     $sw_error = 1;
                     $msg_error = $Resultado->Mensaje;
-					$Cabecera_json = json_encode($Cabecera);
+                    $Cabecera_json = json_encode($Cabecera);
                 } else {
                     if ($_POST['tl'] == 0) { //Creando Devolucion
                         //Consultar ID creado para cargar el documento
                         $SQL_ConsID = Seleccionar('uvw_Sap_tbl_DevolucionesCompras', 'ID_DevolucionCompra', "IdDocPortal='" . $IdDevolucionCompra . "'");
                         $row_ConsID = sqlsrv_fetch_array($SQL_ConsID);
                         sqlsrv_close($conexion);
+
+						/*
+                        echo "SELECT ID_DevolucionCompra FROM uvw_Sap_tbl_DevolucionesCompras WHERE IdDocPortal='$IdDevolucionCompra'";
+                        echo '<br>devolucion_compra.php?id=' . $row_ConsID['ID_DevolucionCompra'] . "&id_portal=$IdDevolucionCompra&tl=1&a=OK_DCompAdd";
+                        echo '<br>devolucion_compra.php?id=' . base64_encode($row_ConsID['ID_DevolucionCompra']) . '&id_portal=' . base64_encode($IdDevolucionCompra) . '&tl=1&a=' . base64_encode("OK_DCompAdd");
+						exit();
+						*/
+
                         header('Location:devolucion_compra.php?id=' . base64_encode($row_ConsID['ID_DevolucionCompra']) . '&id_portal=' . base64_encode($IdDevolucionCompra) . '&tl=1&a=' . base64_encode("OK_DCompAdd"));
                     } else { //Actualizando Devolucion
                         sqlsrv_close($conexion);
@@ -497,14 +505,14 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                 echo 'Excepcion capturada: ', $e->getMessage(), "\n";
             }
 
-			/*
-            sqlsrv_close($conexion);
-            if($_POST['tl']==0){//Creando Devolucion
-                header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_DCompAdd")."&json=".base64_encode(json_encode($Cabecera)));
-            }else{//Actualizando Devolucion
-                header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_DCompUpd"));
-            }
-			*/
+            /*
+        sqlsrv_close($conexion);
+        if($_POST['tl']==0){//Creando Devolucion
+        header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_DCompAdd")."&json=".base64_encode(json_encode($Cabecera)));
+        }else{//Actualizando Devolucion
+        header('Location:'.base64_decode($_POST['return']).'&a='.base64_encode("OK_DCompUpd"));
+        }
+         */
         } else {
             $sw_error = 1;
             $msg_error = "Ha ocurrido un error al crear la Devolucion de compras";
@@ -1415,10 +1423,10 @@ function ConsultarDatosCliente(){
 							<div class="btn-group">
 								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
 								<ul class="dropdown-menu">
-									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=16 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=21 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
 									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
 										<li>
-											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
 										</li>
 									<?php }?>
 								</ul>

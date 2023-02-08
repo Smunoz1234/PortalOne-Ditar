@@ -36,9 +36,9 @@ if (!isset($_GET['dato']) || ($_GET['dato'] == "")) {
 
     $prjcode = $_GET['prjcode'] ?? ""; // SMM, 04/05/2022
     $empventas = $_GET['empventas'] ?? ""; // SMM, 04/05/2022
-	
+
     $borrador = $_GET['borrador'] ?? ""; // SMM, 05/05/2022
-	$concepto = $_GET['concepto'] ?? ""; // SMM, 23/01/2023
+    $concepto = $_GET['concepto'] ?? ""; // SMM, 23/01/2023
 
     if (isset($_GET['idordenventa']) && $_GET['idordenventa'] != "") {
         $ID_OrdenVenta = base64_decode($_GET['idordenventa']);
@@ -352,7 +352,7 @@ else if(doctype==8){//Solicitud de traslado editar
 		  if (this.readyState == 4 && this.status == 200) {
 				// Se agrego la bandera "borrador". SMM, 22/12/2022
 				window.opener.document.getElementById('DataGrid').src='detalle_solicitud_salida<?php echo isset($_GET['borrador']) ? "_borrador" : ""; ?>.php?id=<?php echo base64_encode($ID_SolTras); ?>&evento=<?php echo base64_encode($ID_Evento); ?>&type=2';
-				
+
 				window.opener.document.getElementById('TotalItems').value=this.responseText;
 				window.opener.document.getElementById('BuscarItem').value="";
 				window.close();
@@ -603,7 +603,7 @@ else if(doctype==18){//Orden de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=18&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=18&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==19){//Orden de compra editar
 	  var xhttp;
@@ -623,7 +623,7 @@ else if(doctype==19){//Orden de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=19&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_OrdenCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=19&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_OrdenCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==20){//Entrada de compra crear
 	  var xhttp;
@@ -643,7 +643,7 @@ else if(doctype==20){//Entrada de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=20&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=20&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==21){//Entrada de compra editar
 	  var xhttp;
@@ -663,7 +663,7 @@ else if(doctype==21){//Entrada de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=21&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_EntradaCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=21&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_EntradaCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==22){//Solicitud de compra crear
 	  var xhttp;
@@ -683,7 +683,7 @@ else if(doctype==22){//Solicitud de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=22&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=22&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==23){//Solicitud de compra editar
 	  var xhttp;
@@ -703,7 +703,7 @@ else if(doctype==23){//Solicitud de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=23&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolicitudCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=23&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolicitudCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==24){//factura de compra crear
 	  var xhttp;
@@ -723,7 +723,7 @@ else if(doctype==24){//factura de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=24&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=24&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==25){//factura de compra editar
 	  var xhttp;
@@ -743,7 +743,7 @@ else if(doctype==25){//factura de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=25&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_FacturaCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=25&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_FacturaCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==26){//Devolucion de compra crear
 	  var xhttp;
@@ -763,7 +763,7 @@ else if(doctype==26){//Devolucion de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=26&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=26&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==27){//Devolucion de compra editar
 	  var xhttp;
@@ -783,7 +783,7 @@ else if(doctype==27){//Devolucion de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=27&item="+str+"&whscode="+whscode+"&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_DevolucionCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=27&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_DevolucionCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 }
 </script>

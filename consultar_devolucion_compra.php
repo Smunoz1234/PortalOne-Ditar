@@ -274,7 +274,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DCompUpd"))) {
 						</div>
 
 						<div class="form-group">
-							<div class="col-lg-4">
+							<div class="col-lg-12">
 								<button type="submit" class="btn btn-outline btn-success pull-right"><i class="fa fa-search"></i> Buscar</button>
 							</div>
 						</div>

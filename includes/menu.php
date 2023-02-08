@@ -347,6 +347,16 @@ $Num_Menu = sqlsrv_num_rows($SQL_Menu);
 							</ul>
 						</li>
 						<?php }?>
+						<?php if (PermitirFuncion([722, 723, 724])) {?>
+						<li>
+                   			<a href="#">Consultas borradores <span class="fa arrow"></span></a>
+							<ul class='nav nav-third-level'>
+								<?php if (PermitirFuncion(722)) {?><li><a class="alnk" href="consultar_orden_compra_borrador.php">Consultar orden de compra borrador</a></li><?php }?>
+								<?php if (PermitirFuncion(723)) {?><li><a class="alnk" href="consultar_entrada_compra_borrador.php">Consultar entrada de compra borrador</a></li><?php }?>
+								<?php if (PermitirFuncion(724)) {?><li><a class="alnk" href="consultar_factura_compra_borrador.php">Consultar factura de compra borrador</a></li><?php }?>
+							</ul>
+						</li>
+						<?php }?>
 						<?php if (PermitirFuncion(709)) {?>
 						<li>
                    			<a href="#">Informes <span class="fa arrow"></span></a>

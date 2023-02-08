@@ -509,6 +509,7 @@ function ConsultarArticulo(articulo){
 				<th>Cant. Litros</th>
 
 				<!-- SMM, 07/02/2023 -->
+				<th>Proveedor</th>
 				<th>Fecha necesaria</th>
 
 				<th>Almacén</th>
@@ -545,7 +546,7 @@ if ($sw == 1) {
 	$i = 1; // Totalizar
 
     // Stiven Muñoz Murillo, 27/01/2022
-    $flag = PermitirFuncion(416);
+    $flag = PermitirFuncion(717);
     $main = false;
 
     // Inicia el ciclo
@@ -567,7 +568,7 @@ if ($sw == 1) {
         // echo "<script> console.log($cadena); </script>";
         ?>
 		<tr>
-		<?php // Inicio, comprobando permiso 416.
+		<?php // Inicio, comprobando permiso 717.
         if ($flag || (($row['LineNum'] != 0) || ($row['TreeType'] != "T"))) {?>
 			<td class="text-center form-inline w-150">
 				<div class="checkbox checkbox-success"><input type="checkbox" class="chkSel" id="chkSel<?php echo $row['LineNum']; ?>" value="" onChange="Seleccionar('<?php echo $row['LineNum']; ?>');" aria-label="Single checkbox One" <?php if (($flag && ($row['TreeType'] == "T")) || $row['LineStatus'] == 'C') {echo "disabled='disabled'";}?>><label></label></div>
@@ -583,12 +584,17 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="UnitMsr<?php echo $i; ?>" name="UnitMsr[]" class="form-control" readonly value="<?php echo $row['UnitMsr']; ?>"></td>
 
 			<td>
-				<input size="15" type="text" autocomplete="off" id="Quantity<?php echo $i; ?>" name="Quantity[]" class="form-control" value="<?php echo number_format($row['Quantity'], $dCantidades, $sDecimal, $sMillares); ?>" onChange="ActualizarDatos('Quantity',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>, <?php echo $dCantidades; ?>);" onBlur="CalcularTotal(<?php echo $i; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || $row['TrgetEntry'] != "" || (!PermitirFuncion(702))) {echo "readonly";}?> onFocus="focalizarValores(this)">
+				<input size="15" type="text" autocomplete="off" id="Quantity<?php echo $i; ?>" name="Quantity[]" class="form-control" value="<?php echo number_format($row['Quantity'], $dCantidades, $sDecimal, $sMillares); ?>" onChange="ActualizarDatos('Quantity',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>, <?php echo $dCantidades; ?>);" onBlur="CalcularTotal(<?php echo $i; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || (isset($row['TrgetEntry']) && $row['TrgetEntry'] != "") || (!PermitirFuncion(702))) {echo "readonly";}?> onFocus="focalizarValores(this)">
 			</td>
 
 			<td><input size="15" type="text" id="CantInicial<?php echo $i; ?>" name="CantInicial[]" class="form-control" value="<?php echo number_format($row['CantInicial'], $dCantidades, $sDecimal, $sMillares); ?>" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" readonly></td>
 
 			<td><input size="15" type="text" autocomplete="off" id="CDU_CantLitros<?php echo $i; ?>" name="CDU_CantLitros[]" class="form-control" value="<?php echo number_format(($row['CDU_CantLitros'] ?? 0), $dCantidades, $sDecimal, $sMillares); ?>" onChange="ActualizarDatos('CDU_CantLitros',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(702))) {echo "readonly";}?>></td>
+
+			<td> <!-- SMM, 07/02/2023 -->
+				<input type="hidden" name="CardCode[]" id="CardCode<?php echo $i; ?>" value="<?php echo $row['CardCode']; ?>">
+				<input size="50" type="text" id="NombreCliente<?php echo $i; ?>" name="NombreCliente[]" class="form-control" readonly value="<?php echo $row['NombreCliente']; ?>">
+			</td>
 
 			<td> <!-- SMM, 07/02/2023 -->
 				<input size="15" type="text" id="ReqDate<?php echo $i; ?>" name="ReqDate[]" class="form-control" onChange="ActualizarDatos('ReqDate',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" value="<?php if ($row['ReqDate'] != "") {echo $row['ReqDate'];}?>" data-mask="9999-99-99" placeholder="AAAA-MM-DD">
@@ -612,7 +618,7 @@ if ($sw == 1) {
 				<?php $OcrId = ($DimCode == 1) ? "" : $DimCode;?>
 
 				<td>
-					<select id="OcrCode<?php echo $OcrId . $i; ?>" name="OcrCode<?php echo $OcrId; ?>[]" class="form-control select2" onChange="ActualizarDatos('OcrCode<?php echo $OcrId; ?>',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(402))) {echo "disabled='disabled'";}?>>
+					<select id="OcrCode<?php echo $OcrId . $i; ?>" name="OcrCode<?php echo $OcrId; ?>[]" class="form-control select2" onChange="ActualizarDatos('OcrCode<?php echo $OcrId; ?>',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(701))) {echo "disabled='disabled'";}?>>
 						<option value="">(NINGUNO)</option>
 
 						<?php $SQL_Dim = Seleccionar('uvw_Sap_tbl_DimensionesReparto', '*', "DimCode=$DimCode");?>
@@ -712,7 +718,7 @@ if ($sw == 1) {
 
 			<td><?php if ($row['Metodo'] == 0) {?><i class="fa fa-check-circle text-info" title="Sincronizado con SAP"></i><?php } else {?><i class="fa fa-times-circle text-danger" title="Aún no enviado a SAP"></i><?php }?></td>
 
-		<?php // Fin, comprobando permiso 416.
+		<?php // Fin, comprobando permiso 717.
 
             // Cambio de Stock en Lote
             $LineNum = $row['LineNum'];
@@ -742,7 +748,9 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="UnitMsrNew" name="UnitMsrNew" class="form-control"></td>
 			<td><input size="15" type="text" id="QuantityNew" name="QuantityNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CantInicialNew" name="CantInicialNew" class="form-control"></td>
+			<td><input size="15" type="text" id="CantLitrosNew" name="CantLitrosNew" class="form-control"></td>
 			
+			<td><input size="50" type="text" id="CardCodeNew" name="CardCodeNew" class="form-control"></td>
 			<td><input size="15" type="text" id="ReqDateNew" name="ReqDateNew" class="form-control"></td>
 			
 			<td><input size="15" type="text" id="CDU_CantLitrosNew" name="CDU_CantLitrosNew" class="form-control"></td>

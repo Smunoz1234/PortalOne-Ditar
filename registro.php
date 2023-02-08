@@ -2478,13 +2478,13 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $evento . "'",
                     "'" . $_SESSION['CodUser'] . "'",
                     // SMM, 23/01/2023
-                    "'" . $_REQUEST['dim1'] . "'", 
-                    "'" . $_REQUEST['dim2'] . "'", 
-                    "'" . $_REQUEST['dim3'] . "'", 
+                    "'" . $_REQUEST['dim1'] . "'",
+                    "'" . $_REQUEST['dim2'] . "'",
+                    "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "'" . $_REQUEST['prjcode'] . "'", 
-                    "'" . $_REQUEST['towhscode'] . "'", 
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    "'" . $_REQUEST['towhscode'] . "'",
                     "'" . $_REQUEST['concepto'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_SalidaInventarioDetalleInsert', $ParametrosInsert, 35);
@@ -2763,7 +2763,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_OrdenCompraDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2801,7 +2803,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_OrdenCompraDetalleInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2830,7 +2834,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_EntradaCompraDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -2868,7 +2874,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_EntradaCompraDetalleInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -3031,7 +3039,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_DevolucionCompraDetalleCarritoInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {
@@ -3069,7 +3079,9 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
                     "'" . $_REQUEST['dim3'] . "'",
                     "''", //dim4
                     "''", //dim5
-                    "''", //prjcode
+                    "'" . $_REQUEST['prjcode'] . "'",
+                    // "'" . $_REQUEST['pricelist'] . "'",
+                    // "'" . $_REQUEST['empventas'] . "'",
                 );
                 $SQL_Insert = EjecutarSP('sp_tbl_DevolucionCompraDetalleInsert', $ParametrosInsert, 35);
                 if ($SQL_Insert) {

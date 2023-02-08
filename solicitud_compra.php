@@ -113,9 +113,12 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de compras
             $IdSolicitudCompra = base64_decode($_POST['IdSolicitudCompra']);
             $IdEvento = base64_decode($_POST['IdEvento']);
             $Type = 2;
-            if (!PermitirFuncion(403)) { //Permiso para autorizar Solicitud de compras
+
+			/*
+            if (!PermitirFuncion(716)) { //Permiso para autorizar Solicitud de compras
                 $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la Solicitud queda pendiente
             }
+			*/
         } else { //Crear
             $IdSolicitudCompra = "NULL";
             $IdEvento = "0";
@@ -1789,10 +1792,10 @@ function CrearArticulo(){
 							<div class="btn-group">
 								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
 								<ul class="dropdown-menu">
-									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=17 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=1470000113 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
 									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
 										<li>
-											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
 										</li>
 									<?php }?>
 								</ul>
@@ -1858,7 +1861,7 @@ if ($edit == 1 || $sw_error == 1) {
 						<!-- Inicio, Lista Precios SN -->
 						<label class="col-lg-1 control-label">Lista Precios <!--span class="text-danger">*</span--></label>
 						<div class="col-lg-5">
-							<select name="IdListaPrecio" class="form-control" id="IdListaPrecio" <?php if (!PermitirFuncion(418)) {echo "disabled='disabled'";}?>>
+							<select name="IdListaPrecio" class="form-control" id="IdListaPrecio" <?php if (!PermitirFuncion(719)) {echo "disabled='disabled'";}?>>
 								<?php while ($row_ListaPrecio = sqlsrv_fetch_array($SQL_ListaPrecios)) {?>
 								<option value="<?php echo $row_ListaPrecio['IdListaPrecio']; ?>"
 								<?php if (isset($row['IdListaPrecio']) && (strcmp($row_ListaPrecio['IdListaPrecio'], $row['IdListaPrecio']) == 0)) {echo "selected=\"selected\"";}?>>
@@ -2390,7 +2393,7 @@ $return = QuitarParametrosURL($return, array("a"));
 
 		// Cambiar SN en las copias
 		$(".d-compra").on("click", function(event){
-			<?php if (PermitirFuncion(419)) {?>
+			<?php if (PermitirFuncion(720)) {?>
 				event.preventDefault(); // Evitar redirección del ancla
 				console.log(event);
 
@@ -2558,7 +2561,7 @@ $return = QuitarParametrosURL($return, array("a"));
 		$('#Almacen option:not(:selected)').attr('disabled',true);
 	 	<?php }?>
 
-		<?php if (!PermitirFuncion(403)) {?>
+		<?php if (!PermitirFuncion(716)) {?>
 			$('#Autorizacion').attr('readonly', true); // SMM, 01/08/2022
 			$('#Autorizacion option:not(:selected)').attr('disabled', true);
 	 	<?php }?>
@@ -2579,7 +2582,7 @@ $return = QuitarParametrosURL($return, array("a"));
 				  }
 			  }
 		 };
-		 <?php if (PermitirFuncion(419) || ($edit == 0)) {?>
+		 <?php if (PermitirFuncion(720) || ($edit == 0)) {?>
 		 $("#CardName").easyAutocomplete(options);
 	 	 <?php }?>
 		<?php if ($dt_LS == 1 || $dt_OF == 1) {?>
