@@ -36,8 +36,8 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
         $where = "Usuario='" . $_GET['usr'] . "' and CardCode='" . $_GET['cardcode'] . "'";
         $SQL = Seleccionar("uvw_tbl_SolicitudCompraDetalleCarrito", "*", $where);
         // echo $where;
-		
-		if ($SQL) {
+
+        if ($SQL) {
             $sw = 1;
             $CardCode = $_GET['cardcode'];
             //$Proyecto=$_GET['prjcode'];
@@ -292,7 +292,7 @@ function ActualizarDatos(name, id, line, round=0) { // Actualizar datos asincron
 			valor = 'Y';
 		}
 	}
-	
+
 	let res=true;
 	if(name=='ReqDate'){
 		let fecha=document.getElementById(name+id);
@@ -400,9 +400,9 @@ function DuplicarLinea(){
 		$.ajax({
 			type: "GET",
 			<?php if ($type == 1) {?>
-			url: "includes/procedimientos.php?type=62&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
+			url: "includes/procedimientos.php?type=65&edit=<?php echo $type; ?>&linenum="+json+"&cardcode=<?php echo $CardCode; ?>",
 			<?php } else {?>
-			url: "includes/procedimientos.php?type=62&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
+			url: "includes/procedimientos.php?type=65&edit=<?php echo $type; ?>&linenum="+json+"&id=<?php echo base64_decode($_GET['id']); ?>&evento=<?php echo base64_decode($_GET['evento']); ?>",
 			<?php }?>
 			success: function(response){
 				window.location.href="detalle_solicitud_compra.php?<?php echo $_SERVER['QUERY_STRING']; ?>";
@@ -510,7 +510,7 @@ function ConsultarArticulo(articulo){
 
 				<!-- SMM, 07/02/2023 -->
 				<th>Proveedor</th>
-				<th>Fecha necesaria</th>
+				<th>Fecha necesaria (AAAA-MM-DD)</th>
 
 				<th>Almacén</th>
 				<th>Dosificación</th>
@@ -543,7 +543,7 @@ function ConsultarArticulo(articulo){
 		<tbody>
 		<?php
 if ($sw == 1) {
-	$i = 1; // Totalizar
+    $i = 1; // Totalizar
 
     // Stiven Muñoz Murillo, 27/01/2022
     $flag = PermitirFuncion(717);
@@ -591,13 +591,13 @@ if ($sw == 1) {
 
 			<td><input size="15" type="text" autocomplete="off" id="CDU_CantLitros<?php echo $i; ?>" name="CDU_CantLitros[]" class="form-control" value="<?php echo number_format(($row['CDU_CantLitros'] ?? 0), $dCantidades, $sDecimal, $sMillares); ?>" onChange="ActualizarDatos('CDU_CantLitros',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" onKeyUp="revisaCadena(this);" onKeyPress="return justNumbers(event,this.value);" <?php if ($row['LineStatus'] == 'C' || (!PermitirFuncion(702))) {echo "readonly";}?>></td>
 
-			<td> <!-- SMM, 07/02/2023 -->
-				<input type="hidden" name="CardCode[]" id="CardCode<?php echo $i; ?>" value="<?php echo $row['CardCode']; ?>">
-				<input size="50" type="text" id="NombreCliente<?php echo $i; ?>" name="NombreCliente[]" class="form-control" readonly value="<?php echo $row['NombreCliente']; ?>">
+			<td> <!-- SMM, 09/02/2023 -->
+				<input type="hidden" class="CardCode"  name="CardCode[]" id="CardCode<?php echo $i; ?>" value="<?php echo $row['CardCode']; ?>">
+				<input class="form-control CardName" data-id="CardCode<?php echo $i; ?>" name="CardName[]" id="CardName<?php echo $i; ?>" autocomplete="off" size="50" type="text" placeholder="Digite para buscar..." value="<?php echo $row['CardName']; ?>">
 			</td>
 
 			<td> <!-- SMM, 07/02/2023 -->
-				<input size="15" type="text" id="ReqDate<?php echo $i; ?>" name="ReqDate[]" class="form-control" onChange="ActualizarDatos('ReqDate',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" value="<?php if ($row['ReqDate'] != "") {echo $row['ReqDate'];}?>" data-mask="9999-99-99" placeholder="AAAA-MM-DD">
+				<input size="15" type="text" id="ReqDate<?php echo $i; ?>" name="ReqDate[]" class="form-control" onChange="ActualizarDatos('ReqDate',<?php echo $i; ?>,<?php echo $row['LineNum']; ?>);" value="<?php if (isset($row['ReqDate']) && ($row['ReqDate'] != "")) {echo $row['ReqDate'];}?>" data-mask="9999-99-99" placeholder="AAAA-MM-DD">
 			</td>
 
 			<td>
@@ -749,10 +749,10 @@ if ($sw == 1) {
 			<td><input size="15" type="text" id="QuantityNew" name="QuantityNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CantInicialNew" name="CantInicialNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CantLitrosNew" name="CantLitrosNew" class="form-control"></td>
-			
+
 			<td><input size="50" type="text" id="CardCodeNew" name="CardCodeNew" class="form-control"></td>
 			<td><input size="15" type="text" id="ReqDateNew" name="ReqDateNew" class="form-control"></td>
-			
+
 			<td><input size="15" type="text" id="CDU_CantLitrosNew" name="CDU_CantLitrosNew" class="form-control"></td>
 			<td><input size="20" type="text" id="WhsCodeNew" name="WhsCodeNew" class="form-control"></td>
 			<td><input size="15" type="text" id="CDU_DosificacionNew" name="CDU_DosificacionNew" class="form-control"></td>
@@ -841,6 +841,42 @@ function CalcularTotal(line, totalizar=true) {
 }
 
 $(document).ready(function(){
+	// EasyAutoComplete de los Socios de Negocio. SMM, 09/02/2023
+	let selectedNameID;
+	let selectedCodeID;
+
+	$(".CardName").on("focus", function() {
+		selectedNameID = $(this).attr("id");
+		selectedCodeID = $(this).data("id");
+
+		// console.log(selectedNameID);
+		// console.log(selectedCodeID);
+    });
+
+	let optSN = {
+		url: function(phrase) {
+			return `ajx_buscar_datos_json.php?type=7&id=${phrase}&pv=1`;
+		},
+		getValue: "NombreBuscarCliente",
+		requestDelay: 400,
+		list: {
+			match: {
+				enabled: true
+			},
+			onClickEvent: function(element) {
+				let CardCode = $(`#${selectedNameID}`).getSelectedItemData().CodigoCliente;
+				$(`#${selectedCodeID}`).val(CardCode).trigger("change");
+			}
+		}
+	};
+
+	let fields = document.querySelectorAll('.CardName');
+
+	for (let i = 0; i < fields.length; i++) {
+		$(fields[i]).easyAutocomplete(optSN);
+	}
+	// Hasta aquí, 09/02/2023
+
 	$(".alkin").on('click', function(){
 			$('.ibox-content').toggleClass('sk-loading');
 	});
