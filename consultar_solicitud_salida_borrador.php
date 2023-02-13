@@ -485,7 +485,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 						<th>Comentarios</th> <!-- SMM, 25/11/2022 -->
 						<th>Descontable</th>
-						<th>Documento destino</th>
+						<!-- th>Documento destino</th-->
 
 						<th>Usuario Creación/Autor</th>
 						<th>Perfil Autor</th> <!-- SMM, 23/12/2022 -->
@@ -523,7 +523,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 							<td><?php echo SubComent($row['Comentarios']); ?></td> <!-- SMM, 25/11/2022 -->
 							<td><?php echo $row['Descontable']; ?></td>
-							<td><?php if ($row['DocDestinoDocEntry'] != "") {?><a href="traslado_inventario.php?id=<?php echo base64_encode($row['DocDestinoDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocDestinoIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocDestinoDocNum']; ?></a><?php } else {echo "--";}?></td>
+							<!-- Se elimino el documento
 
 							<td><?php echo $row['UsuarioCreacion']; ?></td> <!-- Autor -->
 							<td><?php echo $row['PerfilUsuario_Creacion'] ?? ""; ?></td> <!-- Autor -->

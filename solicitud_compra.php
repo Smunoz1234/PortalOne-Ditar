@@ -114,11 +114,11 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de compras
             $IdEvento = base64_decode($_POST['IdEvento']);
             $Type = 2;
 
-        /*
+            /*
         if (!PermitirFuncion(716)) { //Permiso para autorizar Solicitud de compras
         $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la Solicitud queda pendiente
         }
-        */
+         */
 
         } else { //Crear
             $IdSolicitudCompra = "NULL";
@@ -374,8 +374,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de compras
                     "docentry_documento" => 0,
                     "id_llamada_servicio" => 0,
                     "id_vendedor" => intval($row_Cab['SlpCode']),
-                    "id_empleado" => intval($_SESSION['CodigoSAP']),
                     "id_tipo_solicitante" => intval($row_Cab['IdTipoSolicitante']), // SMM, 07/02/2023
+                    "id_empleado" => intval($row_Cab['ID_Solicitante']), // SMM, 13/02/2023. El empleado también es un solicitante.
                     "id_solicitante" => intval($row_Cab['ID_Solicitante']), // SMM, 07/02/2023
                     "metodo" => intval($row_Cab['Metodo']),
                     "documento_destino" => "22",
@@ -430,6 +430,7 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de compras
                         "maneja_serial" => "N", //$row_Det['ManSerNum'],
                         "maneja_lote" => "N", //$row_Det['ManBtchNum'],
                         "fecha_necesaria" => FormatoFechaToSAP($row_Det['ReqDate']),
+                        "id_proveedor" => $row_Det['CardCode'], // SMM, 13/02/2023
                         "CDU_id_servicio" => "",
                         "CDU_id_metodo_aplicacion" => "",
                         "CDU_id_tipo_plagas" => "",
@@ -871,11 +872,11 @@ $SQL_EstadoDoc = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 //Estado autorizacion
 $SQL_EstadoAuth = Seleccionar('uvw_Sap_tbl_EstadosAuth', '*');
 
-//Empleados solicitantes. SMM, 07/02/2023
-$SQL_Solicitante = Seleccionar('uvw_Sap_tbl_Empleados', '*', "IdUsuarioSAP=0", 'NombreEmpleado');
+// Empleados solicitantes. SMM, 13/02/2023
+$SQL_Solicitante = Seleccionar('uvw_Sap_tbl_Empleados', '*', '', 'NombreEmpleado');
 
-//Usuarios SAP. SMM, 07/02/2023
-$SQL_UsuariosSAP = Seleccionar('uvw_Sap_tbl_Empleados', '*', "IdUsuarioSAP <> 0", 'NombreEmpleado');
+// Usuarios SAP. SMM, 13/02/2023
+$SQL_UsuariosSAP = Seleccionar('uvw_Sap_tbl_UsuariosSAP', '*', '', 'NombreUsuarioSAP');
 
 //Empleado de ventas
 $SQL_EmpleadosVentas = Seleccionar('uvw_Sap_tbl_EmpleadosVentas', '*', '', 'DE_EmpVentas');
@@ -1045,10 +1046,12 @@ function BuscarArticulo(dato){
 	let proyecto = document.getElementById("PrjCode").value; // SMM, 04/05/2022
 	let empleado = document.getElementById("EmpleadoVentas").value; // SMM, 04/05/2022
 
+	let reqdate = document.getElementById("ReqDate").value; // SMM, 13/02/2023
+
 	if(dato!=""){
 		if((cardcode!="")&&(almacen!="")&&(idlistaprecio!="")){
 			// Nuevo, 26/01/2023 (prjcode='+proyecto+'&empventas='+empleado+'&idlistaprecio='+idlistaprecio+'&)
-			remote=open('buscar_articulo.php?prjcode='+proyecto+'&empventas='+empleado+'&idlistaprecio='+idlistaprecio+'&dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "22";} else {echo "23";}?>&idsolicitudcompra=<?php if ($edit == 1) {echo base64_encode($row['ID_SolicitudCompra']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=1&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
+			remote=open('buscar_articulo.php?reqdate='+reqdate+'&prjcode='+proyecto+'&empventas='+empleado+'&idlistaprecio='+idlistaprecio+'&dato='+dato+'&cardcode='+cardcode+'&whscode='+almacen+'&doctype=<?php if ($edit == 0) {echo "22";} else {echo "23";}?>&idsolicitudcompra=<?php if ($edit == 1) {echo base64_encode($row['ID_SolicitudCompra']);} else {echo "0";}?>&evento=<?php if ($edit == 1) {echo base64_encode($row['IdEvento']);} else {echo "0";}?>&tipodoc=1&dim1='+dim1+'&dim2='+dim2+'&dim3='+dim3,'remote',"width=1200,height=500,location=no,scrollbars=yes,menubars=no,toolbars=no,resizable=no,fullscreen=no,directories=no,status=yes,left="+posicion_x+",top="+posicion_y+"");
 			remote.focus();
 		}else{
 			Swal.fire({
@@ -1961,7 +1964,7 @@ include_once 'md_frm_campos_adicionales.php';
 					<div class="form-group">
 						<label class="col-lg-1 control-label">Solicitante <span class="text-danger">*</span></label>
 						<div class="col-lg-3">
-							<select name="TipoSolicitante" class="form-control" required id="TipoSolicitante" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="TipoSolicitante" class="form-control" required id="TipoSolicitante" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?> readonly>
 								<option value="171" <?php if ((isset($row['IdTipoSolicitante'])) && ($row['IdTipoSolicitante'] == '171')) {echo "selected=\"selected\"";}?>>Empleado</option>
 								<option value="12" <?php if ((isset($row['IdTipoSolicitante'])) && ($row['IdTipoSolicitante'] == '12')) {echo "selected=\"selected\"";}?>>Usuario SAP</option>
 							</select>
@@ -1971,15 +1974,17 @@ include_once 'md_frm_campos_adicionales.php';
 							<select name="IdSolicitante" class="form-control select2" required id="IdSolicitante" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 								<?php if (($edit == 0) || (($edit == 1) && ($row['IdTipoSolicitante'] == 171))) {?>
 									<option value="">(Sin asignar)</option>
-							  <?php while ($row_Solicitante = sqlsrv_fetch_array($SQL_Solicitante)) {?>
-									<option value="<?php echo $row_Solicitante['ID_Empleado']; ?>" <?php if ((isset($row['ID_Solicitante'])) && (strcmp($row_Solicitante['ID_Empleado'], $row['ID_Solicitante']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Solicitante['NombreEmpleado']; ?></option>
-							  <?php }
-} elseif (($edit == 1) && ($row['IdTipoSolicitante'] == 12)) {?>
+
+									<?php while ($row_Solicitante = sqlsrv_fetch_array($SQL_Solicitante)) {?>
+										<option value="<?php echo $row_Solicitante['ID_Empleado']; ?>" <?php if ((isset($row['ID_Solicitante'])) && (strcmp($row_Solicitante['ID_Empleado'], $row['ID_Solicitante']) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && (strcmp($row_Solicitante['ID_Empleado'], $_SESSION['CodigoSAP']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Solicitante['ID_Empleado'] . "-" . $row_Solicitante['NombreEmpleado']; ?></option>
+							  		<?php }?>
+							    <?php } elseif (($edit == 1) && ($row['IdTipoSolicitante'] == 12)) {?>
 									<option value="">(Sin asignar)</option>
-							  <?php while ($row_UsuariosSAP = sqlsrv_fetch_array($SQL_UsuariosSAP)) {?>
-									<option value="<?php echo $row_UsuariosSAP['IdUsuarioSAP']; ?>" <?php if ((isset($row['ID_Solicitante'])) && (strcmp($row_UsuariosSAP['IdUsuarioSAP'], $row['ID_Solicitante']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_UsuariosSAP['NombreEmpleado']; ?></option>
-							  <?php }
-}?>
+
+									<?php while ($row_UsuariosSAP = sqlsrv_fetch_array($SQL_UsuariosSAP)) {?>
+										<option value="<?php echo $row_UsuariosSAP['IdUsuarioSAP']; ?>" <?php if ((isset($row['ID_Solicitante'])) && (strcmp($row_UsuariosSAP['IdUsuarioSAP'], $row['ID_Solicitante']) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && (strcmp($row_Solicitante['IdUsuarioSAP'], $_SESSION['CodigoSAP']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Solicitante['IdUsuarioSAP'] . "-" . $row_UsuariosSAP['NombreEmpleado']; ?></option>
+							  		<?php }?>
+								<?php }?>
 							</select>
 						</div>
 					</div>

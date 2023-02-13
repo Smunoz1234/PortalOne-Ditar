@@ -65,7 +65,7 @@ if (isset($_GET['Series']) && $_GET['Series'] != "") {
         }
         $i++;
     }
-    $Filtro .= " and [IdSeries] IN (" . $FilSerie . ")";
+    // $Filtro .= " and [IdSeries] IN (" . $FilSerie . ")";
     $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 }
 
@@ -73,7 +73,7 @@ if (isset($_GET['BuscarDato']) && $_GET['BuscarDato'] != "") {
     $Filtro .= " and (DocNum LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreContacto LIKE '%" . $_GET['BuscarDato'] . "%' OR DocNumLlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR ID_LlamadaServicio LIKE '%" . $_GET['BuscarDato'] . "%' OR IdDocPortal LIKE '%" . $_GET['BuscarDato'] . "%' OR NombreEmpleadoVentas LIKE '%" . $_GET['BuscarDato'] . "%' OR Comentarios LIKE '%" . $_GET['BuscarDato'] . "%')";
 }
 
-$Cons = "Select * From uvw_Sap_tbl_FacturasCompras Where $WhereFecha $Filtro Order by DocNum DESC";
+$Cons = "Select * From uvw_Sap_tbl_FacturasCompras_Borrador Where $WhereFecha $Filtro Order by DocNum DESC";
 
 if (isset($_GET['IDTicket']) && $_GET['IDTicket'] != "") {
     $Where = "DocNumLlamadaServicio LIKE '%" . $_GET['IDTicket'] . "%'";
@@ -88,10 +88,10 @@ if (isset($_GET['IDTicket']) && $_GET['IDTicket'] != "") {
         }
         $i++;
     }
-    $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    // $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
     $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
-    $Cons = "Select * From uvw_Sap_tbl_FacturasCompras Where $Where";
+    $Cons = "Select * From uvw_Sap_tbl_FacturasCompras_Borrador Where $Where";
 }
 
 // SMM, 22/07/2022
@@ -108,14 +108,14 @@ if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
         }
         $i++;
     }
-    $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    // $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
     $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
-    $Cons = "Select * From uvw_Sap_tbl_FacturasCompras Where $Where";
+    $Cons = "Select * From uvw_Sap_tbl_FacturasCompras_Borrador Where $Where";
 }
 
 $SQL = sqlsrv_query($conexion, $Cons);
-//echo $Cons;
+// echo $Cons;
 ?>
 
 <!DOCTYPE html>
@@ -124,7 +124,7 @@ $SQL = sqlsrv_query($conexion, $Cons);
 <head>
 <?php include_once "includes/cabecera.php";?>
 <!-- InstanceBeginEditable name="doctitle" -->
-<title>Consultar factura de compra | <?php echo NOMBRE_PORTAL; ?></title>
+<title>Consultar factura de compra borrador | <?php echo NOMBRE_PORTAL; ?></title>
 <!-- InstanceEndEditable -->
 <!-- InstanceBeginEditable name="head" -->
 <?php
@@ -176,7 +176,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_FactCompUpd"))) {
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Consultar factura de compra</h2>
+                    <h2>Consultar factura de compra borrador</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -188,7 +188,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_FactCompUpd"))) {
                             <a href="#">Consultas</a>
                         </li>
                         <li class="active">
-                            <strong>Consultar factura de compra</strong>
+                            <strong>Consultar factura de compra borrador</strong>
                         </li>
                     </ol>
                 </div>
@@ -198,7 +198,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_FactCompUpd"))) {
 				<div class="col-lg-12">
 			    <div class="ibox-content">
 					 <?php include "includes/spinner.php";?>
-				  <form action="consultar_factura_compra.php" method="get" id="formBuscar" class="form-horizontal">
+				  <form action="consultar_factura_compra_borrador.php" method="get" id="formBuscar" class="form-horizontal">
 						<div class="form-group">
 							<label class="col-xs-12"><h3 class="bg-success p-xs b-r-sm"><i class="fa fa-filter"></i> Datos para filtrar</h3></label>
 						</div>
@@ -316,12 +316,12 @@ if ($sw == 1) {
 							<td><?php echo $row['NombreEmpleadoVentas']; ?></td>
 							<td><?php echo $row['DeAuthPortal']; ?></td>
 							<td><?php echo $row['UsuarioAutoriza']; ?></td>
-							<td><?php if ($row['ID_LlamadaServicio'] != 0) {?><a href="llamada_servicio.php?id=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_factura_compra.php'); ?>&tl=1" target="_blank"><?php echo $row['DocNumLlamadaServicio']; ?></a><?php } else {echo "--";}?></td>
+							<td><?php if ($row['ID_LlamadaServicio'] != 0) {?><a href="llamada_servicio.php?id=<?php echo base64_encode($row['ID_LlamadaServicio']); ?>&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_factura_compra_borrador.php'); ?>&tl=1" target="_blank"><?php echo $row['DocNumLlamadaServicio']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php if ($row['DocBaseDocEntry'] != "") {?><a href="entrada_compra.php?id=<?php echo base64_encode($row['DocBaseDocEntry']); ?>&id_portal=<?php echo base64_encode($row['DocBaseIdPortal']); ?>&tl=1" target="_blank"><?php echo $row['DocBaseDocNum']; ?></a><?php } else {echo "--";}?></td>
 							<td><?php echo $row['UsuarioCreacion']; ?></td>
 							<td><span <?php if ($row['Cod_Estado'] == 'O') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['NombreEstado']; ?></span></td>
 							<td>
-								<a href="factura_compra.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_factura_compra.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
+								<a href="factura_compra_borrador.php?id=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_factura_compra_borrador.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
 								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_FacturaCompra']); ?>&ObType=<?php echo base64_encode('18'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 								<?php if ($row['URLVisorPublico'] != "") {?><a href="<?php echo $row['URLVisorPublico']; ?>" target="_blank" class="btn btn-primary btn-xs" title="Ver factura eléctronica"><i class="fa fa-external-link"></i> Fact. Elect</a><?php }?>
 							</td>

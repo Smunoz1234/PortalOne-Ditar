@@ -1031,7 +1031,7 @@ function MostrarRet(){
         <!-- InstanceBeginEditable name="Contenido" -->
         <div class="row wrapper border-bottom white-bg page-heading">
                 <div class="col-sm-8">
-                    <h2>Factura de compra</h2>
+                    <h2>Factura de compra borrador</h2>
                     <ol class="breadcrumb">
                         <li>
                             <a href="index1.php">Inicio</a>
@@ -1040,7 +1040,7 @@ function MostrarRet(){
                             <a href="#">Compras</a>
                         </li>
                         <li class="active">
-                            <strong>Factura de compra</strong>
+                            <strong>Factura de compra borrador</strong>
                         </li>
                     </ol>
                 </div>

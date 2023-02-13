@@ -1606,9 +1606,9 @@ function verAutorizacion() {
 					</div>
 
 					<!-- Inicio, AlmacenDestino -->
-					<label class="col-lg-1 control-label">Almacén destino</label>
+					<label class="col-lg-1 control-label">Almacén destino <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
-						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
 						  <?php if ($edit == 1) {?>
 							<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>

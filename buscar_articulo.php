@@ -40,6 +40,8 @@ if (!isset($_GET['dato']) || ($_GET['dato'] == "")) {
     $borrador = $_GET['borrador'] ?? ""; // SMM, 05/05/2022
     $concepto = $_GET['concepto'] ?? ""; // SMM, 23/01/2023
 
+	$reqdate = $_GET['reqdate'] ?? date('Y-m-d'); // SMM, 13/02/2023
+
     if (isset($_GET['idordenventa']) && $_GET['idordenventa'] != "") {
         $ID_OrdenVenta = base64_decode($_GET['idordenventa']);
         $ID_Evento = base64_decode($_GET['evento']);
@@ -683,7 +685,7 @@ else if(doctype==22){//Solicitud de compra crear
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=22&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=22&item="+str+"&reqdate=<?php echo $reqdate; ?>&prjcode=<?php echo $prjcode; ?>&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==23){//Solicitud de compra editar
 	  var xhttp;
@@ -703,7 +705,7 @@ else if(doctype==23){//Solicitud de compra editar
   	};
 	  xhttp.open("POST", "registro.php", true);
 	  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	  xhttp.send("P=35&doctype=23&item="+str+"&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolicitudCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
+	  xhttp.send("P=35&doctype=23&item="+str+"&reqdate=<?php echo $reqdate; ?>&prjcode=<?php echo $prjcode; ?>&whscode="+whscode+"&prjcode=<?php echo $prjcode; ?>&cardcode=<?php echo $CardCode; ?>&id=<?php echo $ID_SolicitudCompra; ?>&evento=<?php echo $ID_Evento; ?>&dim1=<?php echo $dim1; ?>&dim2=<?php echo $dim2; ?>&dim3=<?php echo $dim3; ?>");
   }
 else if(doctype==24){//factura de compra crear
 	  var xhttp;

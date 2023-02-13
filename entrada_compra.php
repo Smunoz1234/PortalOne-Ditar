@@ -433,6 +433,14 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                                 $SQL_ConsID = Seleccionar('uvw_Sap_tbl_EntradasCompras', 'ID_EntradaCompra', "IdDocPortal='" . $IdEntradaCompra . "'");
                                 $row_ConsID = sqlsrv_fetch_array($SQL_ConsID);
                                 sqlsrv_close($conexion);
+
+								/*
+								echo "SELECT ID_EntradaCompra FROM uvw_Sap_tbl_EntradasCompras WHERE IdDocPortal='$IdEntradaCompra'";
+								echo '<br>entrada_compra.php?id=' . $row_ConsID['ID_EntradaCompra'] . "&id_portal=$IdEntradaCompra&tl=1&a=OK_ECompAdd";
+								echo '<br>entrada_compra.php?id=' . base64_encode($row_ConsID['ID_EntradaCompra']) . '&id_portal=' . base64_encode($IdEntradaCompra) . '&tl=1&a=' . base64_encode("OK_ECompAdd");
+								exit();
+								*/
+
                                 header('Location:entrada_compra.php?id=' . base64_encode($row_ConsID['ID_EntradaCompra']) . '&id_portal=' . base64_encode($IdEntradaCompra) . '&tl=1&a=' . base64_encode("OK_ECompAdd"));
                             } else { //Actualizando Entrada
                                 sqlsrv_close($conexion);
@@ -1891,7 +1899,7 @@ if ($edit == 1 || $sw_error == 1) {
 					<div class="form-group">
 						<label class="col-lg-2">Comentarios</label>
 						<div class="col-lg-10">
-							<textarea name="Comentarios" form="CrearEntradaCompra" rows="4" class="form-control" id="Comentarios" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];} elseif (isset($_GET['Comentarios'])) {echo base64_decode($_GET['Comentarios']);}?></textarea>
+							<textarea name="Comentarios" form="CrearEntradaCompra" maxlength="2000" rows="4" class="form-control" id="Comentarios" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];} elseif (isset($_GET['Comentarios'])) {echo base64_decode($_GET['Comentarios']);}?></textarea>
 						</div>
 					</div>
 					<?php if (true) {?>

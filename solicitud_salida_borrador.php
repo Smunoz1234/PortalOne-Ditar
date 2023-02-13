@@ -1584,9 +1584,9 @@ if ($edit == 1 || $sw_error == 1) {
 					</div>
 
 					<!-- Inicio, AlmacenDestino -->
-					<label class="col-lg-1 control-label">Almacén destino</label>
+					<label class="col-lg-1 control-label">Almacén destino <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
-						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino">
+						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" required="required">
 							<option value="">Seleccione...</option>
 						  <?php if ($edit == 1) {?>
 							<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
