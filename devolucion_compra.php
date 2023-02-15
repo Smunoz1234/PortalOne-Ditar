@@ -1364,8 +1364,8 @@ function ConsultarDatosCliente(){
 			</div>
 			<!-- Fin, modalSN -->
 
-
-		 <?php if ($edit == 1) {?>
+		<!-- SMM, 15/02/2023 -->
+		<?php if ($edit == 1) {?>
 			<div class="row">
 				<div class="col-lg-3">
 					<div class="ibox ">
@@ -1373,7 +1373,7 @@ function ConsultarDatosCliente(){
 							<h5><span class="font-normal">Creada por</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php if ($row['Usuario'] != "") {echo $row['Usuario'];} else {echo "&nbsp;";}?></h3>
+							<h3 class="no-margins"><?php if (isset($row['CDU_UsuarioCreacion']) && ($row['CDU_UsuarioCreacion'] != "")) {echo $row['CDU_UsuarioCreacion'];} else {echo "&nbsp;";}?></h3>
 						</div>
 					</div>
 				</div>
@@ -1383,7 +1383,7 @@ function ConsultarDatosCliente(){
 							<h5><span class="font-normal">Fecha creación</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php echo ($row['FechaRegistro'] != "") ? $row['FechaRegistro']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+							<h3 class="no-margins"><?php echo (isset($row['CDU_FechaHoraCreacion']) && ($row['CDU_FechaHoraCreacion'] != "")) ? $row['CDU_FechaHoraCreacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
 						</div>
 					</div>
 				</div>
@@ -1393,7 +1393,7 @@ function ConsultarDatosCliente(){
 							<h5><span class="font-normal">Actualizado por</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php if ($row['UsuarioActualizacion'] != "") {echo $row['UsuarioActualizacion'];} else {echo "&nbsp;";}?></h3>
+							<h3 class="no-margins"><?php if (isset($row['CDU_UsuarioActualizacion']) && ($row['CDU_UsuarioActualizacion'] != "")) {echo $row['CDU_UsuarioActualizacion'];} else {echo "&nbsp;";}?></h3>
 						</div>
 					</div>
 				</div>
@@ -1403,12 +1403,14 @@ function ConsultarDatosCliente(){
 							<h5><span class="font-normal">Fecha actualización</span></h5>
 						</div>
 						<div class="ibox-content">
-							<h3 class="no-margins"><?php echo ($row['FechaActualizacion'] != "") ? $row['FechaActualizacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
+							<h3 class="no-margins"><?php echo (isset($row['CDU_FechaHoraActualizacion']) && ($row['CDU_FechaHoraActualizacion'] != "")) ? $row['CDU_FechaHoraActualizacion']->format('Y-m-d H:i') : "&nbsp;"; ?></h3>
 						</div>
 					</div>
 				</div>
 			</div>
-			<?php }?>
+		<?php }?>
+		<!-- Hasta aquí, 15/02/2023 -->
+
 		 <?php if ($edit == 1) {?>
 		 <div class="ibox-content">
 			<?php include "includes/spinner.php";?>
