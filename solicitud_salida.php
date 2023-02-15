@@ -1404,7 +1404,7 @@ function verAutorizacion() {
 				<?php include "includes/spinner.php";?>
 					<div class="form-group">
 						<div class="col-lg-6">
-							<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode('1250000001'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+							<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode('1250000001'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
 							<a href="#" class="btn btn-info btn-outline" onClick="VerMapaRel('<?php echo base64_encode($row['DocEntry']); ?>','<?php echo base64_encode('1250000001'); ?>');"><i class="fa fa-sitemap"></i> Mapa de relaciones</a>
 						</div>
 						<div class="col-lg-6">
