@@ -500,9 +500,6 @@ $ParamSerie = array(
 );
 $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
-// Proyectos, SMM 29/11/2022
-$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
-
 // Consultar el motivo de autorización según el ID. SMM, 30/11/2022
 if (isset($row['IdMotivoAutorizacion']) && ($row['IdMotivoAutorizacion'] != "") && ($IdMotivo == "")) {
     $IdMotivo = $row['IdMotivoAutorizacion'];
@@ -527,23 +524,43 @@ if (!PermitirFuncion(1211)) {
     $BloquearDocumento = true;
 }
 
-// Filtrar conceptos de salida. SMM, 21/01/2023
+// Filtrar conceptos de salida. SMM, 20/01/2023
 $Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
 $SQL_Conceptos = Seleccionar('uvw_tbl_UsuariosConceptos', '*', $Where_Conceptos);
 
-$Filtro_Conceptos = "Estado = 'Y'";
 $Conceptos = array();
 while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
     $Conceptos[] = ("'" . $Concepto['IdConcepto'] . "'");
 }
 
-if (count($Conceptos) > 0) {
+$Filtro_Conceptos = "Estado = 'Y'";
+if (count($Conceptos) > 0 && ($edit == 0)) {
     $Filtro_Conceptos .= " AND id_concepto_salida IN (";
     $Filtro_Conceptos .= implode(",", $Conceptos);
     $Filtro_Conceptos .= ")";
 }
-// Conceptos de salida de inventario, SMM 21/01/2023
+
 $SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
+// Hasta aquí, 16/02/2023
+
+// Filtrar proyectos asignados. SMM, 16/02/2023
+$Where_Proyectos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Proyectos = Seleccionar('uvw_tbl_UsuariosProyectos', '*', $Where_Proyectos);
+
+$Proyectos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Proyectos)) {
+    $Proyectos[] = ("'" . $Concepto['IdProyecto'] . "'");
+}
+
+$Filtro_Proyectos = "";
+if (count($Proyectos) > 0 && ($edit == 0)) {
+    $Filtro_Proyectos .= "IdProyecto IN (";
+    $Filtro_Proyectos .= implode(",", $Proyectos);
+    $Filtro_Proyectos .= ")";
+}
+
+$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', $Filtro_Proyectos, 'DeProyecto');
+// Hasta aquí, 16/02/2023
 
 // Stiven Muñoz Murillo, 29/08/2022
 $row_encode = isset($row) ? json_encode($row) : "";
