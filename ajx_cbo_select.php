@@ -432,8 +432,12 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $Num = sqlsrv_num_rows($SQL);
                 if ($Num) {
                     $WhsCode = $_GET['WhsCode'] ?? ""; // SMM, 04/02/2022
-                    echo "<option value=''>Seleccione...</option>"; // SMM, 27/01/22
 
+                    // SMM, 16/02/2023
+                    if($Num > 1) {
+                        echo "<option value=''>Seleccione...</option>";
+                    }
+                    
                     while ($row = sqlsrv_fetch_array($SQL)) {
                         if ($WhsCode == $row['WhsCode']) {
                             // Stiven Muñoz Murillo, 04/02/2022
@@ -450,7 +454,11 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $Num = sqlsrv_num_rows($SQL);
                 if ($Num) {
                     $ToWhsCode = $_GET['ToWhsCode'] ?? ""; // SMM, 01/12/2022
-                    echo "<option value=''>Seleccione...</option>"; // SMM, 01/12/2022
+                    
+                    // SMM, 16/02/2023
+                    if($Num > 1) {
+                        echo "<option value=''>Seleccione...</option>";
+                    }
 
                     while ($row = sqlsrv_fetch_array($SQL)) {
                         if ($ToWhsCode == $row['ToWhsCode']) {
