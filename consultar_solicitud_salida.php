@@ -8,6 +8,10 @@ $SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimCode=$DimSeri
 $row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones);
 $Nombre_DimSeries = $row_Dimension["DimName"];
 
+// SMM, 16/02/2023
+$OcrId = ($DimSeries == 1) ? "" : $DimSeries;
+$Sucursal = $_GET['Sucursal'] ?? "";
+
 //Estado actividad
 $SQL_Estado = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 
@@ -65,8 +69,9 @@ if (isset($_GET['TipoEntrega']) && $_GET['TipoEntrega'] != "") {
     $Filtro .= " and IdTipoEntrega='" . $_GET['TipoEntrega'] . "'";
 }
 
-if (isset($_GET['Sucursal']) && $_GET['Sucursal'] != "") {
-    $Filtro .= " and OcrCode3='" . $_GET['Sucursal'] . "'";
+// SMM, 16/02/2023
+if ($Sucursal != "") {
+    $Filtro .= " AND OcrCode$OcrId='$Sucursal'";
 }
 
 if (isset($_GET['AnioEntrega']) && $_GET['AnioEntrega'] != "") {
@@ -101,7 +106,7 @@ if (isset($_GET['BuscarDato']) && $_GET['BuscarDato'] != "") {
 }
 
 $Cons = "Select * From uvw_Sap_tbl_SolicitudesSalidas_Consulta Where (DocDate Between '$FechaInicial' and '$FechaFinal') $Filtro Order by DocNum DESC";
-//echo $Cons;
+// echo $Cons;
 $SQL = sqlsrv_query($conexion, $Cons);
 ?>
 <!DOCTYPE html>
@@ -156,6 +161,12 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 				url: "ajx_cbo_select.php?type=19&id="+Serie+"&todos=1",
 				success: function(response){
 					$('#Sucursal').html(response).fadeIn();
+
+					// SMM, 16/02/2023
+					<?php if (isset($_GET['Sucursal'])) {?>
+						$('#Sucursal').val("<?php echo $_GET['Sucursal']; ?>");
+					<?php }?>
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 				}
 			});
@@ -398,98 +409,104 @@ if ($sw == 1) {
 </div>
 <?php include_once "includes/pie.php";?>
 <!-- InstanceBeginEditable name="EditRegion4" -->
- <script>
-        $(document).ready(function(){
-			$("#formBuscar").validate({
-			 submitHandler: function(form){
-				 $('.ibox-content').toggleClass('sk-loading');
-				 form.submit();
-				}
+
+<script>
+	$(document).ready(function() {
+		// SMM, 16/02/2023
+		<?php if (isset($_GET['Series'])) {?>
+			$('#Series').trigger('change');
+		<?php }?>
+
+		$("#formBuscar").validate({
+			submitHandler: function(form){
+				$('.ibox-content').toggleClass('sk-loading');
+				form.submit();
+			}
+		});
+			$(".alkin").on('click', function(){
+				$('.ibox-content').toggleClass('sk-loading');
 			});
-			 $(".alkin").on('click', function(){
-					$('.ibox-content').toggleClass('sk-loading');
-				});
-			 $(".select2").select2();
-			 $('#FechaInicial').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-				format: 'yyyy-mm-dd',
-				todayHighlight: true,
-            });
-			 $('#FechaFinal').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-				format: 'yyyy-mm-dd',
-				todayHighlight: true,
-            });
+			$(".select2").select2();
+			$('#FechaInicial').datepicker({
+			todayBtn: "linked",
+			keyboardNavigation: false,
+			forceParse: false,
+			calendarWeeks: true,
+			autoclose: true,
+			format: 'yyyy-mm-dd',
+			todayHighlight: true,
+		});
+			$('#FechaFinal').datepicker({
+			todayBtn: "linked",
+			keyboardNavigation: false,
+			forceParse: false,
+			calendarWeeks: true,
+			autoclose: true,
+			format: 'yyyy-mm-dd',
+			todayHighlight: true,
+		});
 
-			$('.chosen-select').chosen({width: "100%"});
+		$('.chosen-select').chosen({width: "100%"});
 
-			<?php if (isset($_GET['TipoEntrega'])) {?>
+		<?php if (isset($_GET['TipoEntrega'])) {?>
 			$('#TipoEntrega').trigger('change');
-			<?php }?>
+		<?php }?>
 
-			var options = {
-				url: function(phrase) {
-					return "ajx_buscar_datos_json.php?type=7&id="+phrase;
+		var options = {
+			url: function(phrase) {
+				return "ajx_buscar_datos_json.php?type=7&id="+phrase;
+			},
+
+			getValue: "NombreBuscarCliente",
+			requestDelay: 400,
+			list: {
+				match: {
+					enabled: true
 				},
-
-				getValue: "NombreBuscarCliente",
-				requestDelay: 400,
-				list: {
-					match: {
-						enabled: true
-					},
-					onClickEvent: function() {
-						var value = $("#NombreCliente").getSelectedItemData().CodigoCliente;
-						$("#Cliente").val(value);
-					}
+				onClickEvent: function() {
+					var value = $("#NombreCliente").getSelectedItemData().CodigoCliente;
+					$("#Cliente").val(value);
 				}
-			};
+			}
+		};
 
-			$("#NombreCliente").easyAutocomplete(options);
+		$("#NombreCliente").easyAutocomplete(options);
 
-            $('.dataTables-example').DataTable({
-                pageLength: 25,
-                responsive: false,
-                dom: '<"html5buttons"B>lTfgitp',
-				language: {
-					"decimal":        "",
-					"emptyTable":     "No se encontraron resultados.",
-					"info":           "Mostrando _START_ - _END_ de _TOTAL_ registros",
-					"infoEmpty":      "Mostrando 0 - 0 de 0 registros",
-					"infoFiltered":   "(filtrando de _MAX_ registros)",
-					"infoPostFix":    "",
-					"thousands":      ",",
-					"lengthMenu":     "Mostrar _MENU_ registros",
-					"loadingRecords": "Cargando...",
-					"processing":     "Procesando...",
-					"search":         "Filtrar:",
-					"zeroRecords":    "Ningún registro encontrado",
-					"paginate": {
-						"first":      "Primero",
-						"last":       "Último",
-						"next":       "Siguiente",
-						"previous":   "Anterior"
-					},
-					"aria": {
-						"sortAscending":  ": Activar para ordenar la columna ascendente",
-						"sortDescending": ": Activar para ordenar la columna descendente"
-					}
+		$('.dataTables-example').DataTable({
+			pageLength: 25,
+			responsive: false,
+			dom: '<"html5buttons"B>lTfgitp',
+			language: {
+				"decimal":        "",
+				"emptyTable":     "No se encontraron resultados.",
+				"info":           "Mostrando _START_ - _END_ de _TOTAL_ registros",
+				"infoEmpty":      "Mostrando 0 - 0 de 0 registros",
+				"infoFiltered":   "(filtrando de _MAX_ registros)",
+				"infoPostFix":    "",
+				"thousands":      ",",
+				"lengthMenu":     "Mostrar _MENU_ registros",
+				"loadingRecords": "Cargando...",
+				"processing":     "Procesando...",
+				"search":         "Filtrar:",
+				"zeroRecords":    "Ningún registro encontrado",
+				"paginate": {
+					"first":      "Primero",
+					"last":       "Último",
+					"next":       "Siguiente",
+					"previous":   "Anterior"
 				},
-                buttons: []
-				, order: [[ 0, "desc" ]] // SMM, 15/12/2022
-            });
+				"aria": {
+					"sortAscending":  ": Activar para ordenar la columna ascendente",
+					"sortDescending": ": Activar para ordenar la columna descendente"
+				}
+			},
+			buttons: []
+			, order: [[ 0, "desc" ]] // SMM, 15/12/2022
+		});
 
-        });
+	});
+</script>
 
-    </script>
 <!-- InstanceEndEditable -->
 </body>
 

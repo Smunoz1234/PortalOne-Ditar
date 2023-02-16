@@ -8,6 +8,10 @@ $SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimCode=$DimSeri
 $row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones);
 $Nombre_DimSeries = $row_Dimension["DimName"];
 
+// SMM, 16/02/2023
+$OcrId = ($DimSeries == 1) ? "" : $DimSeries;
+$Sucursal = $_GET['Sucursal'] ?? "";
+
 //Estado actividad
 $SQL_Estado = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 
@@ -59,8 +63,9 @@ if (isset($_GET['Empleado']) && $_GET['Empleado'] != "") {
     $Filtro .= " and CodEmpleado='" . $_GET['Empleado'] . "'";
 }
 
-if (isset($_GET['Sucursal']) && $_GET['Sucursal'] != "") {
-    $Filtro .= " and OcrCode3='" . $_GET['Sucursal'] . "'";
+// SMM, 16/02/2023
+if ($Sucursal != "") {
+    $Filtro .= " AND OcrCode$OcrId='$Sucursal'";
 }
 
 // SMM, 25/11/2022
@@ -156,6 +161,12 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 				url: "ajx_cbo_select.php?type=19&id="+Serie+"&todos=1",
 				success: function(response){
 					$('#Sucursal').html(response).fadeIn();
+
+					// SMM, 16/02/2023
+					<?php if (isset($_GET['Sucursal'])) {?>
+						$('#Sucursal').val("<?php echo $_GET['Sucursal']; ?>");
+					<?php }?>
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 				}
 			});
@@ -362,6 +373,11 @@ if ($sw == 1) {
 <!-- InstanceBeginEditable name="EditRegion4" -->
  <script>
         $(document).ready(function(){
+			// SMM, 16/02/2023
+			<?php if (isset($_GET['Series'])) {?>
+				$('#Series').trigger('change');
+			<?php }?>
+
 			$("#formBuscar").validate({
 			 submitHandler: function(form){
 				 $('.ibox-content').toggleClass('sk-loading');

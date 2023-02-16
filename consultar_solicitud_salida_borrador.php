@@ -8,6 +8,10 @@ $SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimCode=$DimSeri
 $row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones);
 $Nombre_DimSeries = $row_Dimension["DimName"];
 
+// SMM, 16/02/2023
+$OcrId = ($DimSeries == 1) ? "" : $DimSeries;
+$Sucursal = $_GET['Sucursal'] ?? "";
+
 //Estado actividad
 $SQL_Estado = Seleccionar('uvw_tbl_EstadoDocSAP', '*');
 
@@ -71,26 +75,26 @@ $Where_PerfilesAutorizador = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
 $SQL_Perfiles = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
 
 if (isset($_GET['PerfilAutor'])) {
-	if($_GET['PerfilAutor'] != "") {
-		$Filtro .= " AND ID_PerfilUsuario_Creacion = '" . $_GET['PerfilAutor'] . "'";
-	} else { 
-		// Todos los perfiles asignados
-		$Filtro .= "AND ID_PerfilUsuario_Creacion IN (";
-		$Perfiles = array();
-		while ($Perfil = sqlsrv_fetch_array($SQL_Perfiles)) {
-			$Perfiles[] = $Perfil['IdPerfil'];
-		}
-		
-		$Perfiles[] = $_SESSION['Perfil']; // Agrego el perfil del usuario
+    if ($_GET['PerfilAutor'] != "") {
+        $Filtro .= " AND ID_PerfilUsuario_Creacion = '" . $_GET['PerfilAutor'] . "'";
+    } else {
+        // Todos los perfiles asignados
+        $Filtro .= "AND ID_PerfilUsuario_Creacion IN (";
+        $Perfiles = array();
+        while ($Perfil = sqlsrv_fetch_array($SQL_Perfiles)) {
+            $Perfiles[] = $Perfil['IdPerfil'];
+        }
 
-		$Filtro .= implode(",", $Perfiles);
-		$Filtro .= ")";
-		// SMM, 20/01/2023
+        $Perfiles[] = $_SESSION['Perfil']; // Agrego el perfil del usuario
 
-		// Volver a llenar la consulta SQL.
-		$SQL_Perfiles = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
-	}
-} 
+        $Filtro .= implode(",", $Perfiles);
+        $Filtro .= ")";
+        // SMM, 20/01/2023
+
+        // Volver a llenar la consulta SQL.
+        $SQL_Perfiles = Seleccionar('uvw_tbl_UsuariosPerfilesAsignados', '*', $Where_PerfilesAutorizador);
+    }
+}
 // Hasta aquí, 23/12/2022
 
 if (isset($_GET['Cliente']) && $_GET['Cliente'] != "") {
@@ -105,8 +109,9 @@ if (isset($_GET['TipoEntrega']) && $_GET['TipoEntrega'] != "") {
     $Filtro .= " and IdTipoEntrega='" . $_GET['TipoEntrega'] . "'";
 }
 
-if (isset($_GET['Sucursal']) && $_GET['Sucursal'] != "") {
-    $Filtro .= " and OcrCode3='" . $_GET['Sucursal'] . "'";
+// SMM, 16/02/2023
+if ($Sucursal != "") {
+    $Filtro .= " AND OcrCode$OcrId='$Sucursal'";
 }
 
 if (isset($_GET['AnioEntrega']) && $_GET['AnioEntrega'] != "") {
@@ -237,6 +242,12 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 				url: "ajx_cbo_select.php?type=19&id="+Serie+"&todos=1",
 				success: function(response){
 					$('#Sucursal').html(response).fadeIn();
+
+					// SMM, 16/02/2023
+					<?php if (isset($_GET['Sucursal'])) {?>
+						$('#Sucursal').val("<?php echo $_GET['Sucursal']; ?>");
+					<?php }?>
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 				}
 			});
@@ -565,6 +576,11 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 <!-- InstanceBeginEditable name="EditRegion4" -->
  <script>
         $(document).ready(function(){
+			// SMM, 16/02/2023
+			<?php if (isset($_GET['Series'])) {?>
+				$('#Series').trigger('change');
+			<?php }?>
+
 			$("#formBuscar").validate({
 			 submitHandler: function(form){
 				 $('.ibox-content').toggleClass('sk-loading');

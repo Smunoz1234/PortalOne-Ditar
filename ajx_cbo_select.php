@@ -398,10 +398,11 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             if ($Num) {
                 if ($Todos == 1) {
                     echo "<option value=''>(Todos)</option>";
+                } else {
+                    echo "<option value=''>Seleccione...</option>"; // SMM, 16/02/2023
                 }
 
                 $SDim = $_GET['SDim'] ?? ""; // SMM, 04/02/2022
-                echo "<option value=''>Seleccione...</option>"; // SMM, 27/01/22
 
                 while ($row = sqlsrv_fetch_array($SQL)) {
                     if ($SDim == $row['IdSucursal']) {
