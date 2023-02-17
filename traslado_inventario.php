@@ -191,9 +191,11 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "'" . ($_POST['IdMotivoAutorizacion'] ?? "") . "'",
                 "'" . ($_POST['ComentariosAutor'] ?? "") . "'",
                 "'" . ($_POST['MensajeProceso'] ?? "") . "'",
-
                 // SMM, 23/12/2022
                 "'" . $_POST['ConceptoSalida'] . "'",
+                // SMM, 16/02/2023
+                "'" . ($_POST['NombreRecibeFirma'] ?? "") . "'",
+                "'" . ($_POST['CedulaRecibeFirma'] ?? "") . "'",
             );
         }
 
@@ -636,7 +638,7 @@ if ($edit == 1 && $sw_error == 0) {
     //Anexos
     $SQL_Anexo = Seleccionar('uvw_Sap_tbl_DocumentosSAP_Anexos', '*', "AbsEntry='" . $row['IdAnexo'] . "'");
 
-    if ($row['CodEmpleado'] == $_SESSION['IdCardCode']) {
+    if (($row['CodEmpleado'] == $_SESSION['IdCardCode']) || PermitirFuncion(1213)) {
         $PuedeFirmar = 1;
     } else {
         $PuedeFirmar = 0;
@@ -677,7 +679,7 @@ if ($sw_error == 1) {
     //Anexos
     $SQL_Anexo = Seleccionar('uvw_Sap_tbl_DocumentosSAP_Anexos', '*', "AbsEntry='" . $row['IdAnexo'] . "'");
 
-    if ($row['CodEmpleado'] == $_SESSION['IdCardCode']) {
+    if (($row['CodEmpleado'] == $_SESSION['IdCardCode']) || PermitirFuncion(1213)) {
         $PuedeFirmar = 1;
     } else {
         $PuedeFirmar = 0;
@@ -719,27 +721,43 @@ $ParamSerie = array(
 );
 $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
-// Proyectos, SMM 29/11/2022
-$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
-
-// Filtrar conceptos de salida. SMM, 21/01/2023
+// Filtrar conceptos de salida. SMM, 20/01/2023
 $Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
 $SQL_Conceptos = Seleccionar('uvw_tbl_UsuariosConceptos', '*', $Where_Conceptos);
 
-$Filtro_Conceptos = "Estado = 'Y'";
 $Conceptos = array();
 while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
     $Conceptos[] = ("'" . $Concepto['IdConcepto'] . "'");
 }
 
-if (count($Conceptos) > 0) {
+$Filtro_Conceptos = "Estado = 'Y'";
+if (count($Conceptos) > 0 && ($edit == 0)) {
     $Filtro_Conceptos .= " AND id_concepto_salida IN (";
     $Filtro_Conceptos .= implode(",", $Conceptos);
     $Filtro_Conceptos .= ")";
 }
 
-// Conceptos de salida de inventario, SMM 21/01/2023
 $SQL_ConceptoSalida = Seleccionar('tbl_SalidaInventario_Conceptos', '*', $Filtro_Conceptos, 'id_concepto_salida');
+// Hasta aquí, 16/02/2023
+
+// Filtrar proyectos asignados. SMM, 16/02/2023
+$Where_Proyectos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Proyectos = Seleccionar('uvw_tbl_UsuariosProyectos', '*', $Where_Proyectos);
+
+$Proyectos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Proyectos)) {
+    $Proyectos[] = ("'" . $Concepto['IdProyecto'] . "'");
+}
+
+$Filtro_Proyectos = "";
+if (count($Proyectos) > 0 && ($edit == 0)) {
+    $Filtro_Proyectos .= "IdProyecto IN (";
+    $Filtro_Proyectos .= implode(",", $Proyectos);
+    $Filtro_Proyectos .= ")";
+}
+
+$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', $Filtro_Proyectos, 'DeProyecto');
+// Hasta aquí, 16/02/2023
 
 // Consultar el motivo de autorización según el ID. SMM, 30/11/2022
 if (isset($row['IdMotivoAutorizacion']) && ($row['IdMotivoAutorizacion'] != "") && ($IdMotivo == "")) {
@@ -1796,9 +1814,7 @@ if ($edit == 1 || $sw_error == 1) {
 					<label class="col-lg-1 control-label">Solicitado para</label>
 					<div class="col-lg-3">
 						<select name="Empleado" class="form-control" required id="Empleado" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
-							<?php if (($edit == 0) && ($dt_SS == 0)) {?>
-								<option value="">Seleccione...</option>
-							<?php }?>
+							<option value="">Seleccione...</option>
 							<?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
 								<option value="<?php echo $row_Empleado['ID_Empleado']; ?>" <?php if ((isset($row['CodEmpleado'])) && (strcmp($row_Empleado['ID_Empleado'], $row['CodEmpleado']) == 0)) {echo "selected=\"selected\"";} elseif (isset($_GET['Empleado']) && (strcmp($row_Empleado['ID_Empleado'], base64_decode($_GET['Empleado'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Empleado['NombreEmpleado']; ?></option>
 							<?php }?>
@@ -1848,7 +1864,7 @@ if ($edit == 1 || $sw_error == 1) {
 					<!-- Hasta aquí, 30/11/2022 -->
 
 				</div> <!-- form-group -->
-				
+
 				<div class="form-group">
 
 					<!-- SMM, 23/12/2022 -->
@@ -1862,7 +1878,7 @@ if ($edit == 1 || $sw_error == 1) {
 						</select>
 					</div>
 					<!-- Hasta aquí, 23/12/2022 -->
-				
+
 				</div> <!-- form-group -->
 
 				<div class="form-group">
@@ -1964,29 +1980,6 @@ if ($edit == 1 || $sw_error == 1) {
 							<button class="btn btn-success" type="button" id="DatoAdicionales" onClick="VerCamposAdi();"><i class="fa fa-list"></i> Ver campos adicionales</button>
 						</div>
 					</div>
-					<?php if ($edit == 1) {?>
-					<div class="form-group">
-						<label class="col-lg-2">Firma quien recibe</label>
-						<?php if ($NameFirma != "") {?>
-						<div class="col-lg-10">
-							<span class="badge badge-primary">Firmado</span>
-						</div>
-						<?php } elseif ($PuedeFirmar == 1) {LimpiarDirTempFirma();?>
-						<div class="col-lg-5">
-							<button class="btn btn-primary" type="button" id="FirmaCliente" onClick="AbrirFirma('SigRecibe');"><i class="fa fa-pencil-square-o"></i> Realizar firma</button>
-							<input type="hidden" id="SigRecibe" name="SigRecibe" value="" form="CrearTrasladoInventario" />
-							<div id="msgInfoSigRecibe" style="display: none;" class="alert alert-info"><i class="fa fa-info-circle"></i> El documento ya ha sido firmado.</div>
-						</div>
-						<div class="col-lg-5">
-							<img id="ImgSigRecibe" style="display: none; max-width: 100%; height: auto;" src="" alt="" />
-						</div>
-						<?php } else {?>
-							<div class="col-lg-10">
-								<span class="badge badge-warning">Usuario no autorizado para firmar</span>
-							</div>
-						<?php }?>
-					</div>
-					<?php }?>
 				</div>
 				<div class="col-lg-4">
 					<div class="form-group">
@@ -2014,6 +2007,57 @@ if ($edit == 1 || $sw_error == 1) {
 						</div>
 					</div>
 				</div>
+
+				<!-- SMM, 16/07/2023 -->
+				<?php if ($edit == 1) {?>
+					<div class="col-lg-12">
+						<div class="form-group">
+							<div class="col-lg-6 border-bottom ">
+								<label class="control-label text-danger">Información de quien recibe</label>
+							</div>
+						</div>
+
+						<?php // if (PermitirFuncion(1213)) {?>
+							<div class="form-group">
+								<div class="col-lg-5">
+									<label class="control-label">Nombre de quien recibe <span class="text-danger cierre-span">*</span></label>
+									<input form="CrearTrasladoInventario" autocomplete="off" name="NombreRecibeFirma" type="text" class="form-control cierre-input" id="NombreRecibeFirma" maxlength="200" value="<?php echo $row['NombreRecibeFirma'] ?? ""; ?>" required>
+								</div>
+								<div class="col-lg-5">
+									<label class="control-label">Cédula de quien recibe</label>
+									<input form="CrearTrasladoInventario" autocomplete="off" name="CedulaRecibeFirma" type="number" class="form-control cierre-input" id="CedulaRecibeFirma" maxlength="20" value="<?php echo $row['CedulaRecibeFirma'] ?? ""; ?>">
+								</div>
+							</div>
+						<?php // }?>
+
+						<!-- Componente "firma"-->
+						<div class="form-group">
+							<label class="col-lg-2">Firma de quien recibe</label>
+							<?php if ($NameFirma != "") {?>
+							<div class="col-lg-10">
+								<span class="badge badge-primary">Firmado</span>
+							</div>
+							<?php } elseif ($PuedeFirmar == 1) {LimpiarDirTempFirma();?>
+							<div class="col-lg-5">
+								<button class="btn btn-primary" type="button" id="FirmaCliente" onClick="AbrirFirma('SigRecibe');"><i class="fa fa-pencil-square-o"></i> Realizar firma</button>
+								<input type="hidden" id="SigRecibe" name="SigRecibe" value="" form="CrearTrasladoInventario" />
+								<div id="msgInfoSigRecibe" style="display: none;" class="alert alert-info"><i class="fa fa-info-circle"></i> El documento ya ha sido firmado.</div>
+							</div>
+							<div class="col-lg-5">
+								<img id="ImgSigRecibe" style="display: none; max-width: 100%; height: auto;" src="" alt="" />
+							</div>
+							<?php } else {?>
+								<div class="col-lg-10">
+									<span class="badge badge-warning">Usuario no autorizado para firmar</span>
+								</div>
+							<?php }?>
+						</div>
+						<!-- Hasta aquí -->
+						<br><br>
+					</div>
+				<?php }?>
+				<!-- Hasta aquí, 16/07/2023 -->
+
 				<div class="form-group">
 					<div class="col-lg-9">
 						<?php if ($edit == 0 && PermitirFuncion(1203)) {?>

@@ -1697,9 +1697,9 @@ function verAutorizacion() {
 
 				<div class="form-group">
 						<!-- SMM, 23/12/2022 -->
-						<label class="col-lg-1 control-label">Concepto Salida</label>
+						<label class="col-lg-1 control-label">Concepto Salida <span class="text-danger">*</span></label>
 						<div class="col-lg-3">
-							<select name="ConceptoSalida" class="form-control select2" id="ConceptoSalida" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="ConceptoSalida" class="form-control select2" id="ConceptoSalida" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?> required>
 									<option value="">Seleccione...</option>
 									<?php while ($row_ConceptoSalida = sqlsrv_fetch_array($SQL_ConceptoSalida)) {?>
 										<option value="<?php echo $row_ConceptoSalida['id_concepto_salida']; ?>" <?php if ((isset($row['ConceptoSalida'])) && (strcmp($row_ConceptoSalida['id_concepto_salida'], $row['ConceptoSalida']) == 0)) {echo "selected";}?>><?php echo $row_ConceptoSalida['id_concepto_salida'] . "-" . $row_ConceptoSalida['concepto_salida']; ?></option>

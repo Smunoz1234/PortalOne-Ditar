@@ -78,7 +78,7 @@ function ActualizarDatos(name,id,line){//Actualizar datos asincronicamente
 				<th>#</th>
 				<th>Nombre documento</th>
 				<th>Nombre Serie</th>
-				<th>Sucursal</th>
+				<th>Dimensión 1</th>
 				<th>Almacén origen</th>
 				<th>Almacén destino</th>
 				<th>Almacén defecto</th>

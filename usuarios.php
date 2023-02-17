@@ -237,64 +237,63 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) {
                 }
             }
 
+            // Perfiles asignados. SMM, 19/05/2022
+            $ParamDeletePerfilesAsignados = array(
+                "'" . $ID . "'",
+                "NULL",
+                "2",
+            );
+            $SQL_DeletePerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamDeletePerfilesAsignados, $_POST['P']);
 
-			// Perfiles asignados. SMM, 19/05/2022
-			$ParamDeletePerfilesAsignados = array(
-				"'" . $ID . "'",
-				"NULL",
-				"2",
-			);
-			$SQL_DeletePerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamDeletePerfilesAsignados, $_POST['P']);
+            // Insertamos los perfiles asignados.
+            if ($SQL_DeletePerfilesAsignados) {
+                $i = 0;
+                $CuentaPerfilesAsignados = count($_POST['PerfilAutor']);
+                while ($i < $CuentaPerfilesAsignados) {
+                    if ($_POST['PerfilAutor'][$i] != "") {
+                        $ParamPerfilesAsignados = array(
+                            "'" . $ID . "'",
+                            "'" . $_POST['PerfilAutor'][$i] . "'",
+                            "1",
+                        );
+                        $SQL_PerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamPerfilesAsignados, $_POST['P']);
+                        if (!$SQL_PerfilesAsignados) {
+                            $sw_error = 1;
+                            $msg_error = "No se pudo insertar el Perfil de Autores";
+                        }
+                    }
+                    $i++;
+                }
+            } // Hasta aquí, 19/12/2022
 
-			// Insertamos los perfiles asignados.
-			if ($SQL_DeletePerfilesAsignados) {
-				$i = 0;
-				$CuentaPerfilesAsignados = count($_POST['PerfilAutor']);
-				while ($i < $CuentaPerfilesAsignados) {
-					if ($_POST['PerfilAutor'][$i] != "") {
-						$ParamPerfilesAsignados = array(
-							"'" . $ID . "'",
-							"'" . $_POST['PerfilAutor'][$i] . "'",
-							"1",
-						);
-						$SQL_PerfilesAsignados = EjecutarSP('sp_InsertarUsuariosPerfilesAsignados', $ParamPerfilesAsignados, $_POST['P']);
-						if (!$SQL_PerfilesAsignados) {
-							$sw_error = 1;
-							$msg_error = "No se pudo insertar el Perfil de Autores";
-						}
-					}
-					$i++;
-				}
-			} // Hasta aquí, 19/12/2022
+            // Conceptos de Salida. SMM, 19/05/2022
+            $ParamDeleteConceptos = array(
+                "'" . $ID . "'",
+                "NULL",
+                "2",
+            );
+            $SQL_DeleteConceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamDeleteConceptos, $_POST['P']);
 
-			// Conceptos de Salida. SMM, 19/05/2022
-			$ParamDeleteConceptos = array(
-				"'" . $ID . "'",
-				"NULL",
-				"2",
-			);
-			$SQL_DeleteConceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamDeleteConceptos, $_POST['P']);
-
-			// Insertamos los Conceptos de Salida.
-			if ($SQL_DeleteConceptos) {
-				$i = 0;
-				$CuentaConceptos = count($_POST['Concepto']);
-				while ($i < $CuentaConceptos) {
-					if ($_POST['Concepto'][$i] != "") {
-						$ParamConceptos = array(
-							"'" . $ID . "'",
-							"'" . $_POST['Concepto'][$i] . "'",
-							"1",
-						);
-						$SQL_Conceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamConceptos, $_POST['P']);
-						if (!$SQL_Conceptos) {
-							$sw_error = 1;
-							$msg_error = "No se pudo insertar el Concepto";
-						}
-					}
-					$i++;
-				}
-			} // Hasta aquí, 19/12/2022
+            // Insertamos los Conceptos de Salida.
+            if ($SQL_DeleteConceptos) {
+                $i = 0;
+                $CuentaConceptos = count($_POST['Concepto']);
+                while ($i < $CuentaConceptos) {
+                    if ($_POST['Concepto'][$i] != "") {
+                        $ParamConceptos = array(
+                            "'" . $ID . "'",
+                            "'" . $_POST['Concepto'][$i] . "'",
+                            "1",
+                        );
+                        $SQL_Conceptos = EjecutarSP('sp_InsertarUsuariosConceptos', $ParamConceptos, $_POST['P']);
+                        if (!$SQL_Conceptos) {
+                            $sw_error = 1;
+                            $msg_error = "No se pudo insertar el Concepto";
+                        }
+                    }
+                    $i++;
+                }
+            } // Hasta aquí, 19/12/2022
 
             //Clientes
             if (isset($_POST['Cliente'])) {
@@ -439,24 +438,23 @@ if ($edit == 1) { //Editar usuario
     // Empleados asignados, SMM 16/05/2022
     $SQL_GruposUsuario = Seleccionar("uvw_tbl_UsuariosGruposEmpleados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DeCargo');
 
-    
     while ($row_GruposUsuario = sqlsrv_fetch_array($SQL_GruposUsuario)) {
         $ids_grupos[] = $row_GruposUsuario['IdCargo'];
     }
 
-	// Perfiles asignados. SMM, 19/12/2022
-	$SQL_PerfilesAsignados = Seleccionar("uvw_tbl_UsuariosPerfilesAsignados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DePerfil');
-	
+    // Perfiles asignados. SMM, 19/12/2022
+    $SQL_PerfilesAsignados = Seleccionar("uvw_tbl_UsuariosPerfilesAsignados", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DePerfil');
+
     while ($row_PerfilesAsignados = sqlsrv_fetch_array($SQL_PerfilesAsignados)) {
         $ids_perfiles[] = $row_PerfilesAsignados['IdPerfil'];
     }
 
-	// Conceptos de salida. SMM, 20/01/2023
-	$SQL_Conceptos = Seleccionar("uvw_tbl_UsuariosConceptos", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DeConcepto');
+    // Conceptos de salida. SMM, 20/01/2023
+    $SQL_Conceptos = Seleccionar("uvw_tbl_UsuariosConceptos", "*", "[ID_Usuario]='" . $IdUsuario . "'", 'DeConcepto');
 
-	while ($row_Conceptos = sqlsrv_fetch_array($SQL_Conceptos)) {
-		$ids_conceptos[] = $row_Conceptos['IdConcepto'];
-	}
+    while ($row_Conceptos = sqlsrv_fetch_array($SQL_Conceptos)) {
+        $ids_conceptos[] = $row_Conceptos['IdConcepto'];
+    }
 }
 
 //Estados
@@ -1047,14 +1045,14 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
 								<div class="ibox-content">
 									 <?php while ($row_DimReparto = sqlsrv_fetch_array($SQL_DimReparto)) {
     //Cargar centros de costos por cada dimension
-    $SQL_CentroCostos = Seleccionar('uvw_Sap_tbl_CentrosCostos', '*', "DimCode='" . $row_DimReparto['CodDim'] . "'");?>
+    $SQL_CentroCostos = Seleccionar('uvw_Sap_tbl_CentrosCostos', '*', "DimCode='" . $row_DimReparto['CodDim'] . "'", "PrcName");?>
 									<div class="form-group">
 										<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?><br><span class="text-muted"><?php echo $row_DimReparto['TipoDim']; ?></span></label>
 										<div class="col-lg-3">
-											<select name="Dimension<?php echo $row_DimReparto['CodDim']; ?>" class="form-control" id="Dimension<?php echo $row_DimReparto['CodDim']; ?>">
+											<select name="Dimension<?php echo $row_DimReparto['CodDim']; ?>" class="form-control select2" id="Dimension<?php echo $row_DimReparto['CodDim']; ?>">
 												<option value="">(Ninguno)</option>
 											  <?php while ($row_CentroCostos = sqlsrv_fetch_array($SQL_CentroCostos)) {?>
-													<option value="<?php echo $row_CentroCostos['PrcCode']; ?>" <?php if (($edit == 1) && (strcmp($row_CentroCostos['PrcCode'], $row['CentroCosto' . $row_DimReparto['CodDim']]) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_CentroCostos['PrcName']; ?></option>
+													<option value="<?php echo $row_CentroCostos['PrcCode']; ?>" <?php if (($edit == 1) && (strcmp($row_CentroCostos['PrcCode'], $row['CentroCosto' . $row_DimReparto['CodDim']]) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_CentroCostos['PrcName'] . " (" . $row_CentroCostos['PrcCode'] . ")"; ?></option>
 											  <?php }?>
 											</select>
 										</div>
