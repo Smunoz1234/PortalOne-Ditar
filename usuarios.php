@@ -1027,7 +1027,7 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
         $row_ProyectosUsuario = sqlsrv_fetch_array($SQL_ProyectosUsuario);
     }
 }?>>
-													<?php echo $row_Proyectos['DeProyecto']; ?>
+													<?php echo $row_Proyectos['DeProyecto'] . " (" . $row_Proyectos['IdProyecto'] . ")"; ?>
 												</option>
 										  <?php }?>
 										</select>
