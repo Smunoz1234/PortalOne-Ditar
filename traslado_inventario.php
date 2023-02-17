@@ -144,6 +144,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "'" . $_SESSION['CodUser'] . "'",
                 "'" . $_SESSION['CodUser'] . "'",
                 $Type,
+                // SMM, 17/02/2023
+                "'" . ($_POST['NombreRecibeFirma'] ?? "") . "'",
+                "'" . ($_POST['CedulaRecibeFirma'] ?? "") . "'",
+                // Estos campos deben ir arriba para poder firmar.
             );
         } else {
             $ParametrosCabTrasladoInv = array(
@@ -152,6 +156,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "'" . $_SESSION['CodUser'] . "'",
                 "'" . $_SESSION['CodUser'] . "'",
                 $Type,
+                // SMM, 16/02/2023
+                "'" . ($_POST['NombreRecibeFirma'] ?? "") . "'",
+                "'" . ($_POST['CedulaRecibeFirma'] ?? "") . "'",
+                // Estos campos deben ir arriba para poder firmar.
                 "NULL",
                 "NULL",
                 "'" . $_POST['Serie'] . "'",
@@ -193,9 +201,6 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                 "'" . ($_POST['MensajeProceso'] ?? "") . "'",
                 // SMM, 23/12/2022
                 "'" . $_POST['ConceptoSalida'] . "'",
-                // SMM, 16/02/2023
-                "'" . ($_POST['NombreRecibeFirma'] ?? "") . "'",
-                "'" . ($_POST['CedulaRecibeFirma'] ?? "") . "'",
             );
         }
 
@@ -477,8 +482,21 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
                                 sqlsrv_close($conexion);
                                 header('Location:traslado_inventario.php?id=' . base64_encode($row_ConsID['ID_TrasladoInv']) . '&id_portal=' . base64_encode($IdTrasladoInv) . '&tl=1&a=' . base64_encode("OK_TrasInvAdd"));
                             } else { //Actualizando traslado
+
+                                // SMM, 17/02/2023
+                                $SQL_ConsID = Seleccionar('uvw_Sap_tbl_TrasladosInventarios', 'ID_TrasladoInv', "IdDocPortal='" . $IdTrasladoInv . "'");
+                                $row_ConsID = sqlsrv_fetch_array($SQL_ConsID);
                                 sqlsrv_close($conexion);
-                                header('Location:' . base64_decode($_POST['return']) . '&a=' . base64_encode("OK_TrasInvUpd"));
+
+                                /*
+                                echo "SELECT ID_TrasladoInv FROM uvw_Sap_tbl_TrasladosInventarios WHERE IdDocPortal='$IdTrasladoInv'";
+                                echo '<br>traslado_inventario.php?id=' . $row_ConsID['ID_TrasladoInv'] . "&id_portal=$IdTrasladoInv&tl=1&a=OK_TrasInvAdd";
+                                echo '<br>traslado_inventario.php?id=' . base64_encode($row_ConsID['ID_TrasladoInv']) . '&id_portal=' . base64_encode($IdTrasladoInv) . '&tl=1&a=' . base64_encode("OK_TrasInvAdd");
+                                exit();
+                                 */
+
+                                header('Location:traslado_inventario.php?id=' . base64_encode($row_ConsID['ID_TrasladoInv']) . '&id_portal=' . base64_encode($IdTrasladoInv) . '&tl=1&a=' . base64_encode("OK_TrasInvUpd"));
+                                // header('Location:' . base64_decode($_POST['return']) . '&a=' . base64_encode("OK_TrasInvUpd"));
                             }
                             // Fin, redirección documento autorizado.
                         }
@@ -791,6 +809,10 @@ $row_encode = isset($row) ? json_encode($row) : "";
 $cadena = isset($row) ? "JSON.parse('$row_encode'.replace(/\\n|\\r/g, ''))" : "'Not Found'";
 // echo "<script> console.log('consulta principal'); </script>";
 // echo "<script> console.log($cadena); </script>";
+
+// SMM, 17/02/2023
+// echo base64_decode($_GET["id"]) . "<br>";
+// echo base64_decode($_GET["id_portal"]);
 ?>
 
 <!DOCTYPE html>
@@ -1811,7 +1833,7 @@ if ($edit == 1 || $sw_error == 1) {
 
 				<div class="form-group">
 					<!-- Inicio, Empleado -->
-					<label class="col-lg-1 control-label">Solicitado para</label>
+					<label class="col-lg-1 control-label">Solicitado para <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
 						<select name="Empleado" class="form-control" required id="Empleado" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
@@ -1971,7 +1993,7 @@ if ($edit == 1 || $sw_error == 1) {
 					<div class="form-group">
 						<label class="col-lg-2">Comentarios</label>
 						<div class="col-lg-10">
-							<textarea name="Comentarios" form="CrearTrasladoInventario" rows="4" class="form-control" id="Comentarios" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];}?></textarea>
+							<textarea type="text" maxlength="2000" name="Comentarios" form="CrearTrasladoInventario" rows="4" id="Comentarios" class="form-control" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "readonly";}?>><?php if ($edit == 1 || $sw_error == 1) {echo $row['Comentarios'];} elseif (isset($_GET['Comentarios'])) {echo base64_decode($_GET['Comentarios']);}?></textarea>
 						</div>
 					</div>
 					<div class="form-group">
@@ -2124,6 +2146,8 @@ $return = QuitarParametrosURL($return, array("a"));
 <!-- InstanceBeginEditable name="EditRegion4" -->
 <script>
 	$(document).ready(function(){
+		maxLength('Comentarios'); // SMM, 17/02/2023
+
 		// SMM, 20/01/2023
 		<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
 			$("#CardCode").change();
