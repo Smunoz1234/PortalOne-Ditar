@@ -456,8 +456,8 @@ if ($sw_error == 1) {
 //Condiciones de pago
 $SQL_CondicionPago = Seleccionar('uvw_Sap_tbl_CondicionPago', '*', '', 'IdCondicionPago');
 
-//Datos de dimensiones del usuario actual
-$SQL_DatosEmpleados = Seleccionar('uvw_tbl_Usuarios', 'CentroCosto1,CentroCosto2', "ID_Usuario='" . $_SESSION['CodUser'] . "'");
+//Datos de dimensiones del usuario actual. Modificado, 20/02/2023
+$SQL_DatosEmpleados = Seleccionar('uvw_tbl_Usuarios', 'CentroCosto1,CentroCosto2,AlmacenOrigen,AlmacenDestino', "ID_Usuario='" . $_SESSION['CodUser'] . "'");
 $row_DatosEmpleados = sqlsrv_fetch_array($SQL_DatosEmpleados);
 
 //Empleados
@@ -958,7 +958,13 @@ function verAutorizacion() {
 					// console.log("ajx_cbo_select.php?type=20");
 
 					$('#Almacen').html(response).fadeIn();
-					// $('#Almacen').trigger('change');
+
+					// SMM, 20/02/2023
+					let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenOrigen"] ?? ""; ?>";
+					if ($(`#Almacen option[value="${valorSeleccionado}"]`).length > 0) {
+						$('#Almacen').val(valorSeleccionado);
+						$('#Almacen').trigger('change');
+					}
 
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
@@ -977,7 +983,13 @@ function verAutorizacion() {
 					console.log("Cargando almacenes destino...");
 
 					$('#AlmacenDestino').html(response).fadeIn();
-					//$('#AlmacenDestino').trigger('change');
+
+					// SMM, 20/02/2023
+					let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenDestino"] ?? ""; ?>";
+					if ($(`#AlmacenDestino option[value="${valorSeleccionado}"]`).length > 0) {
+						$('#AlmacenDestino').val(valorSeleccionado);
+						$('#AlmacenDestino').trigger('change');
+					}
 
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
@@ -1906,7 +1918,7 @@ if (isset($_GET['return'])) {
 <script>
 	$(document).ready(function(){
 		maxLength('Comentarios'); // SMM, 17/02/2023
-		
+
 		// SMM, 20/01/2023
 		<?php if (($edit == 0) && ($ClienteDefault != "")) {?>
 			$("#CardCode").change();

@@ -314,6 +314,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 
             //Consultar Lotes
             $SQL_Lotes = Seleccionar("uvw_tbl_LotesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
+            // echo "SELECT * FROM uvw_tbl_LotesDocSAP WHERE DocEntry='$IdTrasladoInv' AND IdEvento='$IdEvento' AND ObjType='67' AND Cantidad > 0";
+            // exit();
 
             // Consultar Seriales, 24/11/2022
             $SQL_Seriales = Seleccionar("uvw_tbl_SerialesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
@@ -411,6 +413,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             }
 
             $Cabecera = array(
+                "CDU_nombre_firma_recibe" => ($row_Cab['NombreRecibeFirma'] ?? ""), // SMM, 20/02/2023
+                "CDU_CC_firma_recibe" => ($row_Cab['CedulaRecibeFirma'] ?? ""), // SMM, 20/02/2023
                 "id_documento" => $row_Cab['DocNum'] ?? 0, // SMM, 01/12/2022
                 "id_tipo_documento" => "67",
                 "tipo_documento" => "Traslado de inventario",
@@ -2043,11 +2047,11 @@ if ($edit == 1 || $sw_error == 1) {
 							<div class="form-group">
 								<div class="col-lg-5">
 									<label class="control-label">Nombre de quien recibe <span class="text-danger cierre-span">*</span></label>
-									<input form="CrearTrasladoInventario" autocomplete="off" name="NombreRecibeFirma" type="text" class="form-control cierre-input" id="NombreRecibeFirma" maxlength="200" value="<?php echo $row['NombreRecibeFirma'] ?? ""; ?>" required>
+									<input form="CrearTrasladoInventario" autocomplete="off" name="NombreRecibeFirma" type="text" class="form-control cierre-input" id="NombreRecibeFirma" maxlength="200" value="<?php echo $row['NombreRecibeFirma'] ?? ""; ?>" required <?php if ($NameFirma != "") {echo "readonly";}?>>
 								</div>
 								<div class="col-lg-5">
 									<label class="control-label">Cédula de quien recibe</label>
-									<input form="CrearTrasladoInventario" autocomplete="off" name="CedulaRecibeFirma" type="number" class="form-control cierre-input" id="CedulaRecibeFirma" maxlength="20" value="<?php echo $row['CedulaRecibeFirma'] ?? ""; ?>">
+									<input form="CrearTrasladoInventario" autocomplete="off" name="CedulaRecibeFirma" type="number" class="form-control cierre-input" id="CedulaRecibeFirma" maxlength="20" value="<?php echo $row['CedulaRecibeFirma'] ?? ""; ?>" <?php if ($NameFirma != "") {echo "readonly";}?>>
 								</div>
 							</div>
 						<?php // }?>
