@@ -413,6 +413,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             }
 
             $Cabecera = array(
+                "crear_salida_inventario" => PermitirFuncion(1214), // SMM, 22/02/2023
+                "id_serie_salida_inventario" => (PermitirFuncion(1214) ? ObtenerVariable("IdSerieSalidaInvPorDefecto") : null), // SMM, 22/02/2023
                 "CDU_nombre_firma_recibe" => ($row_Cab['NombreRecibeFirma'] ?? ""), // SMM, 20/02/2023
                 "CDU_CC_firma_recibe" => ($row_Cab['CedulaRecibeFirma'] ?? ""), // SMM, 20/02/2023
                 "id_documento" => $row_Cab['DocNum'] ?? 0, // SMM, 01/12/2022
