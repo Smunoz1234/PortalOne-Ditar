@@ -1054,7 +1054,20 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 				<?php include "includes/spinner.php";?>
 					<div class="form-group">
 						<div class="col-lg-6">
-							<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode('60'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+							<!-- SMM, 22/02/2023 -->
+							<div class="btn-group">
+								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
+								<ul class="dropdown-menu">
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=60 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND (EsBorrador='N' OR EsBorrador IS NULL)");?>
+									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
+										<li>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?type=<?php echo base64_encode('2'); ?>&id=<?php echo base64_encode('15'); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+										</li>
+									<?php }?>
+								</ul>
+							</div>
+							<!-- Hasta aquí, 22/02/2023 -->
+							
 							<a href="#" class="btn btn-info btn-outline" onClick="VerMapaRel('<?php echo base64_encode($row['DocEntry']); ?>','<?php echo base64_encode('60'); ?>');"><i class="fa fa-sitemap"></i> Mapa de relaciones</a>
 						</div>
 						<div class="col-lg-6">

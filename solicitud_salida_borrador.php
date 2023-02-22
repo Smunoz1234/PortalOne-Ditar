@@ -122,11 +122,11 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             $IdEvento = base64_decode($_POST['IdEvento']);
             $Type = 2;
 
-			/*
-            if (!PermitirFuncion(403)) { //Permiso para autorizar Solicitud de salida
-                $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la Solicitud queda pendiente
-            }
-			*/
+            /*
+        if (!PermitirFuncion(403)) { //Permiso para autorizar Solicitud de salida
+        $_POST['Autorizacion'] = 'P'; //Si no tengo el permiso, la Solicitud queda pendiente
+        }
+         */
         } else { //Crear
             $IdSolSalida = "NULL";
             $IdEvento = "0";
@@ -203,8 +203,8 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
             "'" . ($_POST['UsuarioAutorizacionPO'] ?? "") . "'",
             "'" . ($_POST['ComentariosAutorizacionPO'] ?? "") . "'",
 
-			// SMM, 23/12/2022
-			"'" . $_POST['ConceptoSalida'] . "'",
+            // SMM, 23/12/2022
+            "'" . $_POST['ConceptoSalida'] . "'",
         );
 
         // Enviar el valor de la dimensiones dinámicamente al SP.
@@ -373,11 +373,11 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Solicitud de salida
                 $sw_error = 1;
                 $msg_error = "Este documento necesita autorización.";
 
-				/*
-				if (!PermitirFuncion(403)) {
-					$msg_error = "No tiene permiso para actualizar este documento.";
-				}
-				*/
+                /*
+            if (!PermitirFuncion(403)) {
+            $msg_error = "No tiene permiso para actualizar este documento.";
+            }
+             */
             }
             // Hasta aquí, 30/11/2022
 
@@ -1398,7 +1398,20 @@ function verAutorizacion() {
 				<?php include "includes/spinner.php";?>
 					<div class="form-group">
 						<div class="col-lg-6">
-							<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&ObType=<?php echo base64_encode('1250000001'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+							<!-- SMM, 22/02/2023 -->
+							<div class="btn-group">
+								<button data-toggle="dropdown" class="btn btn-outline btn-success dropdown-toggle"><i class="fa fa-download"></i> Descargar formato <i class="fa fa-caret-down"></i></button>
+								<ul class="dropdown-menu">
+									<?php $SQL_Formato = Seleccionar('uvw_tbl_FormatosSAP', '*', "ID_Objeto=1250000001 AND (IdFormato='" . $row['IdSeries'] . "' OR DeSeries IS NULL) AND VerEnDocumento='Y' AND EsBorrador='Y'");?>
+									<?php while ($row_Formato = sqlsrv_fetch_array($SQL_Formato)) {?>
+										<li>
+											<a class="dropdown-item" target="_blank" href="sapdownload.php?type=<?php echo base64_encode('2'); ?>&id=<?php echo base64_encode('15'); ?>&ObType=<?php echo base64_encode($row_Formato['ID_Objeto']); ?>&IdFrm=<?php echo base64_encode($row_Formato['IdFormato']); ?>&DocKey=<?php echo base64_encode($row['DocEntry']); ?>&IdReg=<?php echo base64_encode($row_Formato['ID']); ?>"><?php echo $row_Formato['NombreVisualizar']; ?></a>
+										</li>
+									<?php }?>
+								</ul>
+							</div>
+							<!-- Hasta aquí, 22/02/2023 -->
+
 							<a href="#" class="btn btn-info btn-outline" onClick="VerMapaRel('<?php echo base64_encode($row['DocEntry']); ?>','<?php echo base64_encode('1250000001'); ?>');"><i class="fa fa-sitemap"></i> Mapa de relaciones</a>
 						</div>
 						<div class="col-lg-6">
@@ -1922,7 +1935,7 @@ if (isset($_GET['return'])) {
 		});
 
 		// Estado de autorización PortalOne, para la creación y actualización. SMM, 16/12/2022
-		/* 
+		/*
 		// SMM, 17/01/2023
 		$("#Autorizacion").on("change", function() {
 			$("#EstadoAutorizacionPO").val($(this).val());

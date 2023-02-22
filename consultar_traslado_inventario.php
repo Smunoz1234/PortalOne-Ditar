@@ -350,7 +350,7 @@ if ($sw == 1) {
 							<td><span <?php if ($row['DocFirmado'] == 'SI') {echo "class='label label-info'";} else {echo "class='label label-danger'";}?>><?php echo $row['DocFirmado']; ?></span></td>
 							<td>
 								<a href="traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1&return=<?php echo base64_encode($_SERVER['QUERY_STRING']); ?>&pag=<?php echo base64_encode('consultar_traslado_inventario.php'); ?>" class="alkin btn btn-success btn-xs"><i class="fa fa-folder-open-o"></i> Abrir</a>
-								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&ObType=<?php echo base64_encode('67'); ?>&IdFrm=<?php echo base64_encode('0'); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
+								<a href="sapdownload.php?id=<?php echo base64_encode('15'); ?>&type=<?php echo base64_encode('2'); ?>&DocKey=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&ObType=<?php echo base64_encode('67'); ?>&IdFrm=<?php echo base64_encode($row['IdSeries']); ?>" target="_blank" class="btn btn-warning btn-xs"><i class="fa fa-download"></i> Descargar</a>
 
 								<!-- SMM, 25/11/2022 -->
 								<button type="button" class="btnCopy btn btn-primary btn-xs" title="Copiar enlace" data-clipboard-text="<?php echo ObtenerHostURL(); ?>traslado_inventario.php?id=<?php echo base64_encode($row['ID_TrasladoInv']); ?>&id_portal=<?php echo base64_encode($row['IdDocPortal']); ?>&tl=1"><i class="fa fa-copy"></i></button>
