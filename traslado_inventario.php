@@ -312,13 +312,30 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
             //Consultar anexos
             $SQL_Anx = Seleccionar("uvw_tbl_DocumentosSAP_Anexos", '*', "ID_Documento='" . $IdTrasladoInv . "' and TipoDocumento='67' and Metodo=1");
 
-            //Consultar Lotes
-            $SQL_Lotes = Seleccionar("uvw_tbl_LotesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
-            // echo "SELECT * FROM uvw_tbl_LotesDocSAP WHERE DocEntry='$IdTrasladoInv' AND IdEvento='$IdEvento' AND ObjType='67' AND Cantidad > 0";
-            // exit();
+            // SMM, 23/02/2023
+            $ID_Documento = $row_Cab['DocNum'] ?? 0;
+
+            //Consultar Lotes. SMM, 22/02/2023
+            if ($edit == 1) {
+                $SQL_Lotes = Seleccionar("uvw_Sap_tbl_LotesDocSAP", '*', "DocEntry='$ID_Documento' AND ObjType='67' AND Cantidad > 0 AND Sentido = 'IN'");
+                // echo "SELECT * FROM uvw_Sap_tbl_LotesDocSAP WHERE DocEntry='$ID_Documento' AND ObjType='67' AND Cantidad > 0 AND Sentido = 'IN'";
+                // exit();
+            } else {
+                $SQL_Lotes = Seleccionar("uvw_tbl_LotesDocSAP", '*', "DocEntry='$IdTrasladoInv' and IdEvento='$IdEvento' and ObjType='67' and Cantidad > 0");
+                // echo "SELECT * FROM uvw_tbl_LotesDocSAP WHERE DocEntry='$IdTrasladoInv' AND IdEvento='$IdEvento' AND ObjType='67' AND Cantidad > 0";
+                // exit();
+            }
 
             // Consultar Seriales, 24/11/2022
-            $SQL_Seriales = Seleccionar("uvw_tbl_SerialesDocSAP", '*', "DocEntry='" . $IdTrasladoInv . "' and IdEvento='" . $IdEvento . "' and ObjType='67' and Cantidad > 0");
+            if ($edit == 1) {
+                $SQL_Seriales = Seleccionar("uvw_Sap_tbl_SerialesDocSAP", '*', "DocEntry='$ID_Documento' AND ObjType='67' AND Cantidad > 0 AND Sentido = 'IN'");
+                // echo "SELECT * FROM uvw_Sap_tbl_SerialesDocSAP WHERE DocEntry='$ID_Documento' AND ObjType='67' AND Cantidad > 0 AND Sentido = 'IN'";
+                // exit();
+            } else {
+                $SQL_Seriales = Seleccionar("uvw_tbl_SerialesDocSAP", '*', "DocEntry='$IdTrasladoInv' and IdEvento='$IdEvento' and ObjType='67' and Cantidad > 0");
+                // echo "SELECT * FROM uvw_tbl_SerialesDocSAP WHERE DocEntry='$IdTrasladoInv' AND IdEvento='$IdEvento' AND ObjType='67' AND Cantidad > 0";
+                // exit();
+            }
 
             $Detalle = array();
             $Anexos = array();
@@ -414,10 +431,10 @@ if (isset($_POST['P']) && ($_POST['P'] != "")) { //Grabar Salida de inventario
 
             $Cabecera = array(
                 "crear_salida_inventario" => PermitirFuncion(1214), // SMM, 22/02/2023
-                "id_serie_salida_inventario" => (PermitirFuncion(1214) ? ObtenerVariable("IdSerieSalidaInvPorDefecto") : null), // SMM, 22/02/2023
+                "id_serie_salida_inventario" => (PermitirFuncion(1214) ? intval(ObtenerVariable("IdSerieSalidaInvPorDefecto")) : null), // SMM, 28/02/2023
                 "CDU_nombre_firma_recibe" => ($row_Cab['NombreRecibeFirma'] ?? ""), // SMM, 20/02/2023
                 "CDU_CC_firma_recibe" => ($row_Cab['CedulaRecibeFirma'] ?? ""), // SMM, 20/02/2023
-                "id_documento" => $row_Cab['DocNum'] ?? 0, // SMM, 01/12/2022
+                "id_documento" => $ID_Documento, // SMM, 01/12/2022
                 "id_tipo_documento" => "67",
                 "tipo_documento" => "Traslado de inventario",
                 "moneda_documento" => "$",
@@ -1623,7 +1640,7 @@ $("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
 								</ul>
 							</div>
 							<!-- Hasta aquí, 22/02/2023 -->
-							
+
 							<a href="#" class="btn btn-info btn-outline" onClick="VerMapaRel('<?php echo base64_encode($row['DocEntry']); ?>','<?php echo base64_encode('67'); ?>');"><i class="fa fa-sitemap"></i> Mapa de relaciones</a>
 						</div>
 						<div class="col-lg-6">

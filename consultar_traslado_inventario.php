@@ -25,8 +25,8 @@ $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 //Estado autorizacion
 $SQL_EstadoAuth = Seleccionar('uvw_Sap_tbl_EstadosAuth', '*');
 
-//Empleados
-if (PermitirFuncion(1203)) {
+// Empleados. SMM, 22/02/2023
+if (PermitirFuncion(1215)) {
     $SQL_Empleado = Seleccionar('uvw_Sap_tbl_EmpleadosSN', '*', '', 'NombreEmpleado');
 } else {
     $SQL_Empleado = Seleccionar('uvw_Sap_tbl_EmpleadosSN', '*', "CodSAP='" . $_SESSION['CodigoSAP'] . "'", 'NombreEmpleado');
@@ -233,10 +233,11 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_TrasInvUpd"))) {
 							<label class="col-lg-1 control-label">Empleado</label>
 							<div class="col-lg-3">
 								<select name="Empleado" class="form-control select2" id="Empleado">
-										<?php if (PermitirFuncion(1203)) {?><option value="">(Todos)</option><?php }?>
-								  <?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
+									<?php if (PermitirFuncion(1215)) {?><option value="">(Todos)</option><?php }?>
+								  	
+									<?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
 										<option value="<?php echo $row_Empleado['ID_Empleado']; ?>" <?php if ((isset($_GET['Empleado'])) && (strcmp($row_Empleado['ID_Empleado'], $_GET['Empleado']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Empleado['NombreEmpleado']; ?></option>
-								  <?php }?>
+								  	<?php }?>
 								</select>
 							</div>
 						</div>
