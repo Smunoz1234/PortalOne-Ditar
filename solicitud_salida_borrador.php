@@ -1590,7 +1590,7 @@ if ($edit == 1 || $sw_error == 1) {
 
 								<option value="<?php echo $row_Dim['OcrCode']; ?>"
 								<?php if ((isset($row["OcrCode$OcrId"]) && ($row["OcrCode$OcrId"] != "")) && (strcmp($row_Dim['OcrCode'], $row["OcrCode$OcrId"]) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && (isset($_GET['LMT']) && !isset($_GET[strval($dim['IdPortalOne'])])) && ($row_DatosEmpleados["CentroCosto$DimCode"] != "") && (strcmp($row_DatosEmpleados["CentroCosto$DimCode"], $row_Dim['OcrCode']) == 0)) {echo "selected=\"selected\"";} elseif (isset($_GET[strval($dim['IdPortalOne'])]) && (strcmp($row_Dim['OcrCode'], base64_decode($_GET[strval($dim['IdPortalOne'])])) == 0)) {echo "selected=\"selected\"";}?>>
-									<?php echo $row_Dim['OcrName']; ?>
+									<?php echo $row_Dim['OcrCode'] . "-" . $row_Dim['OcrName']; ?>
 								</option>
 							<?php }?>
 							</select>
@@ -1634,7 +1634,7 @@ if ($edit == 1 || $sw_error == 1) {
 								<option value="">(NINGUNO)</option>
 							<?php while ($row_Proyecto = sqlsrv_fetch_array($SQL_Proyecto)) {?>
 								<option value="<?php echo $row_Proyecto['IdProyecto']; ?>" <?php if ((isset($row['PrjCode'])) && (strcmp($row_Proyecto['IdProyecto'], $row['PrjCode']) == 0)) {echo "selected=\"selected\"";} elseif ((isset($_GET['Proyecto'])) && (strcmp($row_Proyecto['IdProyecto'], base64_decode($_GET['Proyecto'])) == 0)) {echo "selected=\"selected\"";}?>>
-									<?php echo $row_Proyecto['DeProyecto']; ?>
+									<?php echo $row_Proyecto['IdProyecto'] . "-" . $row_Proyecto['DeProyecto']; ?>
 								</option>
 							<?php }?>
 						</select>
