@@ -405,11 +405,13 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $SDim = $_GET['SDim'] ?? ""; // SMM, 04/02/2022
 
                 while ($row = sqlsrv_fetch_array($SQL)) {
+                    $description = $row['IdSucursal'] . "-" . $row['DeSucursal'];
+
                     if ($SDim == $row['IdSucursal']) {
                         // Stiven Muñoz Murillo, 04/02/2022
-                        echo "<option selected=\"selected\" value=\"" . $row['IdSucursal'] . "\" >" . $row['DeSucursal'] . "</option>";
+                        echo "<option selected=\"selected\" value=\"" . $row['IdSucursal'] . "\" >$description</option>";
                     } else {
-                        echo "<option value=\"" . $row['IdSucursal'] . "\" >" . $row['DeSucursal'] . "</option>";
+                        echo "<option value=\"" . $row['IdSucursal'] . "\" >$description</option>";
                     }
                 }
             } else {
@@ -435,10 +437,10 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                     $WhsCode = $_GET['WhsCode'] ?? ""; // SMM, 04/02/2022
 
                     // SMM, 16/02/2023
-                    if($Num > 1) {
+                    if ($Num > 1) {
                         echo "<option value=''>Seleccione...</option>";
                     }
-                    
+
                     while ($row = sqlsrv_fetch_array($SQL)) {
                         if ($WhsCode == $row['WhsCode']) {
                             // Stiven Muñoz Murillo, 04/02/2022
@@ -455,9 +457,9 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $Num = sqlsrv_num_rows($SQL);
                 if ($Num) {
                     $ToWhsCode = $_GET['ToWhsCode'] ?? ""; // SMM, 01/12/2022
-                    
+
                     // SMM, 16/02/2023
-                    if($Num > 1) {
+                    if ($Num > 1) {
                         echo "<option value=''>Seleccione...</option>";
                     }
 
