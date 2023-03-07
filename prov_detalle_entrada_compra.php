@@ -79,17 +79,19 @@ $SQL=Seleccionar('uvw_Sap_tbl_EntradasComprasDetalle','*',"ID_EntradaCompra='".b
 				</div>
 			</div>
 		  <br>
+		  
 		  <?php if(PermitirFuncion(603)){?>
-		  <div class="row">
-			 <div class="col-lg-12">
-				<div class="ibox-content">	
-					<a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($rowDoc['ID_EntradaCompra']);?>&ObType=<?php echo base64_encode('20');?>&IdFrm=<?php echo base64_encode($rowDoc['IdSeries']);?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+		  	<div class="row">
+			 	<div class="col-lg-12">
+					<div class="ibox-content">	
+						<a href="sapdownload.php?id=<?php echo base64_encode('15');?>&type=<?php echo base64_encode('2');?>&DocKey=<?php echo base64_encode($rowDoc['ID_EntradaCompra']);?>&ObType=<?php echo base64_encode('20');?>&IdFrm=<?php echo base64_encode($rowDoc['IdSeries']);?>" target="_blank" class="btn btn-outline btn-success"><i class="fa fa-download"></i> Descargar formato</a>
+					</div>
 				</div>
 			</div>
-		</div>
-		<br>
-		<?php }?>
-          <div class="row">
+		  <br>
+		  <?php }?>
+          
+		<div class="row">
            <div class="col-lg-12">
 			    <div class="ibox-content">
 					<div class="tabs-container">  

@@ -37,10 +37,9 @@ if (!isset($_GET['dato']) || ($_GET['dato'] == "")) {
     $prjcode = $_GET['prjcode'] ?? ""; // SMM, 04/05/2022
     $empventas = $_GET['empventas'] ?? ""; // SMM, 04/05/2022
 
-    $borrador = $_GET['borrador'] ?? ""; // SMM, 05/05/2022
-    $concepto = $_GET['concepto'] ?? ""; // SMM, 23/01/2023
-
-	$reqdate = $_GET['reqdate'] ?? date('Y-m-d'); // SMM, 13/02/2023
+    $borrador = $_GET['borrador'] ?? ""; // SMM, 07/03/2023
+    $concepto = $_GET['concepto'] ?? ""; // SMM, 07/03/2023
+	$reqdate = $_GET['reqdate'] ?? date('Y-m-d'); // SMM, 07/03/2023
 
     if (isset($_GET['idordenventa']) && $_GET['idordenventa'] != "") {
         $ID_OrdenVenta = base64_decode($_GET['idordenventa']);

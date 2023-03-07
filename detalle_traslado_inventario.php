@@ -804,6 +804,7 @@ function CalcularTotal(line, totalizar=true) {
 </script>
 </body>
 </html>
+
 <?php
 sqlsrv_close($conexion);
 ?>

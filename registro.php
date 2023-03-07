@@ -3111,7 +3111,7 @@ echo 'Excepcion capturada: ',  $e->getMessage(), "\n";
 
     } elseif ($P == 36) { //Actualizar los datos del detalle de los documentos de SAP
         try {
-            $valor = "'" . base64_decode($_GET['value']) . "'";
+            $valor = "'" . base64_decode($_GET['value']) . "'"; // SMM, 07/03/2023
             $valor = str_replace(",", "", $valor); // Las comas generan un error en tipos de datos INT, los puntos no.
 
             if ($_GET['doctype'] == 1) { //Orden de venta

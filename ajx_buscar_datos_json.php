@@ -377,7 +377,7 @@ if ((isset($_GET['type']) && ($_GET['type'] != "")) || (isset($_POST['type']) &&
             'Cedula' => $row['Cedula'],
             'Telefono' => $row['Celular'],
             'Email' => $row['CorreoElectronico'],
-            // SMM, 09/02/2023
+            // SMM, 07/03/2023
             'Sucursal' => ($row['NombreSucursal'] ?? "N/A"),
             'Departamento' => ($row['NombreDepartamento'] ?? "N/A"),
         );

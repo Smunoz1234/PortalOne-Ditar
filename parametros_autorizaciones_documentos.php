@@ -57,7 +57,7 @@ if ((isset($_POST['frmType']) && ($_POST['frmType'] != "")) || (isset($_POST['Me
                 "'" . $_POST['Estado'] . "'",
                 "'" . $_POST['Condiciones'] . "'",
                 $Perfiles,
-				"'" . $_POST['AutorizacionSAP'] . "'", // SMM, 10/12/2022
+                "'" . $_POST['AutorizacionSAP'] . "'", // SMM, 07/03/2023
                 $Usuario, // @id_usuario_actualizacion
                 $FechaHora, // @fecha_actualizacion
                 $FechaHora, // @hora_actualizacion
@@ -269,10 +269,10 @@ if (isset($sw_error) && ($sw_error == 1)) {
 																<th>Condiciones</th>
 																<th>Fecha Actualizacion</th>
 																<th>Usuario Actualizacion</th>
-																
+
 																<th>Estado</th>
 																<th>Se autoriza en SAP</th>
-																
+
 																<th>Acciones</th>
 															</tr>
 														</thead>
@@ -302,7 +302,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 
 																<td><?php echo isset($row_Proceso['fecha_actualizacion']) ? date_format($row_Proceso['fecha_actualizacion'], 'Y-m-d H:i:s') : ""; ?></td>
 																<td><?php echo $row_Proceso['usuario_actualizacion']; ?></td>
-																
+
 																<td>
 																	<span class="label <?php echo ($row_Proceso['Estado'] == "Y") ? "label-info" : "label-danger"; ?>">
 																		<?php echo ($row_Proceso['Estado'] == "Y") ? "Activo" : "Inactivo"; ?>
@@ -353,7 +353,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 															<tr>
 																<!-- th>ID Tipo Documento</th -->
 																<th>Tipo Documento</th>
-																
+
 																<th>Id Motivo Autorizacion</th>
 																<th>Motivo Autorizacion</th>
 
@@ -363,9 +363,9 @@ if (isset($sw_error) && ($sw_error == 1)) {
 																<th>Comentarios</th>
 																<th>Fecha Actualizacion</th>
 																<th>Usuario Actualizacion</th>
-																
+
 																<th>Estado</th>
-																<th>Se autoriza en SAP</th>
+																<th>Se autoriza en SAP</th> <!-- SMM, 07/03/2023 -->
 
 																<th>Acciones</th>
 															</tr>
@@ -385,7 +385,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 																<td><?php echo $row_Motivo['Comentarios']; ?></td>
 																<td><?php echo isset($row_Motivo['fecha_actualizacion']) ? date_format($row_Motivo['fecha_actualizacion'], 'Y-m-d H:i:s') : ""; ?></td>
 																<td><?php echo $row_Motivo['usuario_actualizacion']; ?></td>
-																
+
 																<td>
 																	<span class="label <?php echo ($row_Motivo['Estado'] == "Y") ? "label-info" : "label-danger"; ?>">
 																		<?php echo ($row_Motivo['Estado'] == "Y") ? "Activo" : "Inactivo"; ?>

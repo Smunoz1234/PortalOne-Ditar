@@ -1043,20 +1043,22 @@ while ($row_TiposDocumentos = sqlsrv_fetch_array($SQL_TiposDocumentos)) {
 									</a>
 								</div>
 								<div class="ibox-content">
-									 <?php while ($row_DimReparto = sqlsrv_fetch_array($SQL_DimReparto)) {
-    //Cargar centros de costos por cada dimension
-    $SQL_CentroCostos = Seleccionar('uvw_Sap_tbl_CentrosCostos', '*', "DimCode='" . $row_DimReparto['CodDim'] . "'", "PrcName");?>
-									<div class="form-group">
-										<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?><br><span class="text-muted"><?php echo $row_DimReparto['TipoDim']; ?></span></label>
-										<div class="col-lg-3">
-											<select name="Dimension<?php echo $row_DimReparto['CodDim']; ?>" class="form-control select2" id="Dimension<?php echo $row_DimReparto['CodDim']; ?>">
-												<option value="">(Ninguno)</option>
-											  <?php while ($row_CentroCostos = sqlsrv_fetch_array($SQL_CentroCostos)) {?>
-													<option value="<?php echo $row_CentroCostos['PrcCode']; ?>" <?php if (($edit == 1) && (strcmp($row_CentroCostos['PrcCode'], $row['CentroCosto' . $row_DimReparto['CodDim']]) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_CentroCostos['PrcName'] . " (" . $row_CentroCostos['PrcCode'] . ")"; ?></option>
-											  <?php }?>
-											</select>
+									<?php while ($row_DimReparto = sqlsrv_fetch_array($SQL_DimReparto)) {?>
+										<!-- Cargar centros de costos por cada dimension -->
+										<?php $SQL_CentroCostos = Seleccionar('uvw_Sap_tbl_CentrosCostos', '*', "DimCode='" . $row_DimReparto['CodDim'] . "'", "PrcName");?>
+
+										<div class="form-group">
+											<label class="col-lg-1 control-label"><?php echo $row_DimReparto['NombreDim']; ?><br><span class="text-muted"><?php echo $row_DimReparto['TipoDim']; ?></span></label>
+											<div class="col-lg-3">
+												<select name="Dimension<?php echo $row_DimReparto['CodDim']; ?>" class="form-control select2" id="Dimension<?php echo $row_DimReparto['CodDim']; ?>">
+													<option value="">(Ninguno)</option>
+
+													<?php while ($row_CentroCostos = sqlsrv_fetch_array($SQL_CentroCostos)) {?>
+														<option value="<?php echo $row_CentroCostos['PrcCode']; ?>" <?php if (($edit == 1) && (strcmp($row_CentroCostos['PrcCode'], $row['CentroCosto' . $row_DimReparto['CodDim']]) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_CentroCostos['PrcName'] . " (" . $row_CentroCostos['PrcCode'] . ")"; ?></option>
+													<?php }?>
+												</select>
+											</div>
 										</div>
-									</div>
 									<?php }?>
 								</div>
 							</div>

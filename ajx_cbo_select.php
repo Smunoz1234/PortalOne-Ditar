@@ -39,16 +39,18 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             //echo $Cons;
             $SQL = sqlsrv_query($conexion, $Cons);
 
-            echo "<option value=''>Seleccione...</option>";
-
-            while ($row = sqlsrv_fetch_array($SQL)) {
-                if ($row['IdContactoPorDefecto'] == "Y") {
-                    echo "<option value=\"" . $row['CodigoContacto'] . "\" selected=\"selected\">" . $row['ID_Contacto'] . "</option>";
-                } else {
-                    echo "<option value=\"" . $row['CodigoContacto'] . "\">" . $row['ID_Contacto'] . "</option>";
+            // SMM, 07/03/2023
+            if ($SQL) {
+                while ($row = sqlsrv_fetch_array($SQL)) {
+                    if ($row['IdContactoPorDefecto'] == "Y") {
+                        echo "<option value=\"" . $row['CodigoContacto'] . "\" selected=\"selected\">" . $row['ID_Contacto'] . "</option>";
+                    } else {
+                        echo "<option value=\"" . $row['CodigoContacto'] . "\">" . $row['ID_Contacto'] . "</option>";
+                    }
                 }
+            } else {
+                echo "<option value=''>Seleccione...</option>";
             }
-
         }
     } elseif ($_GET['type'] == 3) { //Sucursal cliente, dependiendo del cliente
         if (!isset($_GET['id']) || ($_GET['id'] == "")) {
@@ -258,7 +260,11 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             $Cons = "EXEC sp_columns '" . $_GET['id'] . "'";
             $SQL = sqlsrv_query($conexion, $Cons);
             if ($SQL) {
-                echo "<option value=''>Seleccione...</option>";
+                // SMM, 07/03/2023
+                if (!isset($_GET["obligatorio"])) {
+                    echo "<option value=''>Seleccione...</option>";
+                }
+
                 while ($row = sqlsrv_fetch_array($SQL)) {
                     echo "<option value=\"" . $row['COLUMN_NAME'] . "\">" . $row['COLUMN_NAME'] . "</option>";
                 }
@@ -436,7 +442,7 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 if ($Num) {
                     $WhsCode = $_GET['WhsCode'] ?? ""; // SMM, 04/02/2022
 
-                    // SMM, 16/02/2023
+                    // SMM, 07/03/2023
                     if ($Num > 1) {
                         echo "<option value=''>Seleccione...</option>";
                     }
@@ -456,16 +462,16 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
                 $SQL = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'ToWhsCode, ToWhsName', "IdSeries='" . $_GET['serie'] . "' and IdSucursal='" . $_GET['id'] . "' and IdTipoDocumento='" . $_GET['tdoc'] . "' and ToWhsCode <> ''", "ToWhsCode, ToWhsName", 'ToWhsName');
                 $Num = sqlsrv_num_rows($SQL);
                 if ($Num) {
-                    $ToWhsCode = $_GET['ToWhsCode'] ?? ""; // SMM, 01/12/2022
+                    $ToWhsCode = $_GET['ToWhsCode'] ?? ""; // SMM, 07/03/2023
 
-                    // SMM, 16/02/2023
+                    // SMM, 07/03/2023
                     if ($Num > 1) {
                         echo "<option value=''>Seleccione...</option>";
                     }
 
                     while ($row = sqlsrv_fetch_array($SQL)) {
                         if ($ToWhsCode == $row['ToWhsCode']) {
-                            // Stiven Muñoz Murillo, 01/12/2022
+                            // SMM, 07/03/2023
                             echo "<option selected=\"selected\" value=\"" . $row['ToWhsCode'] . "\">" . $row['ToWhsName'] . "</option>";
                         } else {
                             echo "<option value=\"" . $row['ToWhsCode'] . "\">" . $row['ToWhsName'] . "</option>";
@@ -1019,6 +1025,30 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             if ($Num) {
                 while ($row = sqlsrv_fetch_array($SQL_ModeloAutorizacion)) {
                     echo "<option value='" . $row['IdModeloAutorizacion'] . "'>" . $row['ModeloAutorizacion'] . "</option>";
+                }
+            } else {
+                echo "<option value=''>Seleccione...</option>";
+            }
+        }
+    }
+
+    // SMM, 07/03/2023
+    elseif ($_GET['type'] == 44) { // Parámetros de entrada dependiendo de la Consulta SAP B1
+        if (!isset($_GET['id']) || ($_GET['id'] == "")) {
+            echo "<option value=''>Seleccione...</option>";
+        } else {
+            $ID_Consulta = "'" . $_GET['id'] . "'";
+            $SQL = Seleccionar('tbl_ConsultasSAPB1_Consultas', '*', "ID=$ID_Consulta");
+
+            $Condicion = sqlsrv_has_rows($SQL);
+            if ($Condicion) {
+                $row = sqlsrv_fetch_array($SQL);
+                $entradas = explode(",", $row['ParametrosEntrada']);
+
+                $param = $_GET['input'] ?? "";
+                foreach ($entradas as &$entrada) {
+                    $selected = ($param == $entrada) ? "selected" : "";
+                    echo "<option value='$entrada' $selected>$entrada</option>";
                 }
             } else {
                 echo "<option value=''>Seleccione...</option>";

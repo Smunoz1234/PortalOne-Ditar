@@ -153,8 +153,8 @@ function MostrarRet(){
 											</thead>
 										</thead>
 										<tbody>
-										   <?php $i = 1;
-    while ($row = sqlsrv_fetch_array($SQL)) {?>
+										   <?php $i = 1;?>
+										   <?php while ($row = sqlsrv_fetch_array($SQL)) {?>
 											<tr>
 												<td><?php echo $i; ?></td>
 												<td><?php echo $row['ItemCode']; ?></td>
@@ -194,12 +194,11 @@ function MostrarRet(){
 							</div>
 							<div id="tab-2" class="tab-pane">
 								<div class="panel-body">
-									<?php
-if ($rowDoc['IdAnexo'] != 0) {?>
+									<?php if ($rowDoc['IdAnexo'] != 0) {?>
 											<div class="form-group">
 												<div class="col-xs-12">
-													<?php while ($row_Anexo = sqlsrv_fetch_array($SQL_Anexo)) {
-        $Icon = IconAttach($row_Anexo['FileExt']);?>
+													<?php while ($row_Anexo = sqlsrv_fetch_array($SQL_Anexo)) {?>
+														<?php $Icon = IconAttach($row_Anexo['FileExt']);?>
 														<div class="file-box">
 															<div class="file">
 																<a href="attachdownload.php?file=<?php echo base64_encode($row_Anexo['AbsEntry']); ?>&line=<?php echo base64_encode($row_Anexo['Line']); ?>" target="_blank">
@@ -229,13 +228,10 @@ if ($rowDoc['IdAnexo'] != 0) {?>
 		  <div class="row">
 			<div class="col-lg-12">
 				<div class="ibox-content">
-					<?php
-if (isset($_GET['return'])) {
-        $return = base64_decode($_GET['pag']) . "?" . base64_decode($_GET['return']);
-    } else {
-        $return = "prov_facturas_proveedores.php";
-    }
-    ?>
+					<?php if (isset($_GET['return'])) {?>
+						<?php $return = base64_decode($_GET['pag']) . "?" . base64_decode($_GET['return']);?>
+    				<?php } else { $return = "prov_facturas_proveedores.php";}?>
+
 					<a href="<?php echo $return; ?>" class="btn btn-outline btn-default"><i class="fa fa-arrow-circle-o-left"></i> Regresar</a>
 				</div>
 			</div>

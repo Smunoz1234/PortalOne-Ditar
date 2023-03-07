@@ -162,9 +162,7 @@ if (isset($_GET['type']) && $_GET['type'] != "") {
             if ($SQL_Cons) {
                 echo "*Ok*";
             }
-        } 
-        
-        elseif ($_GET['objtype'] == "20") { //Entrada de compras
+        } elseif ($_GET['objtype'] == "20") { //Entrada de compras
             //Limpiar carrito
             $Cons = "Delete From tbl_EntradaCompraDetalleCarrito Where CardCode='" . $_GET['cardcode'] . "' And Usuario='" . $_SESSION['CodUser'] . "'";
             $SQL_Cons = sqlsrv_query($conexion, $Cons);
@@ -172,9 +170,7 @@ if (isset($_GET['type']) && $_GET['type'] != "") {
             if ($SQL_Cons) {
                 echo "*Ok*";
             }
-        } 
-        
-        elseif ($_GET['objtype'] == "1470000113") { //Solicitud de compras
+        } elseif ($_GET['objtype'] == "1470000113") { //Solicitud de compras
             //Limpiar carrito
             $Cons = "Delete From tbl_SolicitudCompraDetalleCarrito Where CardCode='" . $_GET['cardcode'] . "' And Usuario='" . $_SESSION['CodUser'] . "'";
             $SQL_Cons = sqlsrv_query($conexion, $Cons);
@@ -217,7 +213,7 @@ if (isset($_GET['type']) && $_GET['type'] != "") {
             if ($SQL_Cons) {
                 echo "*Ok*";
             }
-        } // SMM, 27/01/2023
+        } // SMM, 07/03/2023
 
         // Solicitud de salida
         elseif ($_GET['objtype'] == "1250000001") {

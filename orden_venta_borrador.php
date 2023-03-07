@@ -2085,7 +2085,7 @@ if ($edit == 1) {?>
 //		 $('#Almacen option:not(:selected)').attr('disabled',true);
 	 	 <?php }?>
 
-		<?php if (!PermitirFuncion(403)) {?>
+		<?php if (!PermitirFuncion(403) || true) {?>
 			$('#Autorizacion').attr('readonly', true); // SMM, 08/02/2023
 			$('#Autorizacion option:not(:selected)').attr('disabled',true);
 	 	<?php }?>
@@ -2216,5 +2216,6 @@ function CambiarDefinitivo() {
 <!-- InstanceEndEditable -->
 </body>
 
-<!-- InstanceEnd --></html>
+<!-- InstanceEnd -->
+</html>
 <?php sqlsrv_close($conexion);?>
