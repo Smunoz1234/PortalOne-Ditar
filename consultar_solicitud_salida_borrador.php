@@ -496,7 +496,8 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 						<th>Comentarios</th> <!-- SMM, 25/11/2022 -->
 						<th>Descontable</th>
-						<!-- th>Documento destino</th-->
+						
+						<!-- th>Documento destino</th -->
 
 						<th>Usuario Creación/Autor</th>
 						<th>Perfil Autor</th> <!-- SMM, 23/12/2022 -->
@@ -534,7 +535,8 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 							<td><?php echo SubComent($row['Comentarios']); ?></td> <!-- SMM, 25/11/2022 -->
 							<td><?php echo $row['Descontable']; ?></td>
-							<!-- Se elimino el documento
+							
+							<!-- Se elimino el documento -->
 
 							<td><?php echo $row['UsuarioCreacion']; ?></td> <!-- Autor -->
 							<td><?php echo $row['PerfilUsuario_Creacion'] ?? ""; ?></td> <!-- Autor -->
