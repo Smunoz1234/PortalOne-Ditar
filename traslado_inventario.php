@@ -1869,9 +1869,9 @@ if ($edit == 1 || $sw_error == 1) {
 
 				<div class="form-group">
 					<!-- Inicio, Empleado -->
-					<label class="col-lg-1 control-label">Solicitado para <span class="text-danger">*</span></label>
+					<label class="col-lg-1 control-label">Solicitado para</label>
 					<div class="col-lg-3">
-						<select name="Empleado" class="form-control" required id="Empleado" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+						<select name="Empleado" class="form-control" id="Empleado" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
 							<option value="">Seleccione...</option>
 							<?php while ($row_Empleado = sqlsrv_fetch_array($SQL_Empleado)) {?>
 								<option value="<?php echo $row_Empleado['ID_Empleado']; ?>" <?php if ((isset($row['CodEmpleado'])) && (strcmp($row_Empleado['ID_Empleado'], $row['CodEmpleado']) == 0)) {echo "selected=\"selected\"";} elseif (isset($_GET['Empleado']) && (strcmp($row_Empleado['ID_Empleado'], base64_decode($_GET['Empleado'])) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Empleado['NombreEmpleado']; ?></option>
@@ -2288,15 +2288,15 @@ $return = QuitarParametrosURL($return, array("a"));
 		 //$('.chosen-select').chosen({width: "100%"});
 		 $(".select2").select2();
 
-		 <?php if ($edit == 1) {?>
-		 $('#Serie option:not(:selected)').attr('disabled',true);
-		 $('#Sucursal option:not(:selected)').attr('disabled',true);
-		 $('#Almacen option:not(:selected)').attr('disabled',true);
-	 	 <?php }?>
+		<?php if ($edit == 1) {?>
+			$('#Serie option:not(:selected)').attr('disabled',true);
+		 	$('#Sucursal option:not(:selected)').attr('disabled',true);
+		 	$('#Almacen option:not(:selected)').attr('disabled',true);
+	 	<?php }?>
 
-		 <?php if ($dt_SS == 1) {?>
-		 $('#Empleado option:not(:selected)').attr('disabled',true);
-		 <?php }?>
+		<?php if ($dt_SS == 1) {?>
+			// $('#Empleado option:not(:selected)').attr('disabled',true);
+		<?php }?>
 
 		// $('#Autorizacion option:not(:selected)').attr('disabled',true);
 
