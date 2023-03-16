@@ -127,11 +127,11 @@ if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
     }
 
     // Comentar para no filtrar por serie.
-    // $Where .= " and [IdSeries] IN (" . $FilSerie . ")";
+    $Where .= " AND [IdSeries] IN (" . $FilSerie . ")";
 
     $SQL_Series = EjecutarSP('sp_ConsultarSeriesDocumentos', $ParamSerie);
 
-    $Cons = "Select * From uvw_Sap_tbl_SolicitudesSalidas_Consulta Where $Where";
+    $Cons = "SELECT * FROM uvw_Sap_tbl_SolicitudesSalidas_Consulta WHERE $Where";
 }
 
 // echo $Cons;
@@ -455,7 +455,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_SolSalUpd"))) {
 <script>
 	$(document).ready(function() {
 		// SMM, 16/02/2023
-		<?php if (isset($_GET['Series'])) {?>
+		<?php if (isset($_GET['Series']) && ($_GET['Series'] != "")) {?>
 			$('#Series').trigger('change');
 		<?php }?>
 

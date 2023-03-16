@@ -968,7 +968,7 @@ function verAutorizacion() {
 			var almacen=document.getElementById('Almacen').value;
 			var almacendestino=document.getElementById('AlmacenDestino').value;
 
-			<?php if ($edit == 0 && $dt_DR == 0 && $dt_SS == 0) {?>
+			<?php if ($edit == 0 && $dt_DR == 0 && $dt_SS == 0 && $sw_error == 0) {?>
 			$.ajax({
 				type: "POST",
 				url: "includes/procedimientos.php?type=7&objtype=67&cardcode="+carcode

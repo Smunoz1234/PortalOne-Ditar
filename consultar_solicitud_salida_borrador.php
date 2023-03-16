@@ -579,7 +579,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
  <script>
         $(document).ready(function(){
 			// SMM, 16/02/2023
-			<?php if (isset($_GET['Series'])) {?>
+			<?php if (isset($_GET['Series']) && ($_GET['Series'] != "")) {?>
 				$('#Series').trigger('change');
 			<?php }?>
 
