@@ -1,12 +1,5 @@
 <?php require_once "includes/conexion.php";
 PermitirAcceso(601);
-
-function PrimerDiaMesRetenciones()
-{
-    $month = date('m');
-    $year = date('Y');
-    return date('Y-m-d', mktime(0, 0, 0, $month, 1, $year));
-}
 ?>
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
@@ -61,7 +54,7 @@ function PrimerDiaMesRetenciones()
 						  	<label class="col-lg-1 control-label">Período</label>
 							<div class="col-lg-3" id="data_5">
                                 <div class="input-daterange input-group" id="datepicker">
-                                    <input type="text" class="form-control-sm form-control" name="FechaInicial" id="FechaInicial" value="<?php echo PrimerDiaMesRetenciones(); ?>" autocomplete="off" />
+                                    <input type="text" class="form-control-sm form-control" name="FechaInicial" id="FechaInicial" value="<?php echo PrimerDiaMes(date('m')); ?>" autocomplete="off" />
                                     <span class="input-group-addon">hasta</span>
                                     <input type="text" class="form-control-sm form-control" name="FechaFinal" id="FechaFinal" value="<?php echo date('Y-m-d'); ?>" autocomplete="off" />
                                 </div>
@@ -76,9 +69,9 @@ function PrimerDiaMesRetenciones()
 										<option value="2018">2018</option>
 										<option value="2019">2019</option>
 										<option value="2020">2020</option>
-										<option value="2021" selected>2021</option>
-										<option value="2022">2022</option>
-                                        <option value="2023">2023</option>
+										<option value="2021">2021</option>
+										<option value="2022" selected>2022</option>
+										<option value="2023">2023</option>
 									</select>
 								</div>
 						</div>
