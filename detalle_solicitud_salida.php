@@ -6,9 +6,6 @@ PermitirAcceso(1202);
 $DimSeries = intval(ObtenerVariable("DimensionSeries"));
 $SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', "DimActive='Y'");
 
-// Pruebas, SMM 31/08/2022
-// $SQL_Dimensiones = Seleccionar('uvw_Sap_tbl_Dimensiones', '*', 'DimCode IN (1,2)');
-
 $array_Dimensiones = [];
 while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
     array_push($array_Dimensiones, $row_Dimension);
@@ -19,7 +16,8 @@ while ($row_Dimension = sqlsrv_fetch_array($SQL_Dimensiones)) {
 $BloquearDocumento = $_GET['bloquear'] ?? false;
 
 $sw = 0;
-//$Proyecto="";
+$Proyecto = "";
+$Serie = "";
 $Almacen = "";
 $AlmacenDestino = "";
 $CardCode = "";
@@ -36,12 +34,12 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
         if ($SQL) {
             $sw = 1;
             $CardCode = $_GET['cardcode'];
-            //$Proyecto=$_GET['prjcode'];
-            // SMM, 28/11/2022
-            // $Almacen = $_GET['whscode'];
+
+            // SMM, 27/03/2023
+            $Serie = $_GET['serie'] ?? "";
         } else {
             $CardCode = "";
-            //$Proyecto="";
+            $Proyecto = "";
             $Almacen = "";
             $AlmacenDestino = "";
         }
@@ -523,6 +521,13 @@ if ($sw == 1) {
 						<option value="">(NINGUNO)</option>
 
 						<?php $SQL_Dim = Seleccionar('uvw_Sap_tbl_DimensionesReparto', '*', "DimCode=$DimCode");?>
+
+						<!-- SMM, 27/08/2023 -->
+						<?php if (($Serie != "") && ($DimCode == $DimSeries)) {?>
+							<?php $SQL_Dim = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'IdSucursal "OcrCode", DeSucursal "OcrName"', "IdSeries='$Serie'", "IdSucursal, DeSucursal");?>
+						<?php }?>
+						<!--Hasta aquí -->
+
 						<?php while ($row_Dim = sqlsrv_fetch_array($SQL_Dim)) {?>
 							<option value="<?php echo $row_Dim['OcrCode']; ?>" <?php if ((isset($row["OcrCode$OcrId"])) && (strcmp($row_Dim['OcrCode'], $row["OcrCode$OcrId"]) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Dim['OcrCode'] . "-" . $row_Dim['OcrName']; ?></option>
 						<?php }?>
