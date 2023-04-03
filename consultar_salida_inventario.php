@@ -110,9 +110,13 @@ if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
     $Cons = "SELECT * FROM uvw_Sap_tbl_SalidasInventarios WHERE $Where";
 }
 
-//echo $Cons;
-$SQL = sqlsrv_query($conexion, $Cons);
+// SMM, 03/04/2023
+if ($sw == 1) {
+    // echo $Cons;
+    $SQL = sqlsrv_query($conexion, $Cons);
+}
 ?>
+
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
 

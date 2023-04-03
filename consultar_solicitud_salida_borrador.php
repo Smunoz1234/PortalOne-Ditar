@@ -173,8 +173,11 @@ if (isset($_GET['DocNum']) && $_GET['DocNum'] != "") {
     $Cons = "Select * From uvw_Sap_tbl_SolicitudesSalidas_Borrador Where $Where";
 }
 
-// echo $Cons;
-$SQL = sqlsrv_query($conexion, $Cons);
+// SMM, 03/04/2023
+if ($sw == 1) {
+    // echo $Cons;
+    $SQL = sqlsrv_query($conexion, $Cons);
+}
 ?>
 
 <!DOCTYPE html>
@@ -496,7 +499,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 						<th>Comentarios</th> <!-- SMM, 25/11/2022 -->
 						<th>Descontable</th>
-						
+
 						<!-- th>Documento destino</th -->
 
 						<th>Usuario Creación/Autor</th>
@@ -535,7 +538,7 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DefinitivoAdd"))) {
 
 							<td><?php echo SubComent($row['Comentarios']); ?></td> <!-- SMM, 25/11/2022 -->
 							<td><?php echo $row['Descontable']; ?></td>
-							
+
 							<!-- Se elimino el documento -->
 
 							<td><?php echo $row['UsuarioCreacion']; ?></td> <!-- Autor -->
