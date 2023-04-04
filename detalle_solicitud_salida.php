@@ -72,8 +72,24 @@ $ParamAlmacenDest = array(
 );
 $SQL_ToAlmacen = EjecutarSP('sp_ConsultarAlmacenesUsuario', $ParamAlmacenDest);
 
-// Proyectos, SMM, 28/11/2022
-$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', '', 'DeProyecto');
+// Filtrar proyectos asignados. SMM, 04/04/2023
+$Where_Proyectos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
+$SQL_Proyectos = Seleccionar('uvw_tbl_UsuariosProyectos', '*', $Where_Proyectos);
+
+$Proyectos = array();
+while ($Concepto = sqlsrv_fetch_array($SQL_Proyectos)) {
+    $Proyectos[] = ("'" . $Concepto['IdProyecto'] . "'");
+}
+
+$Filtro_Proyectos = "";
+if (count($Proyectos) > 0) {
+    $Filtro_Proyectos .= "IdProyecto IN (";
+    $Filtro_Proyectos .= implode(",", $Proyectos);
+    $Filtro_Proyectos .= ")";
+}
+
+// Proyectos, SMM, 04/04/2023
+$SQL_Proyecto = Seleccionar('uvw_Sap_tbl_Proyectos', '*', $Filtro_Proyectos, 'DeProyecto');
 
 // Filtrar conceptos de salida. SMM, 21/01/2023
 $Where_Conceptos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
