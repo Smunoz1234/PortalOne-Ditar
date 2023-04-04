@@ -17,7 +17,10 @@ $BloquearDocumento = $_GET['bloquear'] ?? false;
 
 $sw = 0;
 $Proyecto = "";
+
 $Serie = "";
+$Sucursal = "";
+
 $Almacen = "";
 $AlmacenDestino = "";
 $CardCode = "";
@@ -35,8 +38,9 @@ if (isset($_GET['id']) && ($_GET['id'] != "")) {
             $sw = 1;
             $CardCode = $_GET['cardcode'];
 
-            // SMM, 27/03/2023
+            // SMM, 04/04/2023
             $Serie = $_GET['serie'] ?? "";
+            $Sucursal = $_GET['sucursal'] ?? "";
         } else {
             $CardCode = "";
             $Proyecto = "";
@@ -64,6 +68,12 @@ $ParamAlmacen = array(
 );
 $SQL_Almacen = EjecutarSP('sp_ConsultarAlmacenesUsuario', $ParamAlmacen);
 
+// SMM, 04/04/2023
+if (($type == 1) && ($Serie != "") && ($Sucursal != "")) {
+    $WhereAlmacen = "IdSeries='$Serie' AND IdSucursal='$Sucursal' AND IdTipoDocumento='1250000001'";
+    $SQL_Almacen = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'WhsCode, WhsName', $WhereAlmacen, "WhsCode, WhsName", 'WhsName');
+}
+
 // Almacenes destino, SMM, 28/11/2022
 $ParamAlmacenDest = array(
     "'" . $_SESSION['CodUser'] . "'",
@@ -71,6 +81,12 @@ $ParamAlmacenDest = array(
     "2", // Tipo de Almacen
 );
 $SQL_ToAlmacen = EjecutarSP('sp_ConsultarAlmacenesUsuario', $ParamAlmacenDest);
+
+// SMM, 04/04/2023
+if (($type == 1) && ($Serie != "") && ($Sucursal != "")) {
+    $WhereToAlmacen = "IdSeries='$Serie' AND IdSucursal='$Sucursal' AND IdTipoDocumento='1250000001' AND ToWhsCode <> ''";
+    $SQL_ToAlmacen = SeleccionarGroupBy('uvw_tbl_SeriesSucursalesAlmacenes', 'ToWhsCode, ToWhsName', $WhereToAlmacen, "ToWhsCode, ToWhsName", 'ToWhsName');
+}
 
 // Filtrar proyectos asignados. SMM, 04/04/2023
 $Where_Proyectos = "ID_Usuario='" . $_SESSION['CodUser'] . "'";
