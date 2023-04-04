@@ -2094,8 +2094,12 @@ if (isset($_GET['return'])) {
 
 		// SMM, 18/12/2022
 		<?php if ((strtoupper($_SESSION["User"]) == strtoupper($row['Usuario'])) && (!$serAutorizador)) {?>
-			$('#Autorizacion option:not(:selected)').attr('disabled',true);
+			// Desactivado, 03/04/2023
+			// $('#Autorizacion option:not(:selected)').attr('disabled',true);
 		<?php }?>
+
+		// SMM, 03/04/2023
+		$('#Autorizacion option:not(:selected)').attr('disabled',true);
 	});
 </script>
 <script>
