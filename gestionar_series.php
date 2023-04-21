@@ -66,9 +66,9 @@ if (isset($_POST['MM_Insert']) && ($_POST['MM_Insert'] != "")) {
     }
 }
 
-// $SQL = Seleccionar("uvw_tbl_SeriesSucursalesAlmacenes", "*", "", "DE_Objeto");
 $SQL = Seleccionar("uvw_tbl_SeriesSucursalesAlmacenes", "*");
 ?>
+
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
 
@@ -201,38 +201,29 @@ if (isset($sw_error) && ($sw_error == 1)) {
 								<th>Almacén origen</th>
 								<th>Almacén destino</th>
 								<th>Almacén defecto</th>
-
-								<!-- th>Es borrador</th>
-								<th>Ver en documento</th>
-								<th>Comentarios</th>
-								<th>Fecha actualización</th>
-								<th>Usuario actualización</th -->
-
 								<th>Acciones</th>
 							</tr>
 							</thead>
+
 							<tbody>
-							<?php $i = 1;
-while ($row = sqlsrv_fetch_array($SQL)) {?>
+								<?php while ($row = sqlsrv_fetch_array($SQL)) {?>
 									<tr class="gradeX">
-										<td><?php echo $i; ?></td>
+										<td><?php echo $row['ID']; ?></td>
 										<td><?php echo $row['IdTipoDocumento']; ?></td>
 										<td><?php echo $row['DeTipoDocumento']; ?></td>
 										<td><?php echo $row['IdSeries']; ?></td>
 										<td><?php echo $row['DeSeries']; ?></td>
-										<td><?php echo $row['DeSucursal']; ?></td>
-										<td><?php echo $row['WhsName']; ?></td>
-										<td><?php echo $row['ToWhsName']; ?></td>
-										<td><?php echo $row['DeBodegaDefecto']; ?></td>
+										<td><?php echo $row['IdSucursal'] . " - " . $row['DeSucursal']; ?></td>
+										<td><?php echo $row['WhsCode'] . " - " . $row['WhsName']; ?></td>
+										<td><?php echo $row['ToWhsCode'] . " - " . $row['ToWhsName']; ?></td>
+										<td><?php echo $row['IdBodegaDefecto'] . " - " . $row['DeBodegaDefecto']; ?></td>
 
-										<!--td><?php echo ($row['FechaActualizacion'] != "") ? $row['FechaActualizacion']->format('Y-m-d H:i') : ""; ?></td>
-										<td><?php echo $row['NombreUsuarioActualizacion']; ?></td-->
 										<td>
 											<button type="button" id="btnEdit<?php echo $row['ID']; ?>" class="btn btn-success btn-xs" onClick="EditarCampo('<?php echo $row['ID']; ?>');"><i class="fa fa-pencil"></i> Editar</button>
 											<button type="button" id="btnDel<?php echo $row['ID']; ?>" class="btn btn-danger btn-xs" onClick="BorrarLinea('<?php echo $row['ID']; ?>');"><i class="fa fa-trash"></i> Eliminar</button>
 										</td>
 									</tr>
-							<?php $i++;}?>
+								<?php }?>
 							</tbody>
 							</table>
 					  </div>
@@ -308,7 +299,8 @@ while ($row = sqlsrv_fetch_array($SQL)) {?>
 				}
 			},
 			buttons: []
-
+			, order: [[ 1, "asc" ]]
+			, ordering: false
 		});
 	});
 </script>
