@@ -5,61 +5,24 @@ error_reporting(E_ALL ^ E_WARNING);
 
 $sw_error = 0;
 $msg_error = "";
-$existeRuta = 0;
 
-$dirRuta = CrearObtenerDirRuta(ObtenerVariable("RutaFormatosImpresion"));
-
-if (!$dirRuta) {
-    $existeRuta = 1;
-}
-
-//Crear nuevo parametro
+// Crear nuevo parametro
 if (isset($_POST['MM_Insert']) && ($_POST['MM_Insert'] != "")) {
 
-    if ($_FILES['FileNombreArchivo']['tmp_name'] != "") {
-        if (is_uploaded_file($_FILES['FileNombreArchivo']['tmp_name'])) {
-            $Nombre_Archivo = $_FILES['FileNombreArchivo']['name'];
-            $NuevoNombre = FormatoNombreAnexo($Nombre_Archivo, false);
-            if (!move_uploaded_file($_FILES['FileNombreArchivo']['tmp_name'], $dirRuta . $NuevoNombre[0])) {
-                $sw_error = 1;
-                $msg_error = "No se pudo mover el anexo a la carpeta de anexos local";
-            }
-        } else {
-            $sw_error = 1;
-            $msg_error = "No se pudo cargar el anexo";
-        }
-    } else {
-        $NuevoNombre[1] = $_POST['NombreArchivo'];
-    }
-
-    if ($_POST['TipoDoc'] == "OTRO") {
-        $IdObjeto = $_POST['IDDocumento'];
-        $DeObjeto = $_POST['NombreDocumento'];
-        $IdFormato = $_POST['IDFormato'];
-    } else {
-        $Obj = explode("__", $_POST['TipoDoc']);
-        $IdObjeto = $Obj[0];
-        $DeObjeto = $Obj[1];
-        $IdFormato = ($_POST['SerieDoc'] == "OTRO") ? $_POST['IDFormato'] : $_POST['SerieDoc'];
-    }
-
     $Param = array(
-        "'" . $_POST['id'] . "'",
-        "'" . $IdObjeto . "'",
-        "'" . $DeObjeto . "'",
-        "'" . $IdFormato . "'",
-        "'" . $NuevoNombre[1] . "'",
-        "'" . $_POST['NombreVisualizar'] . "'",
-        "'" . $_POST['VerDocumento'] . "'",
-        "'" . $_POST['Comentarios'] . "'",
-        "'" . $_SESSION['CodUser'] . "'",
         "'" . $_POST['type'] . "'",
-        "'" . $_POST['EsBorrador'] . "'", // SMM, 05/10/2022
+        "'" . $_POST['ID'] . "'",
+        "'" . $_POST['IdSeries'] . "'",
+        "'" . $_POST['IdTipoDocumento'] . "'",
+        "'" . $_POST['IdSucursal'] . "'",
+        "'" . $_POST['WhsCode'] . "'",
+        "'" . $_POST['ToWhsCode'] . "'",
+        "'" . $_POST['IdBodegaDefecto'] . "'",
     );
-    $SQL = EjecutarSP('sp_tbl_FormatosSAP', $Param);
+    $SQL = EjecutarSP('sp_tbl_SeriesSucursalesAlmacenes', $Param);
     if ($SQL) {
         $a = ($_POST['type'] == 1) ? "OK_NewParam" : "OK_UpdParam";
-        header('Location:parametros_formatos_impresion.php?a=' . base64_encode($a));
+        header('Location:gestionar_series.php?a=' . base64_encode($a));
     } else {
         $sw_error = 1;
         $msg_error = "No se pudo insertar el nuevo registro";
@@ -168,12 +131,7 @@ if (isset($sw_error) && ($sw_error == 1)) {
 						</div>
 						<div class="form-group">
 							<div class="col-lg-6">
-							<?php if ($existeRuta == 1) {?>
-									<div class="alert alert-danger">
-										La ruta <b><?php echo ObtenerVariable("RutaFormatosImpresion"); ?></b> no existe. Por favor verifique en los Parámetros generales.
-									</div>
-							<?php }?>
-							<button class="btn btn-primary" type="button" id="NewParam" onClick="CrearCampo();"><i class="fa fa-plus-circle"></i> Crear nuevo registro</button>
+								<button class="btn btn-primary" type="button" id="NewParam" onClick="CrearCampo();"><i class="fa fa-plus-circle"></i> Crear nuevo registro</button>
 							</div>
 						</div>
 					  	<input type="hidden" id="P" name="P" value="frmParam" />

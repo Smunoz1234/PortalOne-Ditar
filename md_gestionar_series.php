@@ -4,7 +4,7 @@ require_once "includes/conexion.php";
 $edit = isset($_POST['edit']) ? $_POST['edit'] : 0;
 $id = isset($_POST['id']) ? $_POST['id'] : "";
 
-$Title = "Crear nuevo formato";
+$Title = "Crear Nueva Serie";
 $Type = 1;
 $swOtro = 1;
 $swOtroSerie = 1;
@@ -14,14 +14,28 @@ $SQL_TipoDoc = Seleccionar("uvw_tbl_ObjetosSAP", "*", '', 'CategoriaObjeto, DeTi
 if ($edit == 1) {
     $SQL_Data = Seleccionar("uvw_tbl_FormatosSAP", "*", "ID='" . $id . "'");
     $row_Data = sqlsrv_fetch_array($SQL_Data);
-    $Title = "Editar formato";
+    $Title = "Editar Serie";
     $Type = 2;
 
-    $SQL_Series = Seleccionar('uvw_Sap_tbl_SeriesDocumentos', 'IdSeries, DeSeries', "IdTipoDocumento='" . $row_Data['ID_Objeto'] . "'", 'DeSeries');
+    // Series
+    $SQL_Series = Seleccionar("uvw_Sap_tbl_SeriesDocumentos", "IdSeries, DeSeries", "IdTipoDocumento='" . $row_Data['IdTipoDocumento'] . "'");
 }
 
+// Sucursal
+$DimSeries = intval(ObtenerVariable("DimensionSeries"));
+$SQL_Sucursal = Seleccionar("uvw_Sap_tbl_DimensionesReparto", "OcrCode, OcrName", "DimCode='$DimSeries'");
+
+// Almacen origen
+$SQL_AlmOrigen = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
+
+// Almacen Destino
+$SQL_AlmDestino = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
+
+// Almacen Defecto
+$SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
+
 ?>
-<form id="frm_NewParam" method="post" action="parametros_formatos_impresion.php" enctype="multipart/form-data">
+<form id="frm_NewParam" method="post" action="gestionar_series.php" enctype="multipart/form-data">
 	<div class="modal-header">
 		<h4 class="modal-title">
 			<?php echo $Title; ?>
@@ -175,19 +189,6 @@ if ($edit == 1) {
 			$('.ibox-content').toggleClass('sk-loading',false);
 		 }
 	});
-
-	 $("#SerieDoc").change(function(){
-		$('.ibox-content').toggleClass('sk-loading',true);
-		 var SerieDoc=document.getElementById('SerieDoc').value;
-		 if(SerieDoc=="OTRO"){
-			document.getElementById('dvIDFormato').style.display='block';
-			 $('.ibox-content').toggleClass('sk-loading',false);
-		 }else{
-			document.getElementById('dvIDFormato').style.display='none';
-			$('.ibox-content').toggleClass('sk-loading',false);
-		 }
-	});
-
  });
 </script>
 <script>
