@@ -310,7 +310,7 @@ function CrearCampo(){
 
 	$.ajax({
 		type: "POST",
-		url: "md_crear_formatos_impresion.php",
+		url: "md_gestionar_series.php",
 		success: function(response){
 			$('.ibox-content').toggleClass('sk-loading',false);
 			$('#ContenidoModal').html(response);
@@ -323,7 +323,7 @@ function EditarCampo(id){
 
 	$.ajax({
 		type: "POST",
-		url: "md_crear_formatos_impresion.php",
+		url: "md_gestionar_series.php",
 		data:{
 			id:id,
 			edit:1

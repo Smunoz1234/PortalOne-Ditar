@@ -585,8 +585,13 @@ if (!isset($_GET['type']) || ($_GET['type'] == "")) { //Saber que combo voy a co
             $Num = sqlsrv_num_rows($SQL);
             if ($Num) {
                 echo "<option value=''>Seleccione...</option>";
+
                 while ($row = sqlsrv_fetch_array($SQL)) {
-                    echo "<option value=\"" . $row['IdSeries'] . "\">" . $row['DeSeries'] . "</option>";
+                    $IdSeries = $row['IdSeries'] ?? "";
+                    $DeSeries = $row['DeSeries'] ?? "";
+
+                    // SMM, 21/04/2023
+                    echo "<option value='$IdSeries'>$IdSeries - $DeSeries</option>";
                 }
             } else {
                 echo "<option value=''>Seleccione...</option>";

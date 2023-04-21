@@ -27,10 +27,12 @@ if ($edit == 1) {
 			<?php echo $Title; ?>
 		</h4>
 	</div>
+
 	<div class="modal-body">
 		<div class="form-group">
 			<div class="ibox-content">
 				<?php include "includes/spinner.php";?>
+
 				<div class="form-group">
 					<label class="control-label">Tipo de documento <span class="text-danger">*</span></label>
 					<select name="TipoDoc" class="form-control" id="TipoDoc" required>
@@ -47,61 +49,71 @@ if ($edit == 1) {
 						<?php }?>
 					</select>
 				</div>
+
 				<div class="form-group">
-					<label class="control-label">Documento borrador <span class="text-danger">*</span></label>
-					<select name="EsBorrador" class="form-control" id="EsBorrador" required>
-						<option value="N" <?php if (($edit == 1) && ($row_Data['EsBorrador'] == "N")) {echo "selected";}?>>NO</option>
-						<option value="Y" <?php if (($edit == 1) && ($row_Data['EsBorrador'] == "Y")) {echo "selected";}?>>SI</option>
-					</select>
-				</div>
-				<div id="dvIdDoc" class="form-group" <?php if ((($edit == 1) && ($swOtro == 0)) || ($edit == 0)) {echo 'style="display: none;"';}?>>
-					<label class="control-label">Id del documento <span class="text-danger">*</span></label>
-					<input type="text" class="form-control" name="IDDocumento" id="IDDocumento" required autocomplete="off" value="<?php if ($edit == 1) {echo $row_Data['ID_Objeto'];}?>">
-				</div>
-				<div id="dvNomDoc" class="form-group" <?php if ((($edit == 1) && ($swOtro == 0)) || ($edit == 0)) {echo 'style="display: none;"';}?>>
-					<label class="control-label">Nombre del documento <span class="text-danger">*</span></label>
-					<input type="text" class="form-control" name="NombreDocumento" id="NombreDocumento" required autocomplete="off" value="<?php if ($edit == 1) {echo $row_Data['DE_Objeto'];}?>">
-				</div>
-				<div id="dvSerieFormato" class="form-group" <?php if ((($edit == 1) && ($swOtro == 1))) {echo 'style="display: none;"';}?>>
-					<label class="control-label">Serie del formato <span class="text-danger">*</span></label>
-					<select name="SerieDoc" class="form-control" id="SerieDoc" required="required">
+					<label class="control-label">Serie del documento <span class="text-danger">*</span></label>
+
+					<select name="SerieDoc" class="form-control" id="SerieDoc" required>
 						<option value="">Seleccione...</option>
-					  <?php if ($edit == 1) {
-    while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
-								<option value="<?php echo $row_Series['IdSeries']; ?>" <?php if (($edit == 1) && (isset($row_Data['IdFormato'])) && (strcmp($row_Series['IdSeries'], $row_Data['IdFormato']) == 0)) {echo "selected=\"selected\"";
-        $swOtroSerie = 0;}?>><?php echo $row_Series['DeSeries']; ?></option>
-					  <?php }
-}?>
-						<option value="OTRO" <?php if (($edit == 1) && ($swOtroSerie == 1 && $row_Data['IdFormato'] !== "")) {echo "selected=\"selected\"";}?>>OTRO</option>
+
+						<?php if ($edit == 1) {?>
+							<?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
+								<option value="<?php echo $row_Series['IdSeries']; ?>" <?php if (($edit == 1) && (isset($row_Data['IdFormato'])) && (strcmp($row_Series['IdSeries'], $row_Data['IdFormato']) == 0)) {echo "selected=\"selected\"";}?>>
+									<?php echo $row_Series['IdSeries'] . "-" . $row_Series['DeSeries']; ?>
+								</option>
+							<?php }?>
+						<?php }?>
 					</select>
 				</div>
-				<div id="dvIDFormato" class="form-group" <?php if ((($edit == 1) && ($swOtro == 0) && ($swOtroSerie == 0)) || ($edit == 0)) {echo 'style="display: none;"';}?>>
-					<label class="control-label">Id del formato <span class="text-danger">*</span></label>
-					<input type="text" class="form-control" name="IDFormato" id="IDFormato" required autocomplete="off" value="<?php if ($edit == 1) {echo $row_Data['IdFormato'];}?>">
-				</div>
+
 				<div class="form-group">
-					<label class="control-label">Nombre a mostrar <span class="text-danger">*</span></label>
-					<input type="text" class="form-control" name="NombreVisualizar" id="NombreVisualizar" required autocomplete="off" value="<?php if ($edit == 1) {echo $row_Data['NombreVisualizar'];}?>">
-				</div>
-				<div class="form-group">
-					<label class="control-label">Ver en documento <span class="text-danger">*</span></label>
-					<select name="VerDocumento" class="form-control" id="VerDocumento" required>
-						<option value="Y" <?php if (($edit == 1) && ($row_Data['VerEnDocumento'] == "Y")) {echo "selected=\"selected\"";}?>>SI</option>
-						<option value="N" <?php if (($edit == 1) && ($row_Data['VerEnDocumento'] == "N")) {echo "selected=\"selected\"";}?>>NO</option>
+					<label class="control-label">Dimensión 1</label>
+
+					<select id="IdSucursal<?php echo $i; ?>" name="IdSucursal[]" class="form-control" onChange="ActualizarDatos('IdSucursal',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+						<option value="">Seleccione...</option>
+					<?php while ($row_Sucursal = sqlsrv_fetch_array($SQL_Sucursal)) {?>
+							<option value="<?php echo $row_Sucursal['OcrCode']; ?>" <?php if ((isset($row['IdSucursal'])) && (strcmp($row_Sucursal['OcrCode'], $row['IdSucursal']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['OcrCode'] . "-" . $row_Sucursal['OcrName']; ?></option>
+					<?php }?>
 					</select>
 				</div>
+
 				<div class="form-group">
-					<label class="control-label">Comentarios</label>
-					<textarea name="Comentarios" rows="2" class="form-control" id="Comentarios"><?php if ($edit == 1) {echo $row_Data['Comentarios'];}?></textarea>
+					<label class="control-label">Almacén origen</label>
+
+					<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+						<option value="">Seleccione...</option>
+					<?php while ($row_AlmOrigen = sqlsrv_fetch_array($SQL_AlmOrigen)) {?>
+							<option value="<?php echo $row_AlmOrigen['WhsCode']; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($row_AlmOrigen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmOrigen['WhsCode'] . "-" . $row_AlmOrigen['WhsName']; ?></option>
+					<?php }?>
+					</select>
 				</div>
+
 				<div class="form-group">
-					<label class="control-label">Nombre del archivo <span class="text-danger">*</span></label>
-					<?php {?><input type="text" class="form-control" name="NombreArchivo" id="NombreArchivo" required autocomplete="off" value="<?php if ($edit == 1) {echo $row_Data['DeFormato'];}?>"><?php }?>
-					<input name="FileNombreArchivo" type="file" id="FileNombreArchivo" class="m-t-md" />
+					<label class="control-label">Almacén destino</label>
+
+					<select id="ToWhsCode<?php echo $i; ?>" name="ToWhsCode[]" class="form-control" onChange="ActualizarDatos('ToWhsCode',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+							<option value="">(Ninguno)</option>
+						<?php while ($row_AlmDestino = sqlsrv_fetch_array($SQL_AlmDestino)) {?>
+							<option value="<?php echo $row_AlmDestino['WhsCode']; ?>" <?php if ((isset($row['ToWhsCode'])) && (strcmp($row_AlmDestino['WhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmDestino['WhsCode'] . "-" . $row_AlmDestino['WhsName']; ?></option>
+						<?php }?>
+					</select>
 				</div>
-			</div>
-		</div>
-	</div>
+
+				<div class="form-group">
+					<label class="control-label">Almacén defecto</label>
+
+					<select id="IdBodegaDefecto<?php echo $i; ?>" name="IdBodegaDefecto[]" class="form-control" onChange="ActualizarDatos('IdBodegaDefecto',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+						<option value="">(Ninguno)</option>
+					<?php while ($row_AlmDefecto = sqlsrv_fetch_array($SQL_AlmDefecto)) {?>
+							<option value="<?php echo $row_AlmDefecto['WhsCode']; ?>" <?php if ((isset($row['IdBodegaDefecto'])) && (strcmp($row_AlmDefecto['WhsCode'], $row['IdBodegaDefecto']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmDefecto['WhsName']; ?></option>
+					<?php }?>
+					</select>
+				</div>
+
+			</div> <!-- ibox-content -->
+		</div> <!-- form-group -->
+	</div> <!-- modal-body -->
+
 	<div class="modal-footer">
 		<button type="submit" class="btn btn-success m-t-md"><i class="fa fa-check"></i> Aceptar</button>
 		<button type="button" class="btn btn-danger m-t-md" data-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
@@ -141,7 +153,7 @@ if ($edit == 1) {
 				url: "ajx_cbo_select.php?type=25&id="+TipoDoc,
 				success: function(response){
 					$('#SerieDoc').html(response);
-					$('#SerieDoc').append($("<option>",{value:"OTRO",text: "OTRO"}));
+
 					$('.ibox-content').toggleClass('sk-loading',false);
 					toggleOtrosFormatos(false);
 				}
