@@ -34,19 +34,17 @@ if ($edit == 1) {
 				<div class="form-group">
 					<label class="control-label">Tipo de documento <span class="text-danger">*</span></label>
 					<select name="TipoDoc" class="form-control" id="TipoDoc" required>
-							<option value="">Seleccione...</option>
-					  <?php $CatActual = "";
-while ($row_TipoDoc = sqlsrv_fetch_array($SQL_TipoDoc)) {
-    if ($CatActual != $row_TipoDoc['CategoriaObjeto']) {
-        echo "<optgroup label='" . $row_TipoDoc['CategoriaObjeto'] . "'></optgroup>";
-        $CatActual = $row_TipoDoc['CategoriaObjeto'];
-    }
-    ?>
-							<option value="<?php echo $row_TipoDoc['IdTipoDocumento'] . "__" . $row_TipoDoc['DeTipoDocumento']; ?>" <?php if ((($edit == 1) && (isset($row_Data['ID_Objeto'])) && (strcmp($row_TipoDoc['IdTipoDocumento'], $row_Data['ID_Objeto']) == 0))) {echo "selected=\"selected\"";
-        $swOtro = 0;}?>><?php echo $row_TipoDoc['DeTipoDocumento']; ?></option>
-					  <?php }?>
-						<optgroup label='Otros'></optgroup>
-						<option value="OTRO" <?php if (($edit == 1) && ($swOtro == 1 && $row_Data['ID_Objeto'] != "")) {echo "selected=\"selected\"";}?>>OTRO</option>
+						<option value="">Seleccione...</option>
+
+						<?php $CatActual = "";?>
+						<?php while ($row_TipoDoc = sqlsrv_fetch_array($SQL_TipoDoc)) {?>
+							<?php if ($CatActual != $row_TipoDoc['CategoriaObjeto']) {?>
+								<?php echo "<optgroup label='" . $row_TipoDoc['CategoriaObjeto'] . "'></optgroup>"; ?>
+								<?php $CatActual = $row_TipoDoc['CategoriaObjeto'];?>
+							<?php }?>
+
+							<option value="<?php echo $row_TipoDoc['IdTipoDocumento']; ?>"><?php echo $row_TipoDoc['DeTipoDocumento']; ?></option>
+						<?php }?>
 					</select>
 				</div>
 				<div class="form-group">
