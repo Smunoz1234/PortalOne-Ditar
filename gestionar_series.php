@@ -12,8 +12,8 @@ if (isset($_POST['MM_Insert']) && ($_POST['MM_Insert'] != "")) {
     $Param = array(
         "'" . $_POST['type'] . "'",
         "'" . $_POST['ID'] . "'",
-        "'" . $_POST['IdSeries'] . "'",
-        "'" . $_POST['IdTipoDocumento'] . "'",
+        "'" . $_POST['SerieDoc'] . "'",
+        "'" . $_POST['TipoDoc'] . "'",
         "'" . $_POST['IdSucursal'] . "'",
         "'" . $_POST['WhsCode'] . "'",
         "'" . $_POST['ToWhsCode'] . "'",
@@ -67,6 +67,17 @@ if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_UpdParam"))) {
 			Swal.fire({
                 title: '¡Listo!',
                 text: 'Datos actualizados exitosamente.',
+                icon: 'success'
+            });
+		});
+		</script>";
+}
+if (isset($_GET['a']) && ($_GET['a'] == base64_encode("OK_DelReg"))) {
+    echo "<script>
+		$(document).ready(function() {
+			Swal.fire({
+                title: '¡Listo!',
+                text: 'El registro ha sido eliminado exitosamente.',
                 icon: 'success'
             });
 		});
@@ -305,9 +316,12 @@ function BorrarLinea(id){
 		if (result.isConfirmed) {
 			$.ajax({
 				type: "GET",
-				url: "includes/procedimientos.php?type=46&linenum="+id,
+				url: "includes/procedimientos.php?type=66&linenum="+id,
 				success: function(response){
-					$("#btnDel"+id).parents("tr").remove();
+					location.href = "gestionar_series.php?a=<?php echo base64_encode("OK_DelReg"); ?>";
+				},
+				error: function(error) {
+					console.error("consulta erronea");
 				}
 			});
 		}
