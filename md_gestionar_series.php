@@ -67,46 +67,58 @@ if ($edit == 1) {
 				</div>
 
 				<div class="form-group">
-					<label class="control-label">Dimensión 1</label>
+					<label class="control-label">Dimensión 1 <span class="text-danger">*</span></label>
 
-					<select id="IdSucursal<?php echo $i; ?>" name="IdSucursal[]" class="form-control" onChange="ActualizarDatos('IdSucursal',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+					<select name="IdSucursal" class="form-control" id="IdSucursal" required>
 						<option value="">Seleccione...</option>
-					<?php while ($row_Sucursal = sqlsrv_fetch_array($SQL_Sucursal)) {?>
-							<option value="<?php echo $row_Sucursal['OcrCode']; ?>" <?php if ((isset($row['IdSucursal'])) && (strcmp($row_Sucursal['OcrCode'], $row['IdSucursal']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Sucursal['OcrCode'] . "-" . $row_Sucursal['OcrName']; ?></option>
-					<?php }?>
+
+						<?php while ($row_Sucursal = sqlsrv_fetch_array($SQL_Sucursal)) {?>
+							<option value="<?php echo $row_Sucursal['OcrCode']; ?>" <?php if ((isset($row['IdSucursal'])) && (strcmp($row_Sucursal['OcrCode'], $row['IdSucursal']) == 0)) {echo "selected=\"selected\"";}?>>
+								<?php echo $row_Sucursal['OcrCode'] . "-" . $row_Sucursal['OcrName']; ?>
+							</option>
+						<?php }?>
 					</select>
 				</div>
 
 				<div class="form-group">
-					<label class="control-label">Almacén origen</label>
+					<label class="control-label">Almacén origen  <span class="text-danger">*</span></label>
 
-					<select id="WhsCode<?php echo $i; ?>" name="WhsCode[]" class="form-control" onChange="ActualizarDatos('WhsCode',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+					<select name="WhsCode" class="form-control" id="WhsCode" required>
 						<option value="">Seleccione...</option>
-					<?php while ($row_AlmOrigen = sqlsrv_fetch_array($SQL_AlmOrigen)) {?>
-							<option value="<?php echo $row_AlmOrigen['WhsCode']; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($row_AlmOrigen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmOrigen['WhsCode'] . "-" . $row_AlmOrigen['WhsName']; ?></option>
-					<?php }?>
+
+						<?php while ($row_AlmOrigen = sqlsrv_fetch_array($SQL_AlmOrigen)) {?>
+							<option value="<?php echo $row_AlmOrigen['WhsCode']; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($row_AlmOrigen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>>
+								<?php echo $row_AlmOrigen['WhsCode'] . "-" . $row_AlmOrigen['WhsName']; ?>
+							</option>
+						<?php }?>
 					</select>
 				</div>
 
 				<div class="form-group">
 					<label class="control-label">Almacén destino</label>
 
-					<select id="ToWhsCode<?php echo $i; ?>" name="ToWhsCode[]" class="form-control" onChange="ActualizarDatos('ToWhsCode',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+					<select name="ToWhsCode" class="form-control" id="ToWhsCode">
 							<option value="">(Ninguno)</option>
-						<?php while ($row_AlmDestino = sqlsrv_fetch_array($SQL_AlmDestino)) {?>
-							<option value="<?php echo $row_AlmDestino['WhsCode']; ?>" <?php if ((isset($row['ToWhsCode'])) && (strcmp($row_AlmDestino['WhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmDestino['WhsCode'] . "-" . $row_AlmDestino['WhsName']; ?></option>
-						<?php }?>
+
+							<?php while ($row_AlmDestino = sqlsrv_fetch_array($SQL_AlmDestino)) {?>
+								<option value="<?php echo $row_AlmDestino['WhsCode']; ?>" <?php if ((isset($row['ToWhsCode'])) && (strcmp($row_AlmDestino['WhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>>
+									<?php echo $row_AlmDestino['WhsCode'] . "-" . $row_AlmDestino['WhsName']; ?>
+								</option>
+							<?php }?>
 					</select>
 				</div>
 
 				<div class="form-group">
 					<label class="control-label">Almacén defecto</label>
 
-					<select id="IdBodegaDefecto<?php echo $i; ?>" name="IdBodegaDefecto[]" class="form-control" onChange="ActualizarDatos('IdBodegaDefecto',<?php echo $i; ?>,<?php echo $row['ID']; ?>);">
+					<select name="IdBodegaDefecto" class="form-control" id="IdBodegaDefecto">
 						<option value="">(Ninguno)</option>
-					<?php while ($row_AlmDefecto = sqlsrv_fetch_array($SQL_AlmDefecto)) {?>
-							<option value="<?php echo $row_AlmDefecto['WhsCode']; ?>" <?php if ((isset($row['IdBodegaDefecto'])) && (strcmp($row_AlmDefecto['WhsCode'], $row['IdBodegaDefecto']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmDefecto['WhsName']; ?></option>
-					<?php }?>
+
+						<?php while ($row_AlmDefecto = sqlsrv_fetch_array($SQL_AlmDefecto)) {?>
+							<option value="<?php echo $row_AlmDefecto['WhsCode']; ?>" <?php if ((isset($row['IdBodegaDefecto'])) && (strcmp($row_AlmDefecto['WhsCode'], $row['IdBodegaDefecto']) == 0)) {echo "selected=\"selected\"";}?>>
+								<?php echo $row_AlmDefecto['WhsCode'] . "-" . $row_AlmDefecto['WhsName']; ?>
+							</option>
+						<?php }?>
 					</select>
 				</div>
 
