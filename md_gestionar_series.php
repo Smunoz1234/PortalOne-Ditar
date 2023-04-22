@@ -6,19 +6,25 @@ $id = isset($_POST['id']) ? $_POST['id'] : "";
 
 $Title = "Crear Nueva Serie";
 $Type = 1;
-$swOtro = 1;
-$swOtroSerie = 1;
 
 $SQL_TipoDoc = Seleccionar("uvw_tbl_ObjetosSAP", "*", '', 'CategoriaObjeto, DeTipoDocumento');
 
 if ($edit == 1) {
-    $SQL_Data = Seleccionar("uvw_tbl_FormatosSAP", "*", "ID='" . $id . "'");
+    $SQL_Data = Seleccionar("uvw_tbl_SeriesSucursalesAlmacenes", "*", "ID='$id'");
     $row_Data = sqlsrv_fetch_array($SQL_Data);
+
+    $IdTipoDocumento = $row_Data['IdTipoDocumento'] ?? "";
+    $IdSeries = $row_Data['IdSeries'] ?? "";
+    $IdSucursal = $row_Data['IdSucursal'] ?? "";
+    $WhsCode = $row_Data['WhsCode'] ?? "";
+    $ToWhsCode = $row_Data['ToWhsCode'] ?? "";
+    $IdBodegaDefecto = $row_Data['IdBodegaDefecto'] ?? "";
+
     $Title = "Editar Serie";
     $Type = 2;
 
     // Series
-    $SQL_Series = Seleccionar("uvw_Sap_tbl_SeriesDocumentos", "IdSeries, DeSeries", "IdTipoDocumento='" . $row_Data['IdTipoDocumento'] . "'");
+    $SQL_Series = Seleccionar("uvw_Sap_tbl_SeriesDocumentos", "IdSeries, DeSeries", "IdTipoDocumento='$IdTipoDocumento'");
 }
 
 // Sucursal
@@ -59,7 +65,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 								<?php $CatActual = $row_TipoDoc['CategoriaObjeto'];?>
 							<?php }?>
 
-							<option value="<?php echo $row_TipoDoc['IdTipoDocumento']; ?>"><?php echo $row_TipoDoc['DeTipoDocumento']; ?></option>
+							<option value="<?php echo $row_TipoDoc['IdTipoDocumento']; ?>" <?php if (($edit == 1) && ($row_TipoDoc['IdTipoDocumento'] == $IdTipoDocumento)) {echo "selected";}?>><?php echo $row_TipoDoc['DeTipoDocumento']; ?></option>
 						<?php }?>
 					</select>
 				</div>
@@ -72,8 +78,8 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 
 						<?php if ($edit == 1) {?>
 							<?php while ($row_Series = sqlsrv_fetch_array($SQL_Series)) {?>
-								<option value="<?php echo $row_Series['IdSeries']; ?>" <?php if (($edit == 1) && (isset($row_Data['IdFormato'])) && (strcmp($row_Series['IdSeries'], $row_Data['IdFormato']) == 0)) {echo "selected=\"selected\"";}?>>
-									<?php echo $row_Series['IdSeries'] . "-" . $row_Series['DeSeries']; ?>
+								<option value="<?php echo $row_Series['IdSeries']; ?>" <?php if (($edit == 1) && ($row_Series['IdSeries'] == $IdSeries)) {echo "selected";}?>>
+									<?php echo $row_Series['IdSeries'] . " - " . $row_Series['DeSeries']; ?>
 								</option>
 							<?php }?>
 						<?php }?>
@@ -87,8 +93,8 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 						<option value="">Seleccione...</option>
 
 						<?php while ($row_Sucursal = sqlsrv_fetch_array($SQL_Sucursal)) {?>
-							<option value="<?php echo $row_Sucursal['OcrCode']; ?>" <?php if ((isset($row['IdSucursal'])) && (strcmp($row_Sucursal['OcrCode'], $row['IdSucursal']) == 0)) {echo "selected=\"selected\"";}?>>
-								<?php echo $row_Sucursal['OcrCode'] . "-" . $row_Sucursal['OcrName']; ?>
+							<option value="<?php echo $row_Sucursal['OcrCode']; ?>" <?php if (($edit == 1) && ($row_Sucursal['OcrCode'] == $IdSucursal)) {echo "selected";}?>>
+								<?php echo $row_Sucursal['OcrCode'] . " - " . $row_Sucursal['OcrName']; ?>
 							</option>
 						<?php }?>
 					</select>
@@ -101,8 +107,8 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 						<option value="">Seleccione...</option>
 
 						<?php while ($row_AlmOrigen = sqlsrv_fetch_array($SQL_AlmOrigen)) {?>
-							<option value="<?php echo $row_AlmOrigen['WhsCode']; ?>" <?php if ((isset($row['WhsCode'])) && (strcmp($row_AlmOrigen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>>
-								<?php echo $row_AlmOrigen['WhsCode'] . "-" . $row_AlmOrigen['WhsName']; ?>
+							<option value="<?php echo $row_AlmOrigen['WhsCode']; ?>" <?php if (($edit == 1) && ($row_AlmOrigen['WhsCode'] == $WhsCode)) {echo "selected";}?>>
+								<?php echo $row_AlmOrigen['WhsCode'] . " - " . $row_AlmOrigen['WhsName']; ?>
 							</option>
 						<?php }?>
 					</select>
@@ -115,8 +121,8 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 							<option value="">(Ninguno)</option>
 
 							<?php while ($row_AlmDestino = sqlsrv_fetch_array($SQL_AlmDestino)) {?>
-								<option value="<?php echo $row_AlmDestino['WhsCode']; ?>" <?php if ((isset($row['ToWhsCode'])) && (strcmp($row_AlmDestino['WhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>>
-									<?php echo $row_AlmDestino['WhsCode'] . "-" . $row_AlmDestino['WhsName']; ?>
+								<option value="<?php echo $row_AlmDestino['WhsCode']; ?>" <?php if (($edit == 1) && ($row_AlmDestino['WhsCode'] == $ToWhsCode)) {echo "selected";}?>>
+									<?php echo $row_AlmDestino['WhsCode'] . " - " . $row_AlmDestino['WhsName']; ?>
 								</option>
 							<?php }?>
 					</select>
@@ -129,7 +135,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 						<option value="">(Ninguno)</option>
 
 						<?php while ($row_AlmDefecto = sqlsrv_fetch_array($SQL_AlmDefecto)) {?>
-							<option value="<?php echo $row_AlmDefecto['WhsCode']; ?>" <?php if ((isset($row['IdBodegaDefecto'])) && (strcmp($row_AlmDefecto['WhsCode'], $row['IdBodegaDefecto']) == 0)) {echo "selected=\"selected\"";}?>>
+							<option value="<?php echo $row_AlmDefecto['WhsCode']; ?>" <?php if (($edit == 1) && ($row_AlmDefecto['WhsCode'] == $IdBodegaDefecto)) {echo "selected";}?>>
 								<?php echo $row_AlmDefecto['WhsCode'] . "-" . $row_AlmDefecto['WhsName']; ?>
 							</option>
 						<?php }?>
@@ -145,7 +151,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 		<button type="button" class="btn btn-danger m-t-md" data-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
 	</div>
 	<input type="hidden" id="MM_Insert" name="MM_Insert" value="1" />
-	<input type="hidden" id="id" name="id" value="<?php echo $id; ?>" />
+	<input type="hidden" id="ID" name="ID" value="<?php echo $id; ?>" />
 	<input type="hidden" id="type" name="type" value="<?php echo $Type; ?>" />
 </form>
 <script>

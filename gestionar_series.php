@@ -287,6 +287,7 @@ function CrearCampo(){
 		}
 	});
 }
+
 function EditarCampo(id){
 	$('.ibox-content').toggleClass('sk-loading',true);
 
@@ -304,6 +305,7 @@ function EditarCampo(id){
 		}
 	});
 }
+
 function BorrarLinea(id){
 	Swal.fire({
 		title: "¿Está seguro que desea eliminar este registro?",
