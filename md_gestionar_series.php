@@ -39,8 +39,20 @@ $SQL_AlmDestino = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 
 // Almacen Defecto
 $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
-
 ?>
+
+<style>
+	.select2-container {
+		z-index: 10000;
+	}
+	.select2-search--inline {
+    display: contents;
+	}
+	.select2-search__field:placeholder-shown {
+		width: 100% !important;
+	}
+</style>
+
 <form id="frm_NewParam" method="post" action="gestionar_series.php" enctype="multipart/form-data">
 	<div class="modal-header">
 		<h4 class="modal-title">
@@ -73,7 +85,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 				<div class="form-group">
 					<label class="control-label">Serie del documento <span class="text-danger">*</span></label>
 
-					<select name="SerieDoc" class="form-control" id="SerieDoc" required>
+					<select name="SerieDoc" class="form-control select2" id="SerieDoc" required>
 						<option value="">Seleccione...</option>
 
 						<?php if ($edit == 1) {?>
@@ -89,7 +101,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 				<div class="form-group">
 					<label class="control-label">Dimensión 1 <span class="text-danger">*</span></label>
 
-					<select name="IdSucursal" class="form-control" id="IdSucursal" required>
+					<select name="IdSucursal" class="form-control select2" id="IdSucursal" required>
 						<option value="">Seleccione...</option>
 
 						<?php while ($row_Sucursal = sqlsrv_fetch_array($SQL_Sucursal)) {?>
@@ -103,7 +115,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 				<div class="form-group">
 					<label class="control-label">Almacén origen  <span class="text-danger">*</span></label>
 
-					<select name="WhsCode" class="form-control" id="WhsCode" required>
+					<select name="WhsCode" class="form-control select2" id="WhsCode" required>
 						<option value="">Seleccione...</option>
 
 						<?php while ($row_AlmOrigen = sqlsrv_fetch_array($SQL_AlmOrigen)) {?>
@@ -117,7 +129,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 				<div class="form-group">
 					<label class="control-label">Almacén destino</label>
 
-					<select name="ToWhsCode" class="form-control" id="ToWhsCode">
+					<select name="ToWhsCode" class="form-control select2" id="ToWhsCode">
 							<option value="">(Ninguno)</option>
 
 							<?php while ($row_AlmDestino = sqlsrv_fetch_array($SQL_AlmDestino)) {?>
@@ -131,7 +143,7 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 				<div class="form-group">
 					<label class="control-label">Almacén defecto</label>
 
-					<select name="IdBodegaDefecto" class="form-control" id="IdBodegaDefecto">
+					<select name="IdBodegaDefecto" class="form-control select2" id="IdBodegaDefecto">
 						<option value="">(Ninguno)</option>
 
 						<?php while ($row_AlmDefecto = sqlsrv_fetch_array($SQL_AlmDefecto)) {?>
@@ -150,129 +162,48 @@ $SQL_AlmDefecto = Seleccionar("uvw_Sap_tbl_Almacenes", "WhsCode, WhsName");
 		<button type="submit" class="btn btn-success m-t-md"><i class="fa fa-check"></i> Aceptar</button>
 		<button type="button" class="btn btn-danger m-t-md" data-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
 	</div>
+
 	<input type="hidden" id="MM_Insert" name="MM_Insert" value="1" />
 	<input type="hidden" id="ID" name="ID" value="<?php echo $id; ?>" />
 	<input type="hidden" id="type" name="type" value="<?php echo $Type; ?>" />
 </form>
+
 <script>
- $(document).ready(function(){
-	 $("#frm_NewParam").validate({
-		 submitHandler: function(form){
-			if(Validar()){
-				 Swal.fire({
-					title: "¿Está seguro que desea guardar los datos?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-						form.submit();
-					}
-				});
-			 }
-		}
-	 });
+$(document).ready(function() {
+	$(".select2").select2();
 
-	 $("#TipoDoc").change(function(){
-		$('.ibox-content').toggleClass('sk-loading',true);
-		 var ar=document.getElementById('TipoDoc').value.split("__");
-		 var TipoDoc=ar[0];
-		 if(TipoDoc!="OTRO"){
-			 $.ajax({
-				type: "POST",
-				url: "ajx_cbo_select.php?type=25&id="+TipoDoc,
-				success: function(response){
-					$('#SerieDoc').html(response);
-
-					$('.ibox-content').toggleClass('sk-loading',false);
-					toggleOtrosFormatos(false);
+	$("#frm_NewParam").validate({
+		submitHandler: function(form){
+			Swal.fire({
+				title: "¿Está seguro que desea guardar los datos?",
+				icon: "question",
+				showCancelButton: true,
+				confirmButtonText: "Si, confirmo",
+				cancelButtonText: "No"
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$('.ibox-content').toggleClass('sk-loading',true);
+					form.submit();
 				}
 			});
-		 }else{
-			toggleOtrosFormatos(true);
-			$('.ibox-content').toggleClass('sk-loading',false);
-		 }
-	});
- });
-</script>
-<script>
-function toggleOtrosFormatos(state=false){
-	if(state){//Mostrar los campos de otros formatos
-		document.getElementById('dvIdDoc').style.display='block';
-		document.getElementById('dvNomDoc').style.display='block';
-		document.getElementById('dvIDFormato').style.display='block';
-		document.getElementById('dvSerieFormato').style.display='none';
-	}else{//Ocultar los campos de otros formatos
-		document.getElementById('dvIdDoc').style.display='none';
-		document.getElementById('dvNomDoc').style.display='none';
-		document.getElementById('dvIDFormato').style.display='none';
-		document.getElementById('dvSerieFormato').style.display='block';
-	}
-}
-
-function Validar(){
-	let result=true;
-
-	$('.ibox-content').toggleClass('sk-loading',true);
-
-	let archivo=document.getElementById("FileNombreArchivo").value;
-	let ext=".rpt";
-	let idObj="";
-	let idFormato="";
-
-	let ar=document.getElementById('TipoDoc').value.split("__");
-	let TipoDoc=ar[0];
-
-	let id=document.getElementById('id').value;
-
-	if(TipoDoc!="OTRO"){
-		idObj=TipoDoc;
-		idFormato=document.getElementById('SerieDoc').value;
-	}else{
-		idObj=document.getElementById('IDDocumento').value;
-		idFormato=document.getElementById('IDFormato').value;
-	}
-
-//	$.ajax({
-//		url:"ajx_buscar_datos_json.php",
-//		data:{type:36,
-//			  id:id,
-//			  idObj:idObj,
-//			  idFormato:idFormato
-//			 },
-//		dataType:'json',
-//		async: false,
-//		success: function(data){
-//			if(data.Result=='1'){
-//				result=false;
-//				Swal.fire({
-//					title: '¡Advertencia!',
-//					text: 'Ya existe un formato relacionado a este documento con este ID del formato. Por favor verifique.',
-//					icon: 'warning',
-//				});
-//				$('.ibox-content').toggleClass('sk-loading',false);
-//			}else{
-//				$('.ibox-content').toggleClass('sk-loading',false);
-//			}
-//		}
-//	});
-
-	if(archivo!=""){
-		let ext_archivo=(archivo.substring(archivo.lastIndexOf("."))).toLowerCase();
-		if(ext_archivo!=ext){
-			result=false;
-			Swal.fire({
-				title: '¡Advertencia!',
-				text: 'El archivo debe ser extensión .rpt, por favor verifique.',
-				icon: 'warning',
-			});
 		}
-	}
+	});
 
+	$("#TipoDoc").change(function(){
+		$('.ibox-content').toggleClass('sk-loading',true);
 
-	return result;
-}
+		var ar=document.getElementById('TipoDoc').value.split("__");
+		var TipoDoc=ar[0];
 
+		$.ajax({
+			type: "POST",
+			url: "ajx_cbo_select.php?type=25&id="+TipoDoc,
+			success: function(response){
+				$('#SerieDoc').html(response);
+
+				$('.ibox-content').toggleClass('sk-loading',false);
+			}
+		});
+	});
+});
 </script>
