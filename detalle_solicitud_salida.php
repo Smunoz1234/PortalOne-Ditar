@@ -98,7 +98,7 @@ while ($Concepto = sqlsrv_fetch_array($SQL_Proyectos)) {
 }
 
 $Filtro_Proyectos = "";
-if (count($Proyectos) > 0) {
+if ((count($Proyectos) > 0) && ($type == 1)) {
     $Filtro_Proyectos .= "IdProyecto IN (";
     $Filtro_Proyectos .= implode(",", $Proyectos);
     $Filtro_Proyectos .= ")";
