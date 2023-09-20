@@ -1,5 +1,5 @@
 <?php require_once("includes/conexion.php");
-PermitirAcceso(1701);
+PermitirAcceso(1801);
 $sw=0;
 
 $Filtro="";
@@ -37,10 +37,8 @@ if(isset($_GET['Estado'])&&$_GET['Estado']!=""){
 if($sw==1){
 	$SQL=Seleccionar('uvw_Sap_tbl_AsistentePagos','*',$Filtro);
 }
-
-
-
 ?>
+
 <!DOCTYPE html>
 <html><!-- InstanceBegin template="/Templates/PlantillaPrincipal.dwt.php" codeOutsideHTMLIsLocked="false" -->
 

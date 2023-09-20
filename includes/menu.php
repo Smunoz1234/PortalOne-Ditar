@@ -458,6 +458,7 @@ if (!isset($_COOKIE["banderaMenu"])) {
 				</ul>
 			</li>
 			<?php }?>
+			
 			<?php if (PermitirFuncion(801)) {?>
 			<li>
 				<a href="#"><i class="fa fa-suitcase"></i> <span class="nav-label">Cartera/CRM</span><span class="fa arrow"></span></a>
@@ -468,6 +469,16 @@ if (!isset($_COOKIE["banderaMenu"])) {
 				</ul>
 			</li>
 			<?php }?>
+
+			<?php if(PermitirFuncion(1801)){?>
+				<li>
+                    <a href="#"><i class="fa fa-bank"></i> <span class="nav-label">Gestión de bancos</span><span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+						<?php if(PermitirFuncion(1801)){?><li><a class="alnk" href="archivo_pago_banco.php">Archivo para pagos</a></li><?php }?>
+                    </ul>
+                </li>
+			<?php }?>
+
 			<?php if (PermitirFuncion(1601)) {?>
 			<li>
 				<a href="#"><i class="fa fa-wrench"></i> <span class="nav-label">Mantenimiento</span><span class="fa arrow"></span></a>
@@ -486,6 +497,7 @@ if (!isset($_COOKIE["banderaMenu"])) {
 				</ul>
 			</li>
 			<?php }?>
+			
 			<li>
 				<a href="#"><i class="fa fa-gears"></i> <span class="nav-label">Administraci&oacute;n</span><span class="fa arrow"></span></a>
 				<ul class="nav nav-second-level">

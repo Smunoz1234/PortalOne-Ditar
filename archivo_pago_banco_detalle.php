@@ -1,12 +1,12 @@
 <?php  
 require_once("includes/conexion.php");
-PermitirAcceso(1701);
+PermitirAcceso(1801);
 
 $Total=0;
 
 $SQL=Seleccionar('uvw_Sap_tbl_AsistentePagosDetalle','*',"IdEntry='".$_POST['id']."' and PayAmount > 0");
-
 ?>
+
 <br>
  	<div class="row">
 	   <div class="col-lg-12">
