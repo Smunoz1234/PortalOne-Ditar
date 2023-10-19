@@ -418,7 +418,6 @@ if ($edit == 1 && $sw_error == 0) {
 }
 
 if ($sw_error == 1) {
-    //Solicitud salida
     $Cons = "SELECT * FROM uvw_tbl_SolicitudSalida WHERE ID_SolSalida='$IdSolSalida' AND IdEvento='$IdEvento'";
 	// echo $Cons;
 
@@ -973,13 +972,17 @@ function verAutorizacion() {
 
 					$('#Almacen').html(response).fadeIn();
 
-					// SMM, 20/02/2023
-					let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenOrigen"] ?? ""; ?>";
-					if ($(`#Almacen option[value="${valorSeleccionado}"]`).length > 0) {
-						$('#Almacen').val(valorSeleccionado);
-						$('#Almacen').trigger('change');
-					}
+					// SMM, 19/10/2023
+					<?php if(($edit == 0) && ($sw_error == 0)) { ?>
+						let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenOrigen"] ?? ""; ?>";
+						if ($(`#Almacen option[value="${valorSeleccionado}"]`).length > 0) {
+							$('#Almacen').val(valorSeleccionado);
+						} else {
+							console.log("Line 980");
+						}
+					<?php } ?>
 
+					$('#Almacen').trigger('change');
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
@@ -998,13 +1001,17 @@ function verAutorizacion() {
 
 					$('#AlmacenDestino').html(response).fadeIn();
 
-					// SMM, 20/02/2023
-					let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenDestino"] ?? ""; ?>";
-					if ($(`#AlmacenDestino option[value="${valorSeleccionado}"]`).length > 0) {
-						$('#AlmacenDestino').val(valorSeleccionado);
-						$('#AlmacenDestino').trigger('change');
-					}
+					// SMM, 19/10/2023
+					<?php if(($edit == 0) && ($sw_error == 0)) { ?>
+						let valorSeleccionado = "<?php echo $row_DatosEmpleados["AlmacenDestino"] ?? ""; ?>";
+						if ($(`#AlmacenDestino option[value="${valorSeleccionado}"]`).length > 0) {
+							$('#AlmacenDestino').val(valorSeleccionado);
+						} else {
+							console.log("Line 1010");
+						}
+					<?php } ?>
 
+					$('#AlmacenDestino').trigger('change');
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
 				error: function(error) {
@@ -1654,11 +1661,14 @@ function verAutorizacion() {
 				<div class="form-group">
 					<label class="col-lg-1 control-label">Almacén origen <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
-						<select name="Almacen" class="form-control" id="Almacen" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+						<select name="Almacen" class="form-control" id="Almacen" required <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled";}?>>
 							<option value="">Seleccione...</option>
-						  	<?php if ($edit == 1) {?>
+						  	
+							<?php if ($edit == 1) {?>
     							<?php while ($row_Almacen = sqlsrv_fetch_array($SQL_Almacen)) {?>
-									<option value="<?php echo $row_Almacen['WhsCode']; ?>" <?php if (($edit == 1) && (isset($row['WhsCode'])) && (strcmp($row_Almacen['WhsCode'], $row['WhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_Almacen['WhsName']; ?></option>
+									<option value="<?php echo $row_Almacen['WhsCode']; ?>" <?php if (($edit == 1) && (isset($row['WhsCode'])) && ($row_Almacen['WhsCode'] == $row['WhsCode'])) {echo "selected";}?>>
+										<?php echo $row_Almacen['WhsName']; ?>
+									</option>
 						  		<?php }?>
 							<?php }?>
 						</select>
@@ -1667,13 +1677,16 @@ function verAutorizacion() {
 					<!-- Inicio, AlmacenDestino -->
 					<label class="col-lg-1 control-label">Almacén destino <span class="text-danger">*</span></label>
 					<div class="col-lg-3">
-						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+						<select name="AlmacenDestino" class="form-control" id="AlmacenDestino" required <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled";}?>>
 							<option value="">Seleccione...</option>
-						  <?php if ($edit == 1) {?>
-							<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
-								<option value="<?php echo $row_AlmacenDestino['ToWhsCode']; ?>" <?php if (($edit == 1) && (isset($row['ToWhsCode'])) && (strcmp($row_AlmacenDestino['ToWhsCode'], $row['ToWhsCode']) == 0)) {echo "selected=\"selected\"";}?>><?php echo $row_AlmacenDestino['ToWhsName']; ?></option>
+						  
+							<?php if ($edit == 1) {?>
+								<?php while ($row_AlmacenDestino = sqlsrv_fetch_array($SQL_AlmacenDestino)) {?>
+									<option value="<?php echo $row_AlmacenDestino['ToWhsCode']; ?>" <?php if (($edit == 1) && (isset($row['ToWhsCode'])) && ($row_AlmacenDestino['ToWhsCode'] == $row['ToWhsCode'])) {echo "selected";}?>>
+										<?php echo $row_AlmacenDestino['ToWhsName']; ?>
+									</option>
+								<?php }?>
 						  	<?php }?>
-						  <?php }?>
 						</select>
 					</div>
 					<!-- Fin, AlmacenDestino -->
