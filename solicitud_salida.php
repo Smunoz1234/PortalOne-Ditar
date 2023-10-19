@@ -1026,51 +1026,45 @@ function verAutorizacion() {
 		var CardCode = document.getElementById('CardCode').value;
 		var TotalItems = document.getElementById('TotalItems').value;
 
-		if(DimIdPO!="" && CardCode!="" && TotalItems!="0") {
-			Swal.fire({
-				title: "¿Desea actualizar las lineas de la <?php echo $dim['DescPortalOne']; ?>?",
-				icon: "question",
-				showCancelButton: true,
-				confirmButtonText: "Si, confirmo",
-				cancelButtonText: "No"
-			}).then((result) => {
-				if (result.isConfirmed) {
-					$('.ibox-content').toggleClass('sk-loading',true);
+		<?php if($sw_error == 0) { ?>
+			if(DimIdPO!="" && CardCode!="" && TotalItems!="0") {
+				Swal.fire({
+					title: "¿Desea actualizar las lineas de la <?php echo $dim['DescPortalOne']; ?>?",
+					icon: "question",
+					showCancelButton: true,
+					confirmButtonText: "Si, confirmo",
+					cancelButtonText: "No"
+				}).then((result) => {
+					if (result.isConfirmed) {
+						$('.ibox-content').toggleClass('sk-loading',true);
 
-					<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: `registro.php?P=36&type=1&doctype=${docType}&name=OcrCode<?php echo $OcrId; ?>&value=${Base64.encode(DimIdPO)}&cardcode=${CardCode}&actodos=1&whscode=0&line=0`,
-							success: function(response){
-								frame.src=`${detalleDoc}?type=1&id=0&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode=${CardCode}`;
+						<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: `registro.php?P=36&type=1&doctype=${docType}&name=OcrCode<?php echo $OcrId; ?>&value=${Base64.encode(DimIdPO)}&cardcode=${CardCode}&actodos=1&whscode=0&line=0`,
+								success: function(response){
+									frame.src=`${detalleDoc}?type=1&id=0&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode=${CardCode}`;
 
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-					<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: `registro.php?P=36&type=2&doctype=${docType}&name=OcrCode<?php echo $OcrId; ?>&value=${Base64.encode(DimIdPO)}&id=<?php echo $row[strval($Name_IdDoc)]; ?>&evento=<?php echo $IdEvento; ?>&actodos=1&line=0`,
-							success: function(response){
-								frame.src=`${detalleDoc}?type=2&id=<?php echo base64_encode($row[strval($Name_IdDoc)]); ?>&evento=<?php echo base64_encode($IdEvento); ?>`;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+						<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: `registro.php?P=36&type=2&doctype=${docType}&name=OcrCode<?php echo $OcrId; ?>&value=${Base64.encode(DimIdPO)}&id=<?php echo $row[strval($Name_IdDoc)]; ?>&evento=<?php echo $IdEvento; ?>&actodos=1&line=0`,
+								success: function(response){
+									frame.src=`${detalleDoc}?type=2&id=<?php echo base64_encode($row[strval($Name_IdDoc)]); ?>&evento=<?php echo base64_encode($IdEvento); ?>`;
 
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-					<?php }?>
-				}
-			});
-		} else  {
-			if(false) {
-				console.log("No se cumple la siguiente condición en la <?php echo $dim['DimName']; ?>");
-
-				console.log(`DimIdPO == ${DimIdPO}`);
-				console.log(`CardCode == ${CardCode}`);
-				console.log(`TotalItems == ${TotalItems}`);
-
-				$('.ibox-content').toggleClass('sk-loading',false);
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+						<?php }?>
+					}
+				});
+			} else  {
+				console.log("No entro a la actualización en Lote de las Dimensiones");
 			}
-		}
+		<?php } ?>
 	});
 
 <?php }?>
@@ -1157,81 +1151,85 @@ function verAutorizacion() {
 		// Actualizar AlmacenDestino, llega hasta aquí.
 
 		// Actualización del proyecto en las líneas, SMM 29/11/2022
-		$("#PrjCode").change(function() {
-			var frame=document.getElementById('DataGrid');
+		<?php if($sw_error == 0) { ?>
+			$("#PrjCode").change(function() {
+				var frame=document.getElementById('DataGrid');
 
-			if(document.getElementById('PrjCode').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas del Proyecto?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+				if(document.getElementById('PrjCode').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas del Proyecto?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=PrjCode&value="+Base64.encode(document.getElementById('PrjCode').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualizar proyecto, llega hasta aquí.
 
 		// Actualización del concepto de salida en las líneas, SMM 21/01/2023
-		$("#ConceptoSalida").change(function() {
-			var frame=document.getElementById('DataGrid');
+		<?php if($sw_error == 0) { ?>
+			$("#ConceptoSalida").change(function() {
+				var frame=document.getElementById('DataGrid');
 
-			if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas del Concepto de Salida?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+				if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas del Concepto de Salida?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=ConceptoSalida&value="+Base64.encode(document.getElementById('ConceptoSalida').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualización del concepto de salida, llega hasta aquí.
 	});
 </script>
