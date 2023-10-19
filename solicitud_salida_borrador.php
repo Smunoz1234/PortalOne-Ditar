@@ -868,42 +868,44 @@ function verAutorizacion() {
 		});
 
 		// Actualización del almacen en las líneas.
-		$("#Almacen").change(function() {
-			var frame=document.getElementById('DataGrid');
+		<?php if($sw_error == 0) { ?>
+			$("#Almacen").change(function() {
+				var frame=document.getElementById('DataGrid');
 
-			if(document.getElementById('Almacen').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+				if(document.getElementById('Almacen').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualizar almacen, llega hasta aquí.
 
 // Actualización de las dimensiones dinámicamente, SMM 22/08/2022
@@ -1063,41 +1065,43 @@ function verAutorizacion() {
 		});
 
 		// Actualización del AlmacenDestino en las líneas, SMM 29/11/2022
-		$("#AlmacenDestino").change(function(){
-			var frame=document.getElementById('DataGrid');
-			if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+		<?php if($sw_error == 0) { ?>
+			$("#AlmacenDestino").change(function(){
+				var frame=document.getElementById('DataGrid');
+				if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida_borrador.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida_borrador.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualizar AlmacenDestino, llega hasta aquí.
 
 		// Actualización del proyecto en las líneas, SMM 29/11/2022
@@ -2092,7 +2096,7 @@ if (isset($_GET['return'])) {
 		 	$("#CardName").easyAutocomplete(options);
 	 	<?php }?>
 		
-		<?php if (($edit == 0) && ($sw_error == 0)) {?>
+		<?php if ($edit == 0) {?>
 		 	$('#Serie').trigger('change');
 	 	<?php }?>
 

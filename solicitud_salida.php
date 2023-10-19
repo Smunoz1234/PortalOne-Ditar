@@ -418,9 +418,10 @@ if ($edit == 1 && $sw_error == 0) {
 }
 
 if ($sw_error == 1) {
-
     //Solicitud salida
-    $Cons = "Select * From uvw_tbl_SolicitudSalida Where ID_SolSalida='" . $IdSolSalida . "' AND IdEvento='" . $IdEvento . "'";
+    $Cons = "SELECT * FROM uvw_tbl_SolicitudSalida WHERE ID_SolSalida='$IdSolSalida' AND IdEvento='$IdEvento'";
+	// echo $Cons;
+
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -899,42 +900,44 @@ function verAutorizacion() {
 		});
 
 		// Actualización del almacen en las líneas.
-		$("#Almacen").change(function() {
-			var frame=document.getElementById('DataGrid');
+		<?php if($sw_error == 0) { ?>
+			$("#Almacen").change(function() {
+				var frame=document.getElementById('DataGrid');
 
-			if(document.getElementById('Almacen').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas del Almacen Origen?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+				if(document.getElementById('Almacen').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas del Almacen Origen?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=WhsCode&value="+Base64.encode(document.getElementById('Almacen').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualizar almacen, llega hasta aquí.
 
 // Actualización de las dimensiones dinámicamente, SMM 22/08/2022
@@ -1107,41 +1110,43 @@ function verAutorizacion() {
 		});
 
 		// Actualización del AlmacenDestino en las líneas, SMM 29/11/2022
-		$("#AlmacenDestino").change(function(){
-			var frame=document.getElementById('DataGrid');
-			if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
-				Swal.fire({
-					title: "¿Desea actualizar las lineas del Almacen Destino?",
-					icon: "question",
-					showCancelButton: true,
-					confirmButtonText: "Si, confirmo",
-					cancelButtonText: "No"
-				}).then((result) => {
-					if (result.isConfirmed) {
-						$('.ibox-content').toggleClass('sk-loading',true);
-							<?php if ($edit == 0) {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php } else {?>
-						$.ajax({
-							type: "GET",
-							url: "registro.php?P=36&doctype=4&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
-							success: function(response){
-								frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
-								$('.ibox-content').toggleClass('sk-loading',false);
-							}
-						});
-						<?php }?>
-					}
-				});
-			}
-		});
+		<?php if($sw_error == 0) { ?>
+			$("#AlmacenDestino").change(function(){
+				var frame=document.getElementById('DataGrid');
+				if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
+					Swal.fire({
+						title: "¿Desea actualizar las lineas del Almacen Destino?",
+						icon: "question",
+						showCancelButton: true,
+						confirmButtonText: "Si, confirmo",
+						cancelButtonText: "No"
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$('.ibox-content').toggleClass('sk-loading',true);
+								<?php if ($edit == 0) {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=1&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&cardcode="+document.getElementById('CardCode').value+"&whscode=0&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=0&type=1&usr=<?php echo $_SESSION['CodUser']; ?>&cardcode="+document.getElementById('CardCode').value;
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php } else {?>
+							$.ajax({
+								type: "GET",
+								url: "registro.php?P=36&doctype=4&type=2&name=ToWhsCode&value="+Base64.encode(document.getElementById('AlmacenDestino').value)+"&line=0&id=<?php echo $row['ID_SolSalida']; ?>&evento=<?php echo $IdEvento; ?>&actodos=1",
+								success: function(response){
+									frame.src="detalle_solicitud_salida.php?id=<?php echo base64_encode($row['ID_SolSalida']); ?>&evento=<?php echo base64_encode($IdEvento); ?>&type=2";
+									$('.ibox-content').toggleClass('sk-loading',false);
+								}
+							});
+							<?php }?>
+						}
+					});
+				}
+			});
+		<?php } ?>
 		// Actualizar AlmacenDestino, llega hasta aquí.
 
 		// Actualización del proyecto en las líneas, SMM 29/11/2022
@@ -1624,7 +1629,7 @@ function verAutorizacion() {
 					<?php foreach ($array_Dimensiones as &$dim) {?>
 						<label class="col-lg-1 control-label"><?php echo $dim['DescPortalOne']; ?> <span class="text-danger">*</span></label>
 						<div class="col-lg-3">
-							<select name="<?php echo $dim['IdPortalOne'] ?>" id="<?php echo $dim['IdPortalOne'] ?>" class="form-control select2 Dim" required="required" <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled='disabled'";}?>>
+							<select name="<?php echo $dim['IdPortalOne'] ?>" id="<?php echo $dim['IdPortalOne'] ?>" class="form-control select2 Dim" required <?php if (($edit == 1) && ($row['Cod_Estado'] == 'C')) {echo "disabled";}?>>
 								<option value="">Seleccione...</option>
 
 							<?php $SQL_Dim = Seleccionar('uvw_Sap_tbl_DimensionesReparto', '*', 'DimCode=' . $dim['DimCode']);?>
@@ -1633,7 +1638,9 @@ function verAutorizacion() {
 								<?php $OcrId = ($DimCode == 1) ? "" : $DimCode;?>
 
 								<option value="<?php echo $row_Dim['OcrCode']; ?>"
-								<?php if ((isset($row["OcrCode$OcrId"]) && ($row["OcrCode$OcrId"] != "")) && (strcmp($row_Dim['OcrCode'], $row["OcrCode$OcrId"]) == 0)) {echo "selected=\"selected\"";} elseif (($edit == 0) && ($row_DatosEmpleados["CentroCosto$DimCode"] != "") && (strcmp($row_DatosEmpleados["CentroCosto$DimCode"], $row_Dim['OcrCode']) == 0)) {echo "selected=\"selected\"";} elseif (isset($_GET[strval($dim['IdPortalOne'])]) && (strcmp($row_Dim['OcrCode'], base64_decode($_GET[strval($dim['IdPortalOne'])])) == 0)) {echo "selected=\"selected\"";}?>>
+								<?php if (isset($row["OcrCode$OcrId"]) && ($row_Dim['OcrCode'] == $row["OcrCode$OcrId"])) {echo "selected";} 
+									elseif ((($edit == 0) && ($sw_error == 0)) && ($row_DatosEmpleados["CentroCosto$DimCode"] == $row_Dim['OcrCode'])) {echo "selected";} 
+									elseif (isset($_GET[strval($dim['IdPortalOne'])]) && (strcmp($row_Dim['OcrCode'], base64_decode($_GET[strval($dim['IdPortalOne'])])) == 0)) {echo "selected";}?>>
 									<?php echo $row_Dim['OcrCode'] . "-" . $row_Dim['OcrName']; ?>
 								</option>
 							<?php }?>
@@ -2100,7 +2107,7 @@ if ($edit == 1) {?>
 			$("#CardName").easyAutocomplete(options);
 	 	<?php }?>
 		
-		<?php if ($edit == 0 && ($sw_error == 0)) {?>
+		<?php if ($edit == 0) {?>
 		 	$('#Serie').trigger('change');
 	 	<?php }?>
 	});
