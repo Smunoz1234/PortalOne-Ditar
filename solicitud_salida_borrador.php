@@ -2087,11 +2087,13 @@ if (isset($_GET['return'])) {
 				  }
 			  }
 		 };
-		  <?php if ($edit == 0) {?>
-		 $("#CardName").easyAutocomplete(options);
-	 	 <?php }?>
+		
 		<?php if ($edit == 0) {?>
-		 $('#Serie').trigger('change');
+		 	$("#CardName").easyAutocomplete(options);
+	 	<?php }?>
+		
+		<?php if (($edit == 0) && ($sw_error == 0)) {?>
+		 	$('#Serie').trigger('change');
 	 	<?php }?>
 
 		// SMM, 18/12/2022
