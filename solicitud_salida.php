@@ -874,18 +874,19 @@ function verAutorizacion() {
 
 		$("#Serie").change(function() {
 			$('.ibox-content').toggleClass('sk-loading',true);
-
-			console.log("SDim Message,\n<?php echo $console_Msg; ?>"); // SMM, 29/08/2022
+			
+			console.log("OnChange de la Serie");
+			console.log("SDim Message,\n<?php echo $console_Msg; ?>");
 
 			var Serie=document.getElementById('Serie').value;
-			var SDim = document.getElementById('<?php echo $SDimPO; ?>').value; // SMM, 29/08/2022
+			var SDim = document.getElementById('<?php echo $SDimPO; ?>').value;
 
 			$.ajax({
 				type: "POST",
-				url: `ajx_cbo_select.php?type=19&id=${Serie}&SDim=${SDim}`, // SMM, 29/08/2022
+				url: `ajx_cbo_select.php?type=19&id=${Serie}&SDim=${SDim}`,
 				success: function(response){
-					$('#<?php echo $SDimPO; ?>').html(response).fadeIn(); // SMM, 29/08/2022
-					$('#<?php echo $SDimPO; ?>').trigger('change'); // SMM, 29/08/2022
+					$('#<?php echo $SDimPO; ?>').html(response).fadeIn();
+					$('#<?php echo $SDimPO; ?>').trigger('change');
 
 					$('.ibox-content').toggleClass('sk-loading',false);
 				},
@@ -903,7 +904,7 @@ function verAutorizacion() {
 
 			if(document.getElementById('Almacen').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
 				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
+					title: "¿Desea actualizar las lineas del Almacen Origen?",
 					icon: "question",
 					showCancelButton: true,
 					confirmButtonText: "Si, confirmo",
@@ -944,6 +945,7 @@ function verAutorizacion() {
 	<?php $OcrId = ($DimCode == 1) ? "" : $DimCode;?>
 
 	$("#<?php echo $dim['IdPortalOne']; ?>").change(function() {
+		console.log("OnChange de la <?php echo $dim['DescPortalOne']; ?>");
 
 		var docType = 4;
 		var detalleDoc = "detalle_solicitud_salida.php";
@@ -1109,7 +1111,7 @@ function verAutorizacion() {
 			var frame=document.getElementById('DataGrid');
 			if(document.getElementById('AlmacenDestino').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
 				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
+					title: "¿Desea actualizar las lineas del Almacen Destino?",
 					icon: "question",
 					showCancelButton: true,
 					confirmButtonText: "Si, confirmo",
@@ -1148,7 +1150,7 @@ function verAutorizacion() {
 
 			if(document.getElementById('PrjCode').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
 				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
+					title: "¿Desea actualizar las lineas del Proyecto?",
 					icon: "question",
 					showCancelButton: true,
 					confirmButtonText: "Si, confirmo",
@@ -1187,7 +1189,7 @@ function verAutorizacion() {
 
 			if(document.getElementById('ConceptoSalida').value!=""&&document.getElementById('CardCode').value!=""&&document.getElementById('TotalItems').value!="0"){
 				Swal.fire({
-					title: "¿Desea actualizar las lineas?",
+					title: "¿Desea actualizar las lineas del Concepto de Salida?",
 					icon: "question",
 					showCancelButton: true,
 					confirmButtonText: "Si, confirmo",
@@ -2077,7 +2079,7 @@ if ($edit == 1) {?>
 
 		// $('#Autorizacion option:not(:selected)').attr('disabled',true);
 
-		 var options = {
+		var options = {
 			  url: function(phrase) {
 				  return "ajx_buscar_datos_json.php?type=7&id="+phrase;
 			  },
@@ -2093,11 +2095,13 @@ if ($edit == 1) {?>
 				  }
 			  }
 		 };
-		  <?php if ($edit == 0) {?>
-		 $("#CardName").easyAutocomplete(options);
-	 	 <?php }?>
+		
 		<?php if ($edit == 0) {?>
-		 $('#Serie').trigger('change');
+			$("#CardName").easyAutocomplete(options);
+	 	<?php }?>
+		
+		<?php if ($edit == 0 && ($sw_error == 0)) {?>
+		 	$('#Serie').trigger('change');
 	 	<?php }?>
 	});
 </script>
