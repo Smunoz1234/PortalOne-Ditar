@@ -772,7 +772,7 @@ while ($Concepto = sqlsrv_fetch_array($SQL_Conceptos)) {
 }
 
 $Filtro_Conceptos = "Estado = 'Y'";
-if (count($Conceptos) > 0 && ($edit == 0)) {
+if ((count($Conceptos) > 0) && ($edit == 0) && !PermitirFuncion(1217)) {
     $Filtro_Conceptos .= " AND id_concepto_salida IN (";
     $Filtro_Conceptos .= implode(",", $Conceptos);
     $Filtro_Conceptos .= ")";
