@@ -10,9 +10,9 @@ if(isset($_POST['BaseDatos'])&&$_POST['BaseDatos']!=""){
 	exit();
 }
 date_default_timezone_set('America/Bogota');
-$usuario='sa';
-$password='S0p0rte0';
-$servidor='bdatos2016\datos2';
+$usuario='portalone';
+$password='5q{+6y0b7YlK';
+$servidor='BDATOS2016';
 $connectionInfo = array( "UID"=>$usuario,"PWD"=>$password,"Database"=>$database,"CharacterSet" => "UTF-8");
 $conexion=sqlsrv_connect($servidor,$connectionInfo);
 if( $conexion === false ){
