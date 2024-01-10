@@ -294,8 +294,8 @@ if (isset($_GET['dt_TI']) && ($_GET['dt_TI']) == 1) { //Verificar que viene de u
 if ($edit == 1 && $sw_error == 0) {
 
     $ParametrosLimpiar = array(
-        "'" . $IdSalidaInv . "'",
-        "'" . $IdPortal . "'",
+        "'$IdSalidaInv'",
+        "'$IdPortal'",
         "'" . $_SESSION['CodUser'] . "'",
     );
     $LimpiarSolSalida = EjecutarSP('sp_EliminarDatosSalidaInventario', $ParametrosLimpiar);
@@ -303,8 +303,10 @@ if ($edit == 1 && $sw_error == 0) {
     $SQL_IdEvento = sqlsrv_fetch_array($LimpiarSolSalida);
     $IdEvento = $SQL_IdEvento[0];
 
-    //Salida inventario
-    $Cons = "Select * From uvw_tbl_SalidaInventario Where DocEntry='" . $IdSalidaInv . "' AND IdEvento='" . $IdEvento . "'";
+    // Salida inventario
+	// $IdSalidaInv = 170284;
+	// $IdEvento = 14201;
+    $Cons = "SELECT * FROM uvw_tbl_SalidaInventario WHERE DocEntry='$IdSalidaInv' AND IdEvento='$IdEvento'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
@@ -338,8 +340,8 @@ if ($edit == 1 && $sw_error == 0) {
 
 if ($sw_error == 1) {
 
-    //Salida de inventario
-    $Cons = "Select * From uvw_tbl_SalidaInventario Where ID_SalidaInv='" . $IdSalidaInv . "' AND IdEvento='" . $IdEvento . "'";
+    // Salida de inventario
+    $Cons = "SELECT * FROM uvw_tbl_SalidaInventario WHERE DocEntry='$IdSalidaInv' AND IdEvento='$IdEvento'";
     $SQL = sqlsrv_query($conexion, $Cons);
     $row = sqlsrv_fetch_array($SQL);
 
