@@ -2239,12 +2239,6 @@ $return = QuitarParametrosURL($return, array("a"));
 					"icon": "warning"
 				});
 			} else {
-				Swal.fire({
-					"title": "¡Listo!",
-					"text": "Puede continuar con la creación del documento.",
-					"icon": "success"
-				});
-
 				// Cambiar estado de autorización a pendiente.
 				if($("#Autorizacion").val() == "N") {
 					$("#Autorizacion").val("P").change();
@@ -2254,6 +2248,18 @@ $return = QuitarParametrosURL($return, array("a"));
 					$('#Autorizacion option:not(:selected)').attr('disabled', true);
 				}
 				$('#modalAUT').modal('hide');
+
+				Swal.fire({
+					icon: "success",
+					title: "¡Listo!",
+					text: "Puede continuar con la creación del documento."
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// $("#CrearTrasladoInventario").submit();
+						$("#Crear").click();
+						// $("#Actualizar").click();
+					}
+				});
 			}
 		});
 		// Almacenar campos autorización, hasta aquí.

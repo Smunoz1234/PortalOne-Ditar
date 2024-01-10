@@ -1999,12 +1999,6 @@ if (isset($_GET['return'])) {
 					"icon": "warning"
 				});
 			} else {
-				Swal.fire({
-					"title": "¡Listo!",
-					"text": "Puede continuar con la actualización del documento.",
-					"icon": "success"
-				});
-
 				// Cambiar estado de autorización a pendiente.
 				if($("#Autorizacion").val() == "N") {
 					$("#Autorizacion").val("P").change();
@@ -2019,8 +2013,19 @@ if (isset($_GET['return'])) {
 						"icon": "warning"
 					});
 				}
-
 				$('#modalAUT').modal('hide');
+
+				Swal.fire({
+					icon: "success",
+					title: "¡Listo!",
+					text: "Puede continuar con la actualización del documento."
+				}).then((result) => {
+					if (result.isConfirmed) {
+						// $("#CrearSolicitudSalida").submit();
+						// $("#Crear").click();
+						$("#Actualizar").click();
+					}
+				});
 			}
 		});
 		// Almacenar campos autorización, hasta aquí.
